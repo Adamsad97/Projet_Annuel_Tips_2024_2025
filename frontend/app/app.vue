@@ -19,31 +19,7 @@ watch(showSearch, (open: boolean) => {
 })
 
 // SEO Config
-const siteTitle = 'AideFlash'
-const siteDescription = "La communauté d'entraide pour développeurs. Partagez vos tips, progressez et gagnez de l'XP !"
-const siteUrl = 'https://aideflash.fr'
-const siteImage = 'https://aideflash.fr/og-image-default.jpg'
-
-useHead({
-  htmlAttrs: { lang: 'fr' },
-  link: [
-    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-    { rel: 'canonical', href: siteUrl }
-  ],
-  titleTemplate: (titleChunk?: string) => titleChunk ? `${titleChunk} - ${siteTitle}` : siteTitle
-})
-
-useSeoMeta({
-  description: siteDescription,
-  ogTitle: siteTitle,
-  ogDescription: siteDescription,
-  ogImage: siteImage,
-  ogUrl: siteUrl,
-  twitterCard: 'summary_large_image',
-  twitterTitle: siteTitle,
-  twitterDescription: siteDescription,
-  twitterImage: siteImage,
-})
+useSiteMeta()
 </script>
 
 <template>
@@ -58,12 +34,10 @@ useSeoMeta({
       </AppHeader>
 
       <!-- BARRE DE RECHERCHE MOBILE -->
-      <Transition
-enter-active-class="transition duration-200 ease-out" enter-from-class="-translate-y-2 opacity-0"
+      <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="-translate-y-2 opacity-0"
         enter-to-class="translate-y-0 opacity-100" leave-active-class="transition duration-150 ease-in"
         leave-from-class="translate-y-0 opacity-100" leave-to-class="-translate-y-2 opacity-0">
-        <div
-v-if="showSearch"
+        <div v-if="showSearch"
           class="absolute left-0 right-0 w-full bg-white dark:bg-slate-800 border-b border-purple-100 dark:border-slate-700 shadow-lg py-3 px-4 md:hidden z-50">
           <div class="max-w-lg mx-auto relative">
             <SearchInput ref="inputRef" placeholder="Rechercher un tips..." @blur="showSearch = false" />
@@ -98,8 +72,7 @@ v-if="showSearch"
     </div>
 
     <!-- Overlay sombre si recherche active (Mobile) -->
-    <div
-v-if="showSearch" class="fixed inset-0 bg-black/20 backdrop-blur-xs z-30 md:hidden"
+    <div v-if="showSearch" class="fixed inset-0 bg-black/20 backdrop-blur-xs z-30 md:hidden"
       @click="showSearch = false" />
   </div>
 </template>

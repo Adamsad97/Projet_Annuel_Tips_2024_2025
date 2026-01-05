@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import SidebarButton from './SidebarButton.vue'
-import { mainLinks } from '@@/utils/navigation'
+import { mainLinks } from '~/utils/navigation'
 </script>
 
 <template>

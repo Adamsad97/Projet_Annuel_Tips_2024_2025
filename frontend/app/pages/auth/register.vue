@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { RegisterDTO } from '@@/types'
+
 const { register } = useAuth()
 const isLoading = ref(false)
 
-const form = reactive({
+const form = ref<RegisterDTO>({
   username: '',
   email: '',
   password: ''
@@ -11,13 +13,14 @@ const form = reactive({
 const handleRegister = async () => {
   if (isLoading.value) return
   isLoading.value = true
-  await register(form.username, form.email, form.password)
+  await register(form.value)
   isLoading.value = false
 }
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+  <div
+    class="min-h-screen rounded-2xl flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
     <!-- Background Elements -->
     <div
       class="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-purple-400/20 rounded-full blur-[120px] pointer-events-none" />

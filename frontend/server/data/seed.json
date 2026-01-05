@@ -2,26 +2,26 @@
   "users": [
     {
       "id": 1,
-      "user_name": "Jean Dupont",
-      "email": "jean.dupont@example.com",
+      "user_name": "Sophie Jardins",
+      "email": "sophie.j@example.com",
       "password": "hashed_password_1",
-      "avatar_profile": "https://i.pravatar.cc/150?u=1",
-      "bio": "Expert React et Vue.js, passionné par l'UI/UX.",
-      "address": "Paris, France",
+      "avatar_profile": "https://i.pravatar.cc/150?u=25",
+      "bio": "Passionnée de permaculture et de potager urbain.",
+      "address": "Lyon, France",
       "trust_index": 100,
       "is_two_factor_enabled": true,
       "created_at": "2023-01-15T09:00:00Z",
       "updated_at": "2023-12-01T10:00:00Z",
-      "grade_id": 15
+      "grade_id": 3
     },
     {
       "id": 2,
-      "user_name": "Marie Curie",
-      "email": "marie.curie@example.com",
+      "user_name": "Michel Bricolo",
+      "email": "michel.b@example.com",
       "password": "hashed_password_2",
-      "avatar_profile": "https://i.pravatar.cc/150?u=2",
-      "bio": "DevOps Engineer & Docker Enthusiast.",
-      "address": "Lyon, France",
+      "avatar_profile": "https://i.pravatar.cc/150?u=56",
+      "bio": "Je répare tout ce qui se casse. Spécialiste plomberie.",
+      "address": "Lille, France",
       "trust_index": 95,
       "is_two_factor_enabled": false,
       "created_at": "2023-02-20T14:30:00Z",
@@ -30,11 +30,11 @@
     },
     {
       "id": 3,
-      "user_name": "Albert Einstein",
-      "email": "albert@example.com",
+      "user_name": "Lucas Tech",
+      "email": "lucas@example.com",
       "password": "hashed_password_3",
-      "avatar_profile": "https://i.pravatar.cc/150?u=3",
-      "bio": "J'aime résoudre des problèmes complexes en JS.",
+      "avatar_profile": "https://i.pravatar.cc/150?u=12",
+      "bio": "Geek invétéré, je partage mes astuces Windows et Mac.",
       "address": "Bordeaux, France",
       "trust_index": 80,
       "is_two_factor_enabled": true,
@@ -44,17 +44,17 @@
     },
     {
       "id": 4,
-      "user_name": "Alice Dev",
-      "email": "alice@example.com",
+      "user_name": "Julie Cuisine",
+      "email": "julie@example.com",
       "password": "hashed_password_4",
-      "avatar_profile": "https://i.pravatar.cc/150?u=4",
-      "bio": "Fullstack Developer Node.js & Vue.",
+      "avatar_profile": "https://i.pravatar.cc/150?u=44",
+      "bio": "La cuisine simple et rapide pour tous les jours.",
       "address": "Nantes, France",
-      "trust_index": 60,
+      "trust_index": 98,
       "is_two_factor_enabled": false,
       "created_at": "2023-05-12T11:00:00Z",
       "updated_at": "2023-09-01T14:00:00Z",
-      "grade_id": 1
+      "grade_id": 4
     }
   ],
   "grades": [
@@ -66,93 +66,143 @@
   "categories": [
     {
       "id": 1,
-      "name": "Frontend",
-      "description": "Tout sur le développement côté client"
+      "name": "Bricolage",
+      "description": "Réparations, rénovations et travaux manuels"
     },
     {
       "id": 2,
-      "name": "Backend",
-      "description": "Serveurs, bases de données et API"
+      "name": "Cuisine",
+      "description": "Recettes, astuces de chef et conservation"
     },
-    { "id": 3, "name": "DevOps", "description": "CI/CD, Docker, Kubernetes" },
+    {
+      "id": 3,
+      "name": "Jardinage",
+      "description": "Potager, fleurs et entretien extérieur"
+    },
     {
       "id": 4,
-      "name": "Mobile",
-      "description": "iOS, Android, React Native, Flutter"
+      "name": "Informatique",
+      "description": "Dépannage, logiciels et astuces numériques"
     }
   ],
   "tips": [
     {
       "id": 1,
-      "title": "Utiliser les hooks personnalisés en React",
-      "content": "Découvrez comment créer et utiliser des hooks personnalisés en React...",
+      "title": "Réparer un robinet qui goutte",
+      "description": "Ne laissez plus l'eau couler ! Voici comment changer un joint en 10 minutes.",
+      "content": "Étapes : 1. Couper l'eau. 2. Dévisser la tête du robinet. 3. Remplacer le joint torique. 4. Remonter et tester.",
       "created_at": "2023-12-07T10:00:00Z",
       "updated_at": "2023-12-07T10:00:00Z",
-      "user_id": 1,
+      "user_id": 2,
       "category_ids": [1],
-      "tags": ["react", "javascript", "hooks"],
-      "difficulty": 4,
-      "views": 150,
-      "address": "Bordeaux, France",
-      "lat": 44.8378,
-      "lng": -0.5792
+      "tags": ["plomberie", "économie", "eau"],
+      "difficulty": 2,
+      "views": 342,
+      "address": "Lille, France",
+      "images": [
+        "https://images.unsplash.com/photo-1585704117618-846394dc5060?auto=format&fit=crop&q=80&w=300"
+      ],
+      "lat": 50.6292,
+      "lng": 3.0573
     },
     {
       "id": 2,
-      "title": "Introduction à Docker pour les développeurs",
-      "content": "Apprenez les bases de Docker, un outil de conteneurisation populaire...",
+      "title": "Tomates cerises : réussir ses semis",
+      "description": "Le secret pour avoir des tomates sucrées même sur un balcon.",
+      "content": "Semez en intérieur dès mars. Utilisez un terreau spécial semis. Gardez humide mais pas trempé. Sortez les plants après les Saints de Glace.",
       "created_at": "2023-12-05T14:00:00Z",
       "updated_at": "2023-12-05T14:00:00Z",
-      "user_id": 2,
+      "user_id": 1,
       "category_ids": [3],
-      "tags": ["docker", "devops", "containers"],
-      "difficulty": 3,
-      "views": 95,
+      "tags": ["potager", "bio", "balcon"],
+      "difficulty": 1,
+      "views": 890,
       "address": "Lyon, France",
+      "images": [
+        "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&q=80&w=300"
+      ],
       "lat": 45.764,
       "lng": 4.8357
     },
     {
       "id": 3,
-      "title": "Maîtriser les promesses en JavaScript",
-      "content": "Comprenez le fonctionnement des promesses en JavaScript...",
+      "title": "Accélérer Windows 10/11",
+      "description": "Votre PC est lent ? Désactivez ces options inutiles.",
+      "content": "Désactivez les applications au démarrage (Ctrl+Maj+Echap > Démarrage). Supprimez les fichiers temporaires avec l'outil de nettoyage de disque.",
       "created_at": "2023-12-03T09:00:00Z",
       "updated_at": "2023-12-03T09:00:00Z",
       "user_id": 3,
-      "category_ids": [1],
-      "tags": ["javascript", "asynchrone", "promises"],
-      "difficulty": 2,
-      "views": 80,
-      "address": "Paris, France",
-      "lat": 48.8566,
-      "lng": 2.3522
+      "category_ids": [4],
+      "tags": ["windows", "performance", "nettoyage"],
+      "difficulty": 1,
+      "views": 1250,
+      "address": "Bordeaux, France",
+      "images": [
+        "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=300"
+      ],
+      "lat": 44.8378,
+      "lng": -0.5792
     },
     {
       "id": 4,
-      "title": "Architecture Nuxt 4 & Tailwind",
-      "content": "Guide complet pour configurer un projet Nuxt 4...",
+      "title": "Pâtes Carbonara : la VRAIE recette",
+      "description": "Pas de crème fraîche ! Découvrez la recette authentique romaine.",
+      "content": "Ingrédients : Guanciale, Pecorino, Oeufs, Poivre noir. Cuire les pâtes al dente. Mélanger oeufs et fromage. Ajouter un peu d'eau de cuisson pour lier la sauce.",
       "created_at": "2023-12-10T10:00:00Z",
       "updated_at": "2023-12-10T10:00:00Z",
-      "user_id": 2,
-      "category_ids": [1],
-      "tags": ["nuxt", "vue", "architecture"],
-      "difficulty": 4,
-      "views": 450,
+      "user_id": 4,
+      "category_ids": [2],
+      "tags": ["cuisine", "italie", "recette"],
+      "difficulty": 3,
+      "views": 2100,
       "address": "Nantes, France",
+      "images": [
+        "https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80&w=300"
+      ],
       "lat": 47.2184,
       "lng": -1.5536
     },
     {
       "id": 5,
-      "title": "Dockeriser une app Node.js",
-      "content": "Les bonnes pratiques pour créer une image Docker légère...",
+      "title": "Monter une étagère sans niveau",
+      "description": "L'astuce du verre d'eau pour vérifier l'horizontalité.",
+      "content": "Si vous n'avez pas de niveau à bulle, remplissez un verre d'eau transparent à ras bord (ou avec un trait repère). Posez-le sur l'étagère. Si l'eau est parallèle au bord, c'est droit !",
       "created_at": "2023-12-01T11:00:00Z",
       "updated_at": "2023-12-01T11:00:00Z",
-      "user_id": 4,
-      "category_ids": [3, 2],
-      "tags": ["devops", "docker", "nodejs"],
-      "difficulty": 2,
-      "views": 89
+      "user_id": 2,
+      "category_ids": [1],
+      "tags": ["bricolage", "astuce", "outils"],
+      "difficulty": 1,
+      "views": 450,
+      "images": [
+        "https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?auto=format&fit=crop&q=80&w=300"
+      ]
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "tip_id": 2,
+      "user_id": 2,
+      "content": "Super technique ! J'ai essayé l'année dernière et j'ai eu pleins de tomates.",
+      "created_at": "2023-12-06T10:00:00Z",
+      "parent_id": null
+    },
+    {
+      "id": 2,
+      "tip_id": 2,
+      "user_id": 1,
+      "content": "Merci Michel ! N'oublie pas de bien arroser pendant la canicule.",
+      "created_at": "2023-12-06T12:00:00Z",
+      "parent_id": 1
+    },
+    {
+      "id": 3,
+      "tip_id": 4,
+      "user_id": 3,
+      "content": "Enfin quelqu'un qui respecte la vraie recette. Pas de crème !",
+      "created_at": "2023-12-10T14:30:00Z",
+      "parent_id": null
     }
   ]
 }

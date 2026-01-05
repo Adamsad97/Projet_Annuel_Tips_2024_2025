@@ -1,10 +1,10 @@
-import type { User } from '@@/types'
+import type { User, LoginCredentials, RegisterDTO } from '@@/types'
 
 export const useAuth = () => {
   const user = useState<User | null>('auth-user', () => null)
   const token = useState<string | null>('auth-token', () => null)
 
-  const login = async (credentials: Record<string, any>) => {
+  const login = async (credentials: LoginCredentials) => {
     try {
       const response = await $fetch<{ user: User, token: string }>('/api/auth/login', {
         method: 'POST',
@@ -19,7 +19,7 @@ export const useAuth = () => {
     }
   }
 
-  const register = async (details: Record<string, any>) => {
+  const register = async (details: RegisterDTO) => {
     try {
       const response = await $fetch<{ user: User, token: string }>('/api/auth/register', {
         method: 'POST',

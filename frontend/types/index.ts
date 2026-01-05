@@ -4,6 +4,17 @@ export interface Grade {
   xp_required: number
 }
 
+export interface LoginCredentials {
+  email: string
+  password: string
+}
+
+export interface RegisterDTO {
+  username: string
+  email: string
+  password: string
+}
+
 export interface DbUser {
   id: number
   user_name: string
@@ -38,11 +49,16 @@ export interface Tip {
   address?: string
   lat?: number
   lng?: number
+  images?: string[] // URLs
+  documents?: { name: string, url: string }[]
 }
 
 export interface User {
   id: number
   name: string
+  email?: string
+  bio?: string
+  address?: string
   xp: number
   tips: number
   votes: number

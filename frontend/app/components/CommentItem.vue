@@ -18,8 +18,7 @@ const toggleCollapse = () => isCollapsed.value = !isCollapsed.value
 <template>
   <div class="relative group">
     <!-- Ligne verticale de fil (Thread line) -->
-    <div
-v-if="depth > 0"
+    <div v-if="depth > 0"
       class="absolute -left-4 top-0 bottom-0 w-px bg-gray-200 dark:bg-slate-700 group-last:bottom-auto group-last:h-6" />
 
     <div class="flex gap-3" :class="{ 'opacity-60': isCollapsed }">
@@ -36,8 +35,7 @@ v-if="depth > 0"
           <span class="text-xs text-gray-400">{{ comment.publishedAgo }}</span>
 
           <!-- Bouton Collapse (visible au hover ou si plié) -->
-          <button
-class="text-gray-400 hover:text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity px-1"
+          <button class="text-gray-400 hover:text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity px-1"
             title="Réduire/Déplier" @click="toggleCollapse">
             <Icon :name="isCollapsed ? 'tabler:arrows-maximize' : 'tabler:minus'" class="w-3 h-3" />
           </button>
@@ -59,13 +57,11 @@ class="text-gray-400 hover:text-purple-500 opacity-0 group-hover:opacity-100 tra
 
           <!-- Zone de réponse -->
           <div v-if="isReplying" class="mb-4 animate-fade-in-down">
-            <textarea
-v-model="replyContent"
+            <textarea v-model="replyContent"
               class="w-full p-2 text-sm border border-gray-200 dark:border-slate-700 rounded-lg bg-gray-50 dark:bg-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
               rows="2" placeholder="Votre réponse..." />
             <div class="flex justify-end gap-2 mt-2">
-              <button
-class="text-xs text-gray-500 hover:text-gray-700 px-3 py-1"
+              <button class="text-xs text-gray-500 hover:text-gray-700 px-3 py-1"
                 @click="isReplying = false">Annuler</button>
               <button
                 class="text-xs bg-emerald-500 text-white px-3 py-1 rounded-md hover:bg-emerald-600">Envoyer</button>
@@ -80,8 +76,7 @@ class="text-xs text-gray-500 hover:text-gray-700 px-3 py-1"
 
         <!-- RÉCURSIVITÉ : Réponses (Enfants) -->
         <!-- On ne les affiche que si NON plié -->
-        <div
-v-if="comment.replies && comment.replies.length > 0 && !isCollapsed"
+        <div v-if="comment.replies && comment.replies.length > 0 && !isCollapsed"
           class="mt-4 pl-4 border-l-2 border-gray-100 dark:border-slate-800 space-y-4">
           <CommentItem v-for="reply in comment.replies" :key="reply.id" :comment="reply" :depth="depth + 1" />
         </div>

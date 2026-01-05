@@ -27,7 +27,7 @@ export default defineEventHandler((event) => {
   return {
     id: tipData.id,
     title: tipData.title,
-    description: tipData.content,
+    description: tipData.description,
     content: tipData.content,
     tags: tipData.tags,
     difficulty: tipData.difficulty,
@@ -37,6 +37,8 @@ export default defineEventHandler((event) => {
     created_at: tipData.created_at,
     address: tipData.address,
     lat: tipData.lat,
-    lng: tipData.lng
+    lng: tipData.lng,
+    images: tipData.images,
+    documents: tipData.documents
   } as Tip
 })

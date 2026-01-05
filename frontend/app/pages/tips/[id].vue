@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import ProfilPicture from '~/components/ProfilPicture.vue'
-import CommentsSection from '~/components/CommentsSection.vue' // Assure-toi d'avoir créé ce composant
+import CommentsSection from '~/components/CommentsSection.vue'
+import TipHero from '~/components/tips/TipHero.vue'
+import TipGallery from '~/components/tips/TipGallery.vue'
+import TipMap from '~/components/tips/TipMap.vue'
+import TipResources from '~/components/tips/TipResources.vue'
+import TipAuthorCard from '~/components/tips/TipAuthorCard.vue'
+
 const route = useRoute()
 const tipId = route.params.id
 
-// Fetch Tip Data
+// Fetch Tip Data (Mock ou API)
 const { data: tip, error } = await useFetch<Tip>(`/api/tips/${tipId}`)
 
 if (error.value || !tip.value) {
@@ -14,120 +19,76 @@ if (error.value || !tip.value) {
 useSeoMeta({
   title: () => tip.value?.title,
   description: () => tip.value?.description?.substring(0, 160),
-  ogTitle: () => `Astuce : ${tip.value?.title}`,
-  ogDescription: () => `Découvrez ce tips de ${tip.value?.author?.name} sur AideFlash !`,
 })
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto py-6 md:py-10 space-y-12 px-4 md:px-0">
+  <!-- FOND FIXE AVEC GRADIENTS -->
+  <div class="min-h-screen">
 
-    <header>
-      <h1 class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-3 leading-tight">
-        {{ tip.title }}
-      </h1>
+    <!-- HERO SECTION -->
+    <TipHero :tip="tip" />
 
-      <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-gray-500 dark:text-gray-400 mb-6">
-        <div class="flex items-center gap-1">
-          <Icon name="tabler:clock" class="w-3.5 h-3.5" />
-          <span>Publié {{ tip.publishedAgo }}</span>
-        </div>
-        <div class="hidden md:block w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-        <div class="flex items-center gap-1">
-          <Icon name="tabler:edit" class="w-3.5 h-3.5" />
-          <span>Mis à jour {{ tip.updatedAgo }}</span>
-        </div>
-        <div class="hidden md:block w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-        <div class="flex items-center gap-1">
-          <Icon name="tabler:eye" class="w-3.5 h-3.5" />
-          <span>{{ tip.views }} vues</span>
-        </div>
-      </div>
+    <!-- MAIN GRID -->
+    <div class="max-w-7xl mx-auto px-4 md:px-6 -mt-4 relative z-20">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-      <hr class="border-purple-100 dark:border-purple-900/50">
-    </header>
+        <!-- LEFT COLUMN (Content) -->
+        <main class="lg:col-span-8 space-y-8">
 
-    <!-- CONTENU PRINCIPAL (Layout 2 colonnes) -->
-    <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+          <!-- 1. CONTENU (Carte Glassmorphism Principale) -->
+          <article
+            class="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-4xl p-8 md:p-12 shadow-2xl shadow-purple-500/5 border border-white/50 dark:border-white/5 ring-1 ring-white/20 relative overflow-hidden">
+            <!-- Subtle gradient overlay -->
+            <div class="absolute inset-0 bg-linear-to-b from-white/20 to-transparent pointer-events-none" />
 
-      <!-- COLONNE GAUCHE : Contenu du Tip -->
-      <article class="flex-1 w-full min-w-0">
-        <!-- Carte Contenu -->
-        <div
-          class="rounded-3xl bg-linear-to-br from-white/50 to-purple-50/50 dark:from-slate-800 dark:to-slate-900/50 border border-purple-100/50 dark:border-slate-700/50 shadow-lg p-6 md:p-8">
+            <!-- Intro -->
+            <p
+              class="relative text-xl md:text-2xl font-medium text-slate-700 dark:text-slate-200 leading-relaxed mb-10 pl-6 border-l-4 border-purple-500/50">
+              {{ tip.description }}
+            </p>
 
-          <!-- Description (Supporte le Markdown via une lib si besoin, ici texte brut pour l'exemple) -->
-          <div
-            class="prose dark:prose-invert max-w-none mb-8 text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-            {{ tip.description }}
-          </div>
-
-          <!-- Tags -->
-          <div class="flex flex-wrap gap-2 mb-8">
-            <span v-for="tag in tip.tags" :key="tag"
-              class="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 border border-purple-100 dark:border-slate-600 text-xs font-bold text-purple-600 dark:text-purple-300 shadow-sm uppercase tracking-wide">
-              #{{ tag }}
-            </span>
-          </div>
-
-          <!-- Difficulté -->
-          <div
-            class="flex items-center justify-between p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-purple-50 dark:border-slate-700">
-            <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Niveau de
-              difficulté</span>
-            <div class="flex items-center gap-1" title="Difficulté 1/5">
-              <Icon v-for="i in 5" :key="i" name="tabler:bolt-filled" class="w-5 h-5"
-                :class="i <= tip.difficulty ? 'text-green-400 drop-shadow-sm' : 'text-gray-200 dark:text-slate-700'" />
-            </div>
-          </div>
-
-        </div>
-      </article>
-
-      <!-- COLONNE DROITE : Auteur & Actions (Sticky) -->
-      <aside class="w-full lg:w-72 flex flex-col gap-6 lg:sticky lg:top-24">
-
-        <!-- Carte Auteur -->
-        <div
-          class="rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-md p-5 flex flex-col items-center text-center">
-          <div class="relative mb-3">
-            <ProfilPicture :src="tip.author.avatar" class="mb-4" />
+            <!-- Corps du texte -->
             <div
-              class="absolute -bottom-2 -right-2 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-white dark:border-slate-800">
-              LVL {{ Math.floor(tip.author.xp / 100) }}
+              class="relative prose prose-lg dark:prose-invert max-w-none 
+              prose-headings:font-black prose-headings:text-slate-900 dark:prose-headings:text-white
+              prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed
+              prose-a:text-purple-600 dark:prose-a:text-purple-400 hover:prose-a:underline
+              prose-strong:text-slate-900 dark:prose-strong:text-white
+              prose-code:text-pink-600 dark:prose-code:text-pink-400 prose-code:bg-pink-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md">
+              <div class="whitespace-pre-line">{{ tip.content }}</div>
             </div>
-          </div>
+          </article>
 
-          <h3 class="font-bold text-slate-800 dark:text-white text-lg">{{ tip.author.name }}</h3>
-          <p class="text-xs text-purple-500 font-medium uppercase tracking-wide mb-1">{{ tip.author.role }}</p>
-          <p class="text-xs text-gray-400">{{ tip.author.xp.toLocaleString() }} XP totaux</p>
+          <!-- 2. PHOTOS -->
+          <TipGallery :images="tip.images" />
 
-          <button
-            class="mt-4 w-full py-2 rounded-xl border border-gray-200 dark:border-slate-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
-            Voir le profil
-          </button>
-        </div>
+          <!-- 3. BENTO GRID (Map & Docs) -->
+          <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TipMap :lat="tip.lat" :lng="tip.lng" :address="tip.address" />
+            <TipResources :documents="tip.documents" />
+          </section>
 
-        <!-- Boutons Actions -->
-        <div class="grid grid-cols-1 gap-3">
-          <button
-            class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all transform active:scale-95 font-bold text-sm">
-            <Icon name="tabler:bulb" class="w-5 h-5" />
-            Proposer une amélioration
-          </button>
+          <!-- Commentaires -->
+          <CommentsSection class="pt-8 border-t border-slate-200/50 dark:border-white/5" />
+        </main>
 
-          <button
-            class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-700 text-gray-600 dark:text-gray-300 transition-colors font-medium text-sm">
-            <Icon name="tabler:share" class="w-5 h-5" />
-            Partager
-          </button>
-        </div>
 
-      </aside>
+        <!-- RIGHT COLUMN (Sidebar Sticky Glass) -->
+        <TipAuthorCard :author="tip.author" />
 
+      </div>
     </div>
-
-    <CommentsSection />
-
   </div>
 </template>
+
+<style scoped>
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

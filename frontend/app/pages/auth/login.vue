@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { LoginCredentials } from '@@/types'
 
 definePageMeta({
   layout: 'default'
 })
 
-const form = ref({ email: '', password: '' })
+const form = ref<LoginCredentials>({ email: '', password: '' })
 const isLoading = ref(false)
 const { login } = useAuth()
 

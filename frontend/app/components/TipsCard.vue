@@ -16,9 +16,29 @@ defineProps<Props>()
       <h2 class="text-lg md:text-xl font-semibold text-slate-800 dark:text-gray-300 mb-1">
         {{ tip.title }}
       </h2>
-      <p class="text-xs text-gray-400 dark:text-gray-400 mb-2">
-        Publié {{ tip.publishedAgo }} · Vue {{ tip.views }} fois
-      </p>
+
+      <div class="text-xs text-gray-400 dark:text-gray-400 mb-2 flex flex-wrap items-center gap-2">
+        <span>Publié {{ tip.publishedAgo }}</span>
+        <span>·</span>
+        <span>Vue {{ tip.views }} fois</span>
+
+        <span v-if="tip.address" class="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-medium ml-2">
+          <Icon name="tabler:map-pin" class="w-3 h-3" />
+          {{ tip.address }}
+        </span>
+
+        <span v-if="tip.images && tip.images.length > 0"
+          class="flex items-center gap-1 text-slate-500 dark:text-slate-400 ml-2" title="Images">
+          <Icon name="tabler:photo" class="w-3 h-3" />
+          {{ tip.images.length }}
+        </span>
+        <span v-if="tip.documents && tip.documents.length > 0"
+          class="flex items-center gap-1 text-slate-500 dark:text-slate-400 ml-2" title="Documents">
+          <Icon name="tabler:file-text" class="w-3 h-3" />
+          {{ tip.documents.length }}
+        </span>
+      </div>
+
       <p class="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
         {{ tip.description }}
       </p>

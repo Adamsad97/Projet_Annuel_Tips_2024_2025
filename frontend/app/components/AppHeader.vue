@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import ProfilPicture from './ProfilPicture.vue'
 import SearchInput from './SearchInput.vue'
-import { mainLinks, secondaryLinks } from '@@/utils/navigation'
+import { mainLinks, secondaryLinks } from '@/utils/navigation'
 
 const openSidebar = ref(false)
 const { user, isAuthenticated } = useAuth()
