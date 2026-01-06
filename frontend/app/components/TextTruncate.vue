@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue';
 
 const props = defineProps({
   text: { type: String, required: true },
-  maxLength: { type: Number, default: 150 }
-})
+  maxLength: { type: Number, default: 150 },
+});
 
-const expanded = ref(false)
+const expanded = ref(false);
 
-const shouldTruncate = computed(() => props.text.length > props.maxLength)
+const shouldTruncate = computed(() => props.text.length > props.maxLength);
 const displayedText = computed(() => {
-  if (expanded.value || !shouldTruncate.value) return props.text
-  return props.text.substring(0, props.maxLength) + '...'
-})
+  if (expanded.value || !shouldTruncate.value) return props.text;
+  return props.text.substring(0, props.maxLength) + '...';
+});
 </script>
 
 <template>
@@ -21,8 +21,10 @@ const displayedText = computed(() => {
       {{ displayedText }}
     </p>
     <button
-v-if="shouldTruncate" class="text-xs font-medium text-emerald-500 hover:underline mt-1"
-      @click="expanded = !expanded">
+      v-if="shouldTruncate"
+      class="text-xs font-medium text-emerald-500 hover:underline mt-1"
+      @click="expanded = !expanded"
+    >
       {{ expanded ? 'Voir moins' : 'Voir plus' }}
     </button>
   </div>

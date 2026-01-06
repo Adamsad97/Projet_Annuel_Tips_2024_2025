@@ -1,20 +1,20 @@
 <script setup lang="ts">
 interface Option {
-  value: string | number
-  label: string
+  value: string | number;
+  label: string;
 }
 
 defineProps<{
-  modelValue: string | number
-  id: string
-  label: string
-  options: Option[]
-  error?: string
-  required?: boolean
-  placeholder?: string
-}>()
+  modelValue: string | number;
+  id: string;
+  label: string;
+  options: Option[];
+  error?: string;
+  required?: boolean;
+  placeholder?: string;
+}>();
 
-defineEmits(['update:modelValue'])
+defineEmits(['update:modelValue']);
 </script>
 
 <template>
@@ -24,18 +24,24 @@ defineEmits(['update:modelValue'])
     </label>
     <div class="relative">
       <select
-:id="id" :value="modelValue"
+        :id="id"
+        :value="modelValue"
         class="w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none transition-all appearance-none cursor-pointer"
         :class="[
           !modelValue ? 'text-slate-400' : '',
           error
             ? 'border-red-400 focus:border-red-500 ring-4 ring-red-500/10'
-            : 'border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10'
-        ]" @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)">
+            : 'border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10',
+        ]"
+        @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
+      >
         <option v-if="placeholder" value="" disabled selected>{{ placeholder }}</option>
         <option
-v-for="option in options" :key="option.value" :value="option.value"
-          class="text-slate-800 dark:text-slate-100">
+          v-for="option in options"
+          :key="option.value"
+          :value="option.value"
+          class="text-slate-800 dark:text-slate-100"
+        >
           {{ option.label }}
         </option>
       </select>
