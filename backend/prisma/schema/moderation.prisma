@@ -1,0 +1,28 @@
+model ModerationAction {
+  id         Int      @id @default(autoincrement())
+  actionType String
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  moderatorId Int
+  userId      Int
+
+  moderator Moderator @relation("moderator_actions", fields: [moderatorId], references: [userId], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([moderatorId])
+  @@index([userId])
+}
+
+model Moderator {
+  userId   Int     @id
+  isActive Boolean @default(true)
+
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actions ModerationAction[] @relation("moderator_actions")
+}
+
+model Admin {
+  userId Int  @id
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

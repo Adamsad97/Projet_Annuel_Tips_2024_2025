@@ -1,78 +1,65 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import AppHeader from './components/AppHeader.vue'
-import AppFooter from './components/AppFooter.vue'
-import AppSidebar from './components/AppSidebar.vue'
-import SearchInput from './components/SearchInput.vue'
+import type { ComponentPublicInstance } from 'vue';
+import { useAuthStore } from './stores/auth';
+import AppToast from './components/ui/Toast.vue';
 
-// Types
-const showSearch = ref<boolean>(false)
-const inputRef = ref<ComponentPublicInstance<typeof SearchInput> | null>(null)
+const showSearch = ref(false);
+const inputRef = ref<ComponentPublicInstance | null>(null);
+const toastRef = ref<InstanceType<typeof AppToast> | null>(null);
+const toast = useState('toast-instance');
+const authStore = useAuthStore();
 
-watch(showSearch, (open: boolean) => {
+watch(showSearch, (open) => {
   if (open && inputRef.value) {
     setTimeout(() => {
-      const input = inputRef.value?.$el.querySelector('input') as HTMLInputElement | null
-      input?.focus()
-    }, 50)
+      const input = inputRef.value?.$el?.querySelector('input') as HTMLInputElement | null;
+      input?.focus();
+    }, 50);
   }
-})
+});
 
-// SEO Config
-useSiteMeta()
+onMounted(() => {
+  toast.value = toastRef.value;
+  console.log('[app] Toast initialisé:', toast.value);
+});
+
+useSiteMeta();
 </script>
 
 <template>
-  <div
-    class="min-h-screen w-full bg-linear-to-br from-purple-100 via-violet-200 to-white dark:from-slate-900 dark:via-green-950 dark:to-slate-950 text-slate-800 dark:text-slate-200 transition-colors duration-300">
-    <header
-      class="fixed inset-x-0 top-0 z-40 border-b border-purple-100/50 dark:border-slate-800/50 shadow-sm transition-colors duration-300">
-      <AppHeader @show-search="showSearch = true">
-        <template #sidebar>
-          <AppSidebar />
-        </template>
-      </AppHeader>
-
-      <!-- BARRE DE RECHERCHE MOBILE -->
-      <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="-translate-y-2 opacity-0"
-        enter-to-class="translate-y-0 opacity-100" leave-active-class="transition duration-150 ease-in"
-        leave-from-class="translate-y-0 opacity-100" leave-to-class="-translate-y-2 opacity-0">
-        <div v-if="showSearch"
-          class="absolute left-0 right-0 w-full bg-white dark:bg-slate-800 border-b border-purple-100 dark:border-slate-700 shadow-lg py-3 px-4 md:hidden z-50">
-          <div class="max-w-lg mx-auto relative">
-            <SearchInput ref="inputRef" placeholder="Rechercher un tips..." @blur="showSearch = false" />
-            <button
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-              @click="showSearch = false">
-              <Icon name="tabler:x" class="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </Transition>
-    </header>
-
-    <!-- LAYOUT PRINCIPAL -->
-    <div class="pt-20 flex min-h-screen">
-      <!-- SIDEBAR GAUCHE (Desktop uniquement) -->
-      <aside class="hidden md:block w-64 shrink-0">
-        <div
-          class="fixed left-0 top-20 w-64 overflow-y-auto border-r border-purple-50/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/30 backdrop-blur-sm scrollbar-thin scrollbar-thumb-purple-200 dark:scrollbar-thumb-slate-700"
-          style="height: calc(100vh - 80px)">
-          <AppSidebar />
-        </div>
-      </aside>
-
-      <!-- CONTENU CENTRAL -->
-      <main class="flex-1 flex flex-col min-w-0 transition-all duration-300">
-        <div class="flex-1 px-4 py-6 md:px-8 md:py-8 w-full max-w-7xl mx-auto">
-          <NuxtPage />
-        </div>
-        <AppFooter class="mt-auto border-t border-purple-50 dark:border-slate-800" />
-      </main>
+  <NuxtLayout>
+    <div
+      v-if="!authStore.isInitialized"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-slate-950"
+    >
+      <div class="text-center">
+        <svg
+          class="animate-spin h-10 w-10 mx-auto text-purple-600 dark:text-purple-400"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          />
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+      </div>
     </div>
 
-    <!-- Overlay sombre si recherche active (Mobile) -->
-    <div v-if="showSearch" class="fixed inset-0 bg-black/20 backdrop-blur-xs z-30 md:hidden"
-      @click="showSearch = false" />
-  </div>
+    <div v-show="authStore.isInitialized">
+      <NuxtPage />
+    </div>
+
+    <!-- Toast toujours visible, même pendant l'initialisation -->
+    <AppToast ref="toastRef" />
+  </NuxtLayout>
 </template>

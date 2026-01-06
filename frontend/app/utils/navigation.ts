@@ -1,7 +1,7 @@
 export interface NavigationLink {
-  to: string
-  text: string
-  icon: string
+  to: string;
+  text: string;
+  icon: string;
 }
 
 export const mainLinks: NavigationLink[] = [
@@ -9,11 +9,11 @@ export const mainLinks: NavigationLink[] = [
   { to: '/map', text: 'Carte', icon: 'tabler:map-pin' },
   { to: '/tips', text: 'Tips', icon: 'tabler:bulb' },
   { to: '/ranking', text: 'Classement', icon: 'tabler:trophy' },
-]
+];
 
 export const secondaryLinks: NavigationLink[] = [
   { to: '/about', text: 'À propos', icon: 'tabler:info-circle' },
   { to: '/contact', text: 'Contact', icon: 'tabler:mail' },
-]
+];
 
-export default [...mainLinks, ...secondaryLinks]
+export default [...mainLinks, ...secondaryLinks];

@@ -1,2 +1,11 @@
-// Prisma config is in prisma.config.js - this file is not used
+import type { PrismaConfig } from 'prisma';
+import dotenv from 'dotenv';
 
+dotenv.config();
+
+export default {
+  schema: './prisma/schema',
+  datasource: {
+    url: process.env.DATABASE_URL,
+  },
+} satisfies PrismaConfig;

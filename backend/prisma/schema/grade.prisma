@@ -1,0 +1,13 @@
+/**
+ * =========================
+ * GRADES
+ * =========================
+ */
+
+model Grade {
+  id         Int    @id @default(autoincrement())
+  name       String
+  xpRequired Int
+
+  users User[]
+}

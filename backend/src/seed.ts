@@ -1,12 +1,12 @@
-import { prisma } from './prismaClient'
+import { prisma } from './db/prisma';
 
 async function main() {
-  console.log('Seeding database...')
+  console.info('Seeding database...');
 
-  const gradeName = 'Beginner'
-  let grade = await prisma.grade.findFirst({ where: { name: gradeName } })
+  const gradeName = 'Beginner';
+  let grade = await prisma.grade.findFirst({ where: { name: gradeName } });
   if (!grade) {
-    grade = await prisma.grade.create({ data: { name: gradeName, xp_required: 0 } })
+    grade = await prisma.grade.create({ data: { name: gradeName, xpRequired: 0 } });
   }
 
   const user = await prisma.user.upsert({
@@ -17,15 +17,15 @@ async function main() {
       lastname: 'User',
       email: 'seeduser@example.com',
       password: 'changeme',
-      grade_id: grade.id,
+      gradeId: grade.id,
     },
-  })
+  });
 
   const category = await prisma.category.upsert({
     where: { name: 'General' },
     update: { description: 'General tips' },
     create: { name: 'General', description: 'General tips' },
-  })
+  });
 
   const tip = await prisma.tip.create({
     data: {
@@ -40,16 +40,21 @@ async function main() {
         ],
       },
     },
-  })
+  });
 
-  console.log('Seed complete:', { grade: grade.id, user: user.id, category: category.id, tip: tip.id })
+  console.info('Seed complete:', {
+    grade: grade.id,
+    user: user.id,
+    category: category.id,
+    tip: tip.id,
+  });
 }
 
 main()
   .catch((e) => {
-    console.error('Seed failed:', e)
-    process.exit(1)
+    console.error('Seed failed:', e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });
