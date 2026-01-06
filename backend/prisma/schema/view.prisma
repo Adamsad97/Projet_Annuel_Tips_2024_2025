@@ -1,0 +1,19 @@
+/**
+ * =========================
+ * VIEWS
+ * =========================
+ */
+
+model TipsView {
+  id       Int      @id @default(autoincrement())
+  viewedAt DateTime @default(now())
+
+  userId Int?
+  tipId  Int
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tip  Tip   @relation(fields: [tipId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tipId])
+}

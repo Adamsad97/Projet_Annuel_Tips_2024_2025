@@ -1,0 +1,24 @@
+/**
+ * =========================
+ * REPORTS & MODERATION
+ * =========================
+ */
+
+model Report {
+  id        Int          @id @default(autoincrement())
+  reason    String
+  status    ReportStatus @default(OPEN)
+  createdAt DateTime     @default(now())
+
+  userId    Int
+  tipId     Int?
+  commentId Int?
+
+  user    User     @relation("reports_by_user", fields: [userId], references: [id], onDelete: Cascade)
+  tip     Tip?     @relation("reports_on_tips", fields: [tipId], references: [id], onDelete: Cascade)
+  comment Comment? @relation("reports_on_comments", fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tipId])
+  @@index([commentId])
+}

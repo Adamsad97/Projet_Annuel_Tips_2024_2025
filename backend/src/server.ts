@@ -1,11 +1,10 @@
-import dotenv from 'dotenv'
-import { app } from './app'
+import app from './app';
+import { env } from './config/env';
 
-dotenv.config()
-
-const PORT = Number(process.env.PORT) || 4000
+const PORT = env.PORT;
+const HOST = env.HOST;
 
 app.listen(PORT, () => {
-	console.log(`Server running at http://localhost:${PORT}`)
-})
-
+  // eslint-disable-next-line no-console
+  console.log(`🚀 Server running at http://${HOST}:${PORT}`);
+});

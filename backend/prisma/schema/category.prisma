@@ -1,0 +1,20 @@
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  tips TipCategory[]
+}
+
+model TipCategory {
+  id         Int @id @default(autoincrement())
+  tipId      Int
+  categoryId Int
+
+  tip      Tip      @relation(fields: [tipId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([tipId, categoryId])
+  @@index([tipId])
+  @@index([categoryId])
+}

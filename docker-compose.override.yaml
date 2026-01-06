@@ -1,0 +1,62 @@
+services:
+  postgres:
+    container_name: postgres
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - projet-tips-net
+
+  postgres-test:
+    container_name: postgres-test
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_TEST_USER:-tips_test_user}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-tips_test_pass}
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-tips_test_db}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_TEST_USER:-tips_test_user} -d $${POSTGRES_TEST_DB:-tips_test_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - projet-tips-net
+
+  backend:
+    build:
+      context: ./backend
+      target: development
+    container_name: backend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - projet-tips-net
+    environment:
+      NODE_ENV: development
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    container_name: adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - projet-tips-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+networks:
+  projet-tips-net:
+    driver: bridge

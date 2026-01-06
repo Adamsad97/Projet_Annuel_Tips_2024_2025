@@ -1,0 +1,41 @@
+/**
+ * =========================
+ * USER & ROLES
+ * =========================
+ */
+
+model User {
+  id                 Int      @id @default(autoincrement())
+  firstname          String?
+  lastname           String?
+  email              String   @unique
+  phone              String?
+  password           String
+  avatarProfile      String?
+  bio                String?
+  address            String?
+  trustIndex         Int      @default(0)
+  isTwoFactorEnabled Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  gradeId Int?
+  grade   Grade? @relation(fields: [gradeId], references: [id])
+
+  tips       Tip[]
+  comments   Comment[]
+  votes      Vote[]
+  views      TipsView[]
+  userBadges UserBadge[]
+  reports    Report[]    @relation("reports_by_user")
+
+  moderator Moderator?
+  admin     Admin?
+
+  conversations     ConversationParticipant[]
+  messages          Message[]
+  moderationActions ModerationAction[]
+
+  following UserSubscription[] @relation("following")
+  followers UserSubscription[] @relation("followers")
+}

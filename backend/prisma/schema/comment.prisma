@@ -1,0 +1,43 @@
+/**
+ * =========================
+ * COMMENTS & VOTES
+ * =========================
+ */
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int
+  tipId  Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tip  Tip  @relation(fields: [tipId], references: [id], onDelete: Cascade)
+
+  votes   Vote[]
+  reports Report[] @relation("reports_on_comments")
+
+  @@index([userId])
+  @@index([tipId])
+}
+
+model Vote {
+  id        Int      @id @default(autoincrement())
+  value     Int
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tipId     Int?
+  commentId Int?
+
+  tip     Tip?     @relation(fields: [tipId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tipId])
+  @@index([commentId])
+}

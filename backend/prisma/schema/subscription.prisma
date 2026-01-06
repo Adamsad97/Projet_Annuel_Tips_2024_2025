@@ -1,0 +1,18 @@
+/**
+ * =========================
+ * FOLLOW SYSTEM
+ * =========================
+ */
+
+model UserSubscription {
+  followerId Int
+  followedId Int
+  createdAt  DateTime @default(now())
+
+  follower User @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("followers", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followedId])
+  @@index([followerId])
+  @@index([followedId])
+}

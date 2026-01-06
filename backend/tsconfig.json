@@ -5,9 +5,11 @@
     "outDir": "./dist",
 
     // Environment Settings
-    "module": "CommonJS",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "ES2020",
-    "types": ["node"],
+  "types": ["node", "jest"],
+  "isolatedModules": true,
     "esModuleInterop": true,
 
     // Other Outputs
@@ -17,7 +19,7 @@
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    // "exactOptionalPropertyTypes": true, // Désactivé temporairement - trop strict pour Zod
 
     // Style Options
     // "noImplicitReturns": true,
@@ -32,5 +34,5 @@
     "skipLibCheck": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/tests/**/*", "src/seed.ts"]
 }

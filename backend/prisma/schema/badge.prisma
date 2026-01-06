@@ -1,0 +1,28 @@
+/**
+ * =========================
+ * BADGES
+ * =========================
+ */
+
+model Badge {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  iconUrl     String?
+
+  userBadges UserBadge[]
+}
+
+model UserBadge {
+  id       Int      @id @default(autoincrement())
+  earnedAt DateTime @default(now())
+
+  userId  Int
+  badgeId Int
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([badgeId])
+}
