@@ -28,7 +28,6 @@ const alertClasses = computed(() => {
   return `${baseClasses} ${typeClasses[props.type]}`;
 });
 
-// h() render function pour icônes svg dynamiques selon type
 const icon = computed(() => {
   const icons = {
     success: h('svg', { class: 'h-5 w-5', fill: 'currentColor', viewBox: '0 0 20 20' }, [

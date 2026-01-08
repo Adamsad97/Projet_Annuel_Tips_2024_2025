@@ -30,7 +30,7 @@ useSiteMeta();
   <NuxtLayout>
     <div
       v-if="!authStore.isInitialized"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-slate-950"
+      class="fixed inset-0 z-50 flex items-center justify-center dark:bg-slate-950"
     >
       <div class="text-center">
         <svg

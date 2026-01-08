@@ -1,4 +1,3 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from '@tailwindcss/vite';
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -8,6 +7,7 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     '@nuxt/image',
+    '@nuxt/icon',
     '@nuxt/ui',
     '@nuxtjs/color-mode',
     '@nuxtjs/robots',

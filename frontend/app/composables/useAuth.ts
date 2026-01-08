@@ -27,7 +27,6 @@ export function useAuth() {
 
       return true;
     } catch (error) {
-      // L'erreur est déjà affichée automatiquement par useApi
       if (import.meta.dev) {
         console.error('[auth] login error:', error);
       }
@@ -50,7 +49,6 @@ export function useAuth() {
         password: credentials.password,
       });
     } catch (error) {
-      // L'erreur est déjà affichée automatiquement par useApi
       if (import.meta.dev) {
         console.error('[auth] register error:', error);
       }
@@ -68,7 +66,6 @@ export function useAuth() {
         console.log('[auth] logout ok');
       }
     } catch (error) {
-      // L'erreur est déjà affichée automatiquement par useApi
       if (import.meta.dev) {
         console.error('[auth] logout error:', error);
       }
@@ -90,7 +87,6 @@ export function useAuth() {
 
       return user;
     } catch (error) {
-      // L'erreur est déjà affichée automatiquement par useApi
       if (import.meta.dev) {
         console.error('[auth] profile error:', error);
       }

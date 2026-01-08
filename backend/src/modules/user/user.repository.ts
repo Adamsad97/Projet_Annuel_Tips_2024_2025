@@ -2,11 +2,23 @@ import { prisma } from '../../db/prisma';
 
 export const userRepository = {
   findByEmail(email: string) {
-    return prisma.user.findUnique({ where: { email } });
+    return prisma.user.findUnique({
+      where: { email },
+      include: {
+        moderator: true,
+        admin: true,
+      },
+    });
   },
 
   findById(id: number) {
-    return prisma.user.findUnique({ where: { id } });
+    return prisma.user.findUnique({
+      where: { id },
+      include: {
+        moderator: true,
+        admin: true,
+      },
+    });
   },
 
   async create(
@@ -18,9 +30,9 @@ export const userRepository = {
   ) {
     return prisma.user.create({
       data: {
+        username,
         email,
         password: passwordHash,
-        // Si firstname est fourni, on l'utilise, sinon on utilise username
         firstname: firstname && firstname.length > 0 ? firstname : username,
         lastname: lastname && lastname.length > 0 ? lastname : undefined,
       },

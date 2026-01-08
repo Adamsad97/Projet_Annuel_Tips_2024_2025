@@ -33,7 +33,6 @@ function removeToast(id: number) {
   }
 }
 
-// expose pour usage global via composable
 defineExpose({ addToast });
 </script>
 

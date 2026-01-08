@@ -8,6 +8,9 @@ import { requireAuth } from '../../middlewares/auth.middleware';
 import { authLimiter } from '../../middlewares/rateLimiter.middleware';
 import type { RequestWithUser } from '../../types/auth.types';
 import type { z } from 'zod';
+import { xpService } from '../xp/xp.service';
+import { badgeService } from '../badges/badge.service';
+import { tipService } from '../tips/tip.service';
 
 type RegisterBody = z.infer<typeof registerSchema>;
 type LoginBody = z.infer<typeof loginSchema>;
@@ -49,6 +52,57 @@ export class UserController {
     }
   };
 
+  getMyProgress = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, status: 401, message: 'unauthorized' });
+      }
+      const progress = await xpService.getUserProgress(req.user.id);
+      res.status(200).json({ success: true, data: progress });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  getMyBadges = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, status: 401, message: 'unauthorized' });
+      }
+      const badges = await badgeService.getAllBadgesWithStatus(req.user.id);
+      res.status(200).json({ success: true, data: badges });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  getLeaderboard = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const skip = parseInt(req.query.skip as string) || 0;
+      const take = parseInt(req.query.take as string) || 10;
+
+      const leaderboard = await xpService.getLeaderboard(take, skip);
+      res.status(200).json({ success: true, data: leaderboard });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  getMyTips = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, status: 401, message: 'unauthorized' });
+      }
+      const skip = parseInt(req.query.skip as string) || 0;
+      const take = parseInt(req.query.take as string) || 50;
+
+      const tips = await tipService.getTipsByUserId(req.user.id, { skip, take });
+      res.status(200).json({ success: true, data: tips });
+    } catch (e) {
+      next(e);
+    }
+  };
+
   build(): Router {
     const router = express.Router();
 
@@ -57,6 +111,11 @@ export class UserController {
     router.post(ROUTES.users.login, authLimiter, validateSchema(loginSchema), this.login);
 
     router.get(ROUTES.users.profile, requireAuth, this.getMe);
+
+    router.get(ROUTES.users.progress, requireAuth, this.getMyProgress);
+    router.get(ROUTES.users.badges, requireAuth, this.getMyBadges);
+    router.get(ROUTES.users.tips, requireAuth, this.getMyTips);
+    router.get(ROUTES.users.leaderboard, this.getLeaderboard);
 
     return router;
   }

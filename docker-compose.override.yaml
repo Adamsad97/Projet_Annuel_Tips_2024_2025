@@ -2,7 +2,7 @@ services:
   postgres:
     container_name: postgres
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - projet-tips-net
 
@@ -60,3 +60,5 @@ services:
 networks:
   projet-tips-net:
     driver: bridge
+volumes:
+  postgres-data:

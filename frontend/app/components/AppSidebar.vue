@@ -1,6 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import SidebarButton from './SidebarButton.vue';
-import { mainLinks } from '~/utils/navigation';
+import { mainLinks, userLinks, moderatorLinks } from '~/utils/navigation';
+
+const { user, isAuthenticated } = useAuth();
+
+const isModerator = computed(() => {
+  if (!user.value) return false;
+  return user.value.moderator?.isActive || user.value.admin;
+});
 </script>
 
 <template>
@@ -17,6 +25,36 @@ import { mainLinks } from '~/utils/navigation';
         :icon-name="link.icon"
       />
     </nav>
+
+    <!-- Séparateur + Liens Utilisateur (si connecté) -->
+    <div v-if="isAuthenticated && userLinks.length > 0" class="flex flex-col gap-2 w-full">
+      <div class="w-full h-px bg-blue-100 dark:bg-blue-900/30 my-2" />
+      <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1 pl-2">
+        Mon Espace
+      </p>
+      <SidebarButton
+        v-for="link in userLinks"
+        :key="link.to"
+        :to="link.to"
+        :text="link.text"
+        :icon-name="link.icon"
+      />
+    </div>
+
+    <!-- Séparateur + Liens Modération (si modérateur/admin) -->
+    <div v-if="isModerator && moderatorLinks.length > 0" class="flex flex-col gap-2 w-full">
+      <div class="w-full h-px bg-purple-100 dark:bg-purple-900/30 my-2" />
+      <p class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-1 pl-2">
+        Modération
+      </p>
+      <SidebarButton
+        v-for="link in moderatorLinks"
+        :key="link.to"
+        :to="link.to"
+        :text="link.text"
+        :icon-name="link.icon"
+      />
+    </div>
 
     <!-- Bas de Sidebar (Paramètres, Version...) -->
     <div

@@ -5,6 +5,8 @@ export interface TipFormData {
   tags: string[];
   difficulty: number;
   address?: string;
+  lat?: number;
+  lng?: number;
   images: File[];
   documents: File[];
 }

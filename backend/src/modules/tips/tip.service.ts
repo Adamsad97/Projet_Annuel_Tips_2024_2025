@@ -1,6 +1,9 @@
 import { tipRepository } from './tip.repository';
 import type { Tip } from '@prisma/client';
 import { AppError } from '../../utils/appError.util';
+import { xpService } from '../xp/xp.service';
+import { badgeService } from '../badges/badge.service';
+import { XpAction } from '../../types/xp.types';
 
 export const tipService = {
   getAllTips: async (query?: { q?: string; skip?: number; take?: number }): Promise<Tip[]> => {
@@ -12,8 +15,9 @@ export const tipService = {
             { title: { contains: q, mode: 'insensitive' as const } },
             { content: { contains: q, mode: 'insensitive' as const } },
           ],
+          status: 'APPROVED' as const, // Ne montrer que les tips approuvés
         }
-      : undefined;
+      : { status: 'APPROVED' as const };
 
     return tipRepository.findAll({ skip, take, where });
   },
@@ -29,13 +33,46 @@ export const tipService = {
   },
 
   createTip: async (data: { title: string; content?: string; userId: number }): Promise<Tip> => {
-    return tipRepository.create({
+    const existingTips = await tipRepository.findAll({
+      where: {
+        userId: data.userId,
+        title: {
+          equals: data.title,
+          mode: 'insensitive' as const,
+        },
+      },
+      take: 10,
+    });
+
+    if (existingTips.length > 0 && data.content) {
+      const duplicateFound = existingTips.some((existingTip) => {
+        const normalizeText = (text: string | null | undefined): string =>
+          (text || '').trim().toLowerCase();
+
+        return normalizeText(existingTip.content) === normalizeText(data.content);
+      });
+
+      if (duplicateFound) {
+        throw new AppError(
+          'Vous avez déjà créé un tip avec ce titre et ce contenu. Évitez les doublons.',
+          409,
+        );
+      }
+    }
+
+    const tip = await tipRepository.create({
       title: data.title,
       content: data.content,
       user: {
         connect: { id: data.userId },
       },
     });
+
+    await xpService.addXp(data.userId, XpAction.TIP_CREATED);
+
+    await badgeService.checkAndAwardBadges(data.userId);
+
+    return tip;
   },
 
   updateTip: async (
@@ -46,11 +83,11 @@ export const tipService = {
     const tip = await tipRepository.findById(id);
 
     if (!tip) {
-      throw new AppError('Tip not found', 404);
+      throw new AppError('tip not found', 404);
     }
 
     if (tip.userId !== userId) {
-      throw new AppError('Unauthorized to update this tip', 403);
+      throw new AppError('unauthorized to update this tip', 403);
     }
 
     return tipRepository.update(id, data);
@@ -60,13 +97,41 @@ export const tipService = {
     const tip = await tipRepository.findById(id);
 
     if (!tip) {
-      throw new AppError('Tip not found', 404);
+      throw new AppError('tip not found', 404);
     }
 
     if (tip.userId !== userId) {
-      throw new AppError('Unauthorized to delete this tip', 403);
+      throw new AppError('unauthorized to delete this tip', 403);
     }
 
     await tipRepository.delete(id);
+  },
+
+  getTipsByUserId: async (
+    userId: number,
+    query?: { skip?: number; take?: number },
+  ): Promise<Tip[]> => {
+    const { skip = 0, take = 50 } = query || {};
+
+    return tipRepository.findAll({
+      skip,
+      take,
+      where: { userId },
+    });
+  },
+
+  getAllTags: async (): Promise<string[]> => {
+    return [
+      'React',
+      'Vue',
+      'Docker',
+      'Node.js',
+      'TypeScript',
+      'PostgreSQL',
+      'Git',
+      'CSS',
+      'JavaScript',
+      'API',
+    ];
   },
 };

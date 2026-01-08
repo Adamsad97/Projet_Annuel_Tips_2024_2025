@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Tip as PrismaTip, User } from '@prisma/client';
 import CommentsSection from '~/components/CommentsSection.vue';
 import TipHero from '~/components/tips/TipHero.vue';
 import TipGallery from '~/components/tips/TipGallery.vue';
@@ -11,14 +12,115 @@ definePageMeta({
 });
 
 const route = useRoute();
+const config = useRuntimeConfig();
+const apiBaseUrl = config.public.apiBaseUrl;
+const { user: currentUser } = useAuth();
+
 const tipId = route.params.id;
 
-// Fetch Tip Data (Mock ou API)
-const { data: tip, error } = await useFetch<Tip>(`/api/tips/${tipId}`);
+if (!tipId || Array.isArray(tipId)) {
+  throw createError({ statusCode: 400, statusMessage: 'ID de tip invalide', fatal: true });
+}
 
-if (error.value || !tip.value) {
+interface BackendTipResponse extends PrismaTip {
+  user: Pick<User, 'id' | 'firstname' | 'lastname' | 'email' | 'avatarProfile'> & {
+    role?: string;
+  };
+  categories?: Array<{
+    category: {
+      id: number;
+      name: string;
+    };
+  }>;
+  comments?: Array<{
+    id: number;
+    content: string;
+    createdAt: Date;
+    user: Pick<User, 'id' | 'firstname' | 'lastname' | 'avatarProfile'>;
+  }>;
+  _count?: {
+    comments: number;
+    votes: number;
+    views: number;
+  };
+}
+
+const { data: rawResponse, error } = await useFetch<{ success: boolean; data: BackendTipResponse }>(
+  `${apiBaseUrl}/tips/${tipId}`,
+);
+
+if (error.value || !rawResponse.value?.data) {
   throw createError({ statusCode: 404, statusMessage: 'Tip introuvable', fatal: true });
 }
+
+const backendTip = computed(() => rawResponse.value?.data);
+
+const tip = computed(() => {
+  if (!backendTip.value) return null;
+
+  const bt = backendTip.value;
+  const displayName =
+    bt.user.firstname && bt.user.lastname
+      ? `${bt.user.firstname} ${bt.user.lastname}`
+      : bt.user.firstname || bt.user.lastname || bt.user.email;
+
+  return {
+    id: bt.id,
+    userId: bt.user.id,
+    title: bt.title,
+    description: bt.content?.substring(0, 200) || bt.title,
+    content: bt.content || '',
+    tags: bt.categories?.map((c) => c.category.name) || [],
+    difficulty: 1,
+    author: {
+      id: bt.user.id,
+      name: displayName,
+      xp: 0, 
+      avatar: bt.user.avatarProfile || '',
+      role: 'Membre',
+    },
+    publishedAgo: new Date(bt.createdAt).toLocaleDateString('fr-FR'),
+    views: bt._count?.views || 0,
+    created_at: bt.createdAt.toString(),
+    address: bt.address || undefined,
+    lat: bt.latitude || undefined,
+    lng: bt.longitude || undefined,
+    images: bt.images as string[] | undefined,
+    documents: bt.documents as { name: string; url: string }[] | undefined,
+    status: bt.status,
+  };
+});
+
+if (!tip.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Tip introuvable', fatal: true });
+}
+
+const isOwner = computed(() => currentUser.value?.id === tip.value?.userId);
+
+const statusConfig = computed(() => {
+  switch (tip.value?.status) {
+    case 'PENDING':
+      return {
+        label: 'En attente de validation',
+        color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700',
+        icon: 'tabler:clock',
+      };
+    case 'APPROVED':
+      return {
+        label: 'Approuvé',
+        color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700',
+        icon: 'tabler:check-circle',
+      };
+    case 'REJECTED':
+      return {
+        label: 'Rejeté',
+        color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700',
+        icon: 'tabler:x-circle',
+      };
+    default:
+      return null;
+  }
+});
 
 useSeoMeta({
   title: () => tip.value?.title,
@@ -45,6 +147,32 @@ useSeoMeta({
             <div
               class="absolute inset-0 bg-linear-to-b from-white/20 to-transparent pointer-events-none"
             />
+
+            <!-- Status Badge (owner only) - Cleaner position at top of content -->
+            <div v-if="statusConfig && isOwner" class="relative mb-6 flex justify-between items-center">
+              <div :class="['inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-medium', statusConfig.color]">
+                <Icon :name="statusConfig.icon" class="w-5 h-5" />
+                {{ statusConfig.label }}
+              </div>
+
+              <!-- Share Button -->
+              <button
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
+              >
+                <Icon name="tabler:share" class="w-4 h-4" />
+                Partager
+              </button>
+            </div>
+
+            <!-- Share Button for non-owners -->
+            <div v-else-if="!isOwner" class="relative mb-6 flex justify-end">
+              <button
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
+              >
+                <Icon name="tabler:share" class="w-4 h-4" />
+                Partager
+              </button>
+            </div>
 
             <!-- Intro -->
             <p

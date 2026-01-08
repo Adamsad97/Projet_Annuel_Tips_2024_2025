@@ -43,12 +43,15 @@ export function useApi() {
       const response = await $fetch<ApiResponse<T>>(endpoint, {
         baseURL,
         method: options.method || 'GET',
-        body: options.body as BodyInit | Record<string, any> | null | undefined,
+        body: options.body as BodyInit | Record<string, unknown> | null | undefined,
         headers,
       });
 
+      if (import.meta.dev) {
+        console.log('[api] response:', { success: response.success, hasData: response.data !== undefined, message: response.message });
+      }
+
       if (response.success && response.data !== undefined) {
-        // Afficher le toast de succès si demandé
         if (options.showSuccessToast && options.successMessage) {
           toast.success(options.successMessage);
         }
@@ -56,13 +59,13 @@ export function useApi() {
       }
 
       if (response.success) {
-        // Afficher le toast de succès si demandé
         if (options.showSuccessToast && options.successMessage) {
           toast.success(options.successMessage);
         }
         return response as unknown as T;
       }
 
+      console.warn('[api] Server returned success=false:', response);
       throw new Error(response.message || 'erreur serveur');
     } catch (error) {
       const fetchError = error as FetchError;
@@ -78,7 +81,6 @@ export function useApi() {
         }
       }
 
-      // Afficher le toast d'erreur uniquement si showErrorToast n'est pas false
       if (options.showErrorToast !== false) {
         toast.apiError(fetchError);
       }

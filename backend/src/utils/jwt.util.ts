@@ -32,9 +32,9 @@ export function verifyAccessTokenOrThrow(token: string): JwtUserPayload {
   } catch (e: unknown) {
     const error = e as Error & { name?: string };
     if (error.name === 'TokenExpiredError') {
-      throw new AppError('Access token expired', 401);
+      throw new AppError('access token expired', 401);
     }
-    throw new AppError(error?.message || 'Invalid access token', 401);
+    throw new AppError(error?.message || 'invalid access token', 401);
   }
 }
 
@@ -44,9 +44,9 @@ export function verifyRefreshTokenOrThrow(token: string): JwtUserPayload {
   } catch (e: unknown) {
     const error = e as Error & { name?: string };
     if (error.name === 'TokenExpiredError') {
-      throw new AppError('Refresh token expired', 401);
+      throw new AppError('refresh token expired', 401);
     }
-    throw new AppError(error?.message || 'Invalid refresh token', 401);
+    throw new AppError(error?.message || 'invalid refresh token', 401);
   }
 }
 

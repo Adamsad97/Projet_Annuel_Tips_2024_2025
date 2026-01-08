@@ -5,10 +5,36 @@ import AppButton from '~/components/ui/AppButton.vue';
 
 const TipsCard = defineAsyncComponent(() => import('~/components/TipsCard.vue'));
 
-const runtimeConfig = useRuntimeConfig();
-const apiBaseUrl = runtimeConfig.public.apiBaseUrl?.replace(/\/$/, '');
-const { data: tips } = await useFetch<Tip[]>(apiBaseUrl ? `${apiBaseUrl}/tips` : '/api/tips', {
-  default: () => [],
+const config = useRuntimeConfig();
+const apiBaseUrl = config.public.apiBaseUrl;
+
+const { data: rawResponse } = await useFetch<{ success: boolean; data: Tip[] }>(`${apiBaseUrl}/tips`, {
+  default: () => ({ success: true, data: [] }),
+});
+
+const tips = computed(() => rawResponse.value?.data || []);
+const tipsList = ref<Tip[]>(tips.value);
+
+const ws = useWebSocket();
+
+onMounted(() => {
+  ws.connect();
+
+  ws.onTipApproved((newTip) => {
+    tipsList.value = [newTip as unknown as Tip, ...tipsList.value];
+  });
+});
+
+onUnmounted(() => {
+  ws.off('tip:approved');
+  ws.disconnect();
+});
+
+// Mettre à jour la liste quand les données changent
+watch(tips, (newTips) => {
+  if (newTips) {
+    tipsList.value = newTips;
+  }
 });
 
 definePageMeta({
@@ -17,9 +43,9 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="space-y-12 pb-12">
+  <div class="space-y-8 pb-12">
     <!-- HERO SECTION -->
-    <section class="relative rounded-3xl pt-20 pb-16 md:pt-32 md:pb-24 overflow-hidden">
+    <section class="relative rounded-3xl pt-8 pb-8 md:pt-12 md:pb-12 overflow-hidden">
       <!-- Background Elements -->
       <div
         class="absolute top-0 left-1/2 -translate-x-1/2 w-screen h-full bg-linear-to-b from-purple-50/50 to-white dark:from-slate-900 dark:to-slate-950 -z-10"
@@ -45,37 +71,19 @@ definePageMeta({
         </div>
 
         <h1
-          class="text-4xl md:text-6xl font-black text-slate-800 dark:text-white leading-tight mb-6"
+          class="text-3xl md:text-5xl font-black text-slate-800 dark:text-white leading-tight mb-4"
         >
-          L’entraide sur
+          L'entraide sur
           <span class="text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-pink-600"
             >tous types de sujets</span
           >
         </h1>
 
         <p
-          class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-8 leading-relaxed"
+          class="text-base md:text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-6 leading-relaxed"
         >
-          Bricolage, Cuisine, Informatique, Jardinage... Peu importe votre besoin, trouvez la
-          solution ou aidez quelqu'un aujourd'hui.
+          Bricolage, Cuisine, Informatique, Jardinage... Trouvez la solution ou aidez quelqu'un aujourd'hui.
         </p>
-
-        <ul
-          class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed list-none space-y-2"
-        >
-          <li class="flex items-center justify-center gap-2">
-            <Icon name="tabler:check" class="text-green-500" />
-            Trouver une réponse fiable rapidement
-          </li>
-          <li class="flex items-center justify-center gap-2">
-            <Icon name="tabler:message-question" class="text-blue-500" />
-            Poser une question sur un sujet
-          </li>
-          <li class="flex items-center justify-center gap-2">
-            <Icon name="tabler:users" class="text-purple-500" />
-            Partagez votre savoir avec le monde
-          </li>
-        </ul>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
           <AppButton
@@ -111,7 +119,7 @@ definePageMeta({
       </div>
 
       <div class="grid grid-cols-1 gap-6">
-        <TipsCard v-for="tip in tips" :key="tip.id" :tip="tip" />
+        <TipsCard v-for="tip in tipsList" :key="tip.id" :tip="tip" />
       </div>
     </section>
   </div>

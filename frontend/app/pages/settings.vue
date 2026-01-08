@@ -35,7 +35,6 @@ const security = reactive({
   twoFactor: false,
 });
 
-// Mettre à jour si le user change (ex: chargement initial)
 watch(
   user,
   (newUser) => {
@@ -44,14 +43,12 @@ watch(
         ? `${newUser.firstname} ${newUser.lastname}`
         : newUser.firstname || newUser.lastname || '';
       form.email = newUser.email || '';
-      // form.bio = newUser.bio
     }
   },
   { immediate: true },
 );
 
 const saveProfile = () => {
-  // TODO: Call API
   alert('Profil mis à jour avec succès !');
 };
 

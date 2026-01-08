@@ -9,16 +9,35 @@ definePageMeta({
 });
 
 const loading = ref(false);
+const toast = useToastMessage();
+const router = useRouter();
+const api = useApi();
 
 const handleCreateTip = async (data: TipFormData) => {
   loading.value = true;
-  // Mock API call
-  console.log('Creating Tip:', data);
 
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  try {
+    const tipData: Record<string, unknown> = {
+      title: data.title,
+      content: data.content,
+    };
 
-  loading.value = false;
-  navigateTo('/tips'); // Or redirect to the new tip
+    if (data.address) tipData.address = data.address;
+    if (data.lat !== undefined) tipData.latitude = data.lat;
+    if (data.lng !== undefined) tipData.longitude = data.lng;
+
+    await api.post('/tips', tipData);
+
+    toast.success('Votre tip a été créé avec succès ! Il sera visible après validation par un modérateur.', 'Tip créé');
+
+    setTimeout(() => {
+      router.push('/my-tips');
+    }, 1500);
+  } catch (error) {
+    console.error('erreur creation tip:', error);
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 

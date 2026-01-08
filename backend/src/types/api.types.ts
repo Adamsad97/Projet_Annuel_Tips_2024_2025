@@ -1,4 +1,3 @@
-// generic API response shapes
 export type ApiSuccess<T> = {
   success: true;
   data: T;

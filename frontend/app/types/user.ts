@@ -21,6 +21,7 @@ export interface Tip {
   lng?: number;
   images?: string[];
   documents?: { name: string; url: string }[];
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 export interface RankingUser {
