@@ -28,7 +28,10 @@ const handleCreateTip = async (data: TipFormData) => {
 
     await api.post('/tips', tipData);
 
-    toast.success('Votre tip a été créé avec succès ! Il sera visible après validation par un modérateur.', 'Tip créé');
+    toast.success(
+      'Votre tip a été créé avec succès ! Il sera visible après validation par un modérateur.',
+      'Tip créé',
+    );
 
     setTimeout(() => {
       router.push('/my-tips');

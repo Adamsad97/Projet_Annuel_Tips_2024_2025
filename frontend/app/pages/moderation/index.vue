@@ -36,11 +36,7 @@
 
     <!-- Tabs -->
     <div class="tabs">
-      <button
-        class="tab"
-        :class="{ active: activeTab === 'tips' }"
-        @click="activeTab = 'tips'"
-      >
+      <button class="tab" :class="{ active: activeTab === 'tips' }" @click="activeTab = 'tips'">
         Tips en attente ({{ pendingTips.length }})
       </button>
       <button
@@ -69,16 +65,10 @@
           <p class="tip-content">{{ tip.content }}</p>
           <div class="tip-meta">
             <span>Par {{ tip.user.firstname }} {{ tip.user.lastname }}</span>
-            <span v-if="tip.categories.length > 0">
-              • {{ tip.categories[0].category.name }}
-            </span>
+            <span v-if="tip.categories.length > 0"> • {{ tip.categories[0].category.name }} </span>
           </div>
           <div class="tip-actions">
-            <button
-              class="btn btn-approve"
-              @click="approveTip(tip.id)"
-              :disabled="actionLoading"
-            >
+            <button class="btn btn-approve" @click="approveTip(tip.id)" :disabled="actionLoading">
               ✅ Approuver
             </button>
             <button
@@ -97,9 +87,7 @@
     <div v-if="activeTab === 'reports'" class="content-section">
       <div v-if="loading" class="loading">Chargement...</div>
 
-      <div v-else-if="reports.length === 0" class="empty-state">
-        Aucun signalement en attente
-      </div>
+      <div v-else-if="reports.length === 0" class="empty-state">Aucun signalement en attente</div>
 
       <div v-else class="reports-list">
         <div v-for="report in reports" :key="report.id" class="report-card">
@@ -133,20 +121,10 @@
       <div class="modal" @click.stop>
         <h3>Rejeter le tip</h3>
         <p>Veuillez indiquer la raison du rejet :</p>
-        <textarea
-          v-model="rejectReason"
-          placeholder="Raison du rejet..."
-          rows="4"
-        />
+        <textarea v-model="rejectReason" placeholder="Raison du rejet..." rows="4" />
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="rejectModalOpen = false">
-            Annuler
-          </button>
-          <button
-            class="btn btn-reject"
-            @click="confirmRejectTip"
-            :disabled="!rejectReason.trim()"
-          >
+          <button class="btn btn-secondary" @click="rejectModalOpen = false">Annuler</button>
+          <button class="btn btn-reject" @click="confirmRejectTip" :disabled="!rejectReason.trim()">
             Confirmer le rejet
           </button>
         </div>
@@ -188,7 +166,9 @@ const loadStats = async () => {
 const loadPendingTips = async () => {
   loading.value = true;
   try {
-    const response = await api.get<PendingTip[] | { data: PendingTip[] }>('/moderation/tips/pending');
+    const response = await api.get<PendingTip[] | { data: PendingTip[] }>(
+      '/moderation/tips/pending',
+    );
     pendingTips.value = Array.isArray(response) ? response : response.data;
   } catch (err) {
     console.error('Failed to load pending tips:', err);
@@ -233,7 +213,9 @@ const confirmRejectTip = async () => {
 
   actionLoading.value = true;
   try {
-    await api.post(`/moderation/tips/${selectedTipId.value}/reject`, { reason: rejectReason.value });
+    await api.post(`/moderation/tips/${selectedTipId.value}/reject`, {
+      reason: rejectReason.value,
+    });
     pendingTips.value = pendingTips.value.filter((t) => t.id !== selectedTipId.value);
     rejectModalOpen.value = false;
     await loadStats();

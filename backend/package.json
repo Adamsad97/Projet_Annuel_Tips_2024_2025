@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Backend for application Tips",
   "license": "ISC",
-  "author": "Grondin Florent, VANDERLYNDEN Louis-Martin, DIAWARA Adama",
+  "author": "Grondin Florent",
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec ts-node src/server.ts",

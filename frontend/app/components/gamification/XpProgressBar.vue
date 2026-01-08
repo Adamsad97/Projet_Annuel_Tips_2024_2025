@@ -15,10 +15,7 @@
     </div>
 
     <div class="progress-bar">
-      <div
-        class="progress-fill"
-        :style="{ width: `${progressPercent}%` }"
-      >
+      <div class="progress-fill" :style="{ width: `${progressPercent}%` }">
         <div class="progress-shine"></div>
       </div>
       <div class="progress-particles">
@@ -97,8 +94,13 @@ const xpRemaining = computed(() => {
 }
 
 @keyframes pulse-grade {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 .next-grade {
@@ -162,8 +164,12 @@ const xpRemaining = computed(() => {
 }
 
 @keyframes shine {
-  0% { left: -100%; }
-  100% { left: 200%; }
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
 }
 
 .progress-particles {
@@ -185,14 +191,25 @@ const xpRemaining = computed(() => {
   animation: float-particle 3s infinite ease-in-out;
 }
 
-.particle:nth-child(1) { animation-delay: 0s; }
-.particle:nth-child(2) { animation-delay: 0.6s; }
-.particle:nth-child(3) { animation-delay: 1.2s; }
-.particle:nth-child(4) { animation-delay: 1.8s; }
-.particle:nth-child(5) { animation-delay: 2.4s; }
+.particle:nth-child(1) {
+  animation-delay: 0s;
+}
+.particle:nth-child(2) {
+  animation-delay: 0.6s;
+}
+.particle:nth-child(3) {
+  animation-delay: 1.2s;
+}
+.particle:nth-child(4) {
+  animation-delay: 1.8s;
+}
+.particle:nth-child(5) {
+  animation-delay: 2.4s;
+}
 
 @keyframes float-particle {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(-50%) scale(0);
     opacity: 0;
   }
@@ -221,8 +238,13 @@ const xpRemaining = computed(() => {
 }
 
 @keyframes bounce-trophy {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,9 +1,3 @@
-/**
- * =========================
- * TIPS & CONTENT
- * =========================
- */
-
 enum TipStatus {
   PENDING
   APPROVED

@@ -1,7 +1,4 @@
-import {
-  requireModerator,
-  requireAdmin,
-} from '../../../middlewares/auth.middleware';
+import { requireModerator, requireAdmin } from '../../../middlewares/auth.middleware';
 import type { RequestWithUser } from '../../../types/auth.types';
 import { AppError } from '../../../utils/appError.util';
 import { createMockResponse } from '../../../types/test.types';

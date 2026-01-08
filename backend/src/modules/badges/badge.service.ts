@@ -148,7 +148,6 @@ export class BadgeService {
     }));
   }
 
-
   async getAllBadgesWithStatus(userId: number) {
     const allBadges = await prisma.badge.findMany();
     const userBadges = await this.getUserBadges(userId);

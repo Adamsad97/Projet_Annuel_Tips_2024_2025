@@ -5,7 +5,12 @@
         {{ badge.icon }}
       </div>
       <div v-if="badge.earned" class="badge-sparkle">
-        <span v-for="i in 4" :key="i" class="sparkle" :style="{ transform: `rotate(${i * 90}deg)` }"></span>
+        <span
+          v-for="i in 4"
+          :key="i"
+          class="sparkle"
+          :style="{ transform: `rotate(${i * 90}deg)` }"
+        ></span>
       </div>
       <div v-if="badge.earned" class="badge-glow"></div>
     </div>
@@ -18,10 +23,7 @@
 
       <div v-if="!badge.earned && showProgress" class="badge-progress">
         <div class="progress-bar">
-          <div
-            class="progress-fill"
-            :style="{ width: `${badge.progress}%` }"
-          >
+          <div class="progress-fill" :style="{ width: `${badge.progress}%` }">
             <div class="progress-shimmer"></div>
           </div>
         </div>
@@ -164,8 +166,13 @@ const formatDate = (date: Date) => {
 }
 
 @keyframes icon-bounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2) rotate(5deg); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2) rotate(5deg);
+  }
 }
 
 .badge-display:hover .badge-icon {
@@ -195,14 +202,29 @@ const formatDate = (date: Date) => {
   animation: sparkle-twinkle 2s infinite ease-in-out;
 }
 
-.sparkle:nth-child(1) { animation-delay: 0s; }
-.sparkle:nth-child(2) { animation-delay: 0.5s; }
-.sparkle:nth-child(3) { animation-delay: 1s; }
-.sparkle:nth-child(4) { animation-delay: 1.5s; }
+.sparkle:nth-child(1) {
+  animation-delay: 0s;
+}
+.sparkle:nth-child(2) {
+  animation-delay: 0.5s;
+}
+.sparkle:nth-child(3) {
+  animation-delay: 1s;
+}
+.sparkle:nth-child(4) {
+  animation-delay: 1.5s;
+}
 
 @keyframes sparkle-twinkle {
-  0%, 100% { opacity: 0; transform: scale(0); }
-  50% { opacity: 1; transform: scale(1); }
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .badge-glow {
@@ -219,8 +241,15 @@ const formatDate = (date: Date) => {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.2; }
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.2;
+  }
 }
 
 .badge-info {
@@ -248,8 +277,14 @@ const formatDate = (date: Date) => {
 }
 
 @keyframes check-appear {
-  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-  100% { transform: scale(1) rotate(0); opacity: 1; }
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
 }
 
 .badge-description {
@@ -301,8 +336,12 @@ const formatDate = (date: Date) => {
 }
 
 @keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 200%; }
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
 }
 
 .progress-text {
@@ -350,8 +389,13 @@ const formatDate = (date: Date) => {
 }
 
 @keyframes star-rotate {
-  0%, 100% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.1); }
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
 }
 
 .badge-reward.earned-reward {

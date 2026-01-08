@@ -7,27 +7,31 @@ const props = defineProps<{
 
 const handleError = () => clearError({ redirect: '/' });
 
-const isDev = Boolean((import.meta as unknown as { env?: { DEV?: boolean }; dev?: boolean })?.env?.DEV ?? (import.meta as unknown as { env?: { DEV?: boolean }; dev?: boolean })?.dev ?? false);
+const isDev = Boolean(
+  (import.meta as unknown as { env?: { DEV?: boolean }; dev?: boolean })?.env?.DEV ??
+  (import.meta as unknown as { env?: { DEV?: boolean }; dev?: boolean })?.dev ??
+  false,
+);
 
 const errorMessages = {
   404: {
     title: 'Page introuvable',
-    description: 'Désolé, la page que vous recherchez n\'existe pas ou a été déplacée.',
+    description: "Désolé, la page que vous recherchez n'existe pas ou a été déplacée.",
     emoji: '🔍',
   },
   500: {
     title: 'Erreur serveur',
-    description: 'Une erreur inattendue s\'est produite. Nos équipes ont été notifiées.',
+    description: "Une erreur inattendue s'est produite. Nos équipes ont été notifiées.",
     emoji: '⚠️',
   },
   401: {
     title: 'Accès refusé',
-    description: 'Vous n\'avez pas les permissions nécessaires pour accéder à cette page.',
+    description: "Vous n'avez pas les permissions nécessaires pour accéder à cette page.",
     emoji: '🔒',
   },
   default: {
     title: 'Une erreur est survenue',
-    description: 'Quelque chose s\'est mal passé. Veuillez réessayer.',
+    description: "Quelque chose s'est mal passé. Veuillez réessayer.",
     emoji: '❌',
   },
 };
@@ -116,8 +120,8 @@ const errorInfo = computed(() => {
       <pre
         v-if="isDev && error?.stack"
         class="mt-8 text-left text-xs bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 overflow-auto max-h-64 w-full text-slate-700 dark:text-slate-300"
-      >{{ error.stack }}</pre>
+        >{{ error.stack }}</pre
+      >
     </div>
   </div>
 </template>
-

@@ -1,9 +1,3 @@
-/**
- * =========================
- * BADGES
- * =========================
- */
-
 model Badge {
   id          Int     @id @default(autoincrement())
   code        String  @unique

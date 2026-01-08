@@ -55,11 +55,7 @@ watch(
       >
         <!-- Modal Container -->
         <Transition name="modal-bounce">
-          <div
-            v-if="showModal"
-            class="relative max-w-md w-full"
-            @click.stop
-          >
+          <div v-if="showModal" class="relative max-w-md w-full" @click.stop>
             <!-- Confetti Background Effect -->
             <div class="absolute inset-0 overflow-hidden pointer-events-none">
               <div class="confetti confetti-1"></div>
@@ -75,7 +71,9 @@ watch(
               class="relative bg-linear-to-br from-yellow-50 via-orange-50 to-yellow-100 dark:from-yellow-900/30 dark:via-orange-900/30 dark:to-yellow-900/30 rounded-3xl shadow-2xl border-4 border-yellow-400 dark:border-yellow-600 overflow-hidden"
             >
               <!-- Glow Effect -->
-              <div class="absolute inset-0 bg-linear-to-br from-yellow-400/20 to-orange-400/20 animate-pulse pointer-events-none"></div>
+              <div
+                class="absolute inset-0 bg-linear-to-br from-yellow-400/20 to-orange-400/20 animate-pulse pointer-events-none"
+              ></div>
 
               <!-- Close Button -->
               <button
@@ -91,9 +89,16 @@ watch(
               <div class="relative p-8 text-center space-y-6">
                 <!-- Header -->
                 <div class="space-y-2">
-                  <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-400/30 dark:bg-yellow-600/30 border border-yellow-500 dark:border-yellow-700">
-                    <Icon name="tabler:sparkles" class="w-4 h-4 text-yellow-700 dark:text-yellow-400" />
-                    <span class="text-sm font-bold text-yellow-800 dark:text-yellow-300 uppercase tracking-wide">
+                  <div
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-400/30 dark:bg-yellow-600/30 border border-yellow-500 dark:border-yellow-700"
+                  >
+                    <Icon
+                      name="tabler:sparkles"
+                      class="w-4 h-4 text-yellow-700 dark:text-yellow-400"
+                    />
+                    <span
+                      class="text-sm font-bold text-yellow-800 dark:text-yellow-300 uppercase tracking-wide"
+                    >
                       Nouveau Badge Débloqué !
                     </span>
                   </div>
@@ -101,14 +106,19 @@ watch(
 
                 <!-- Badge Icon with Animation -->
                 <div class="relative inline-block">
-                  <div class="absolute inset-0 bg-yellow-400/30 dark:bg-yellow-600/30 rounded-full blur-2xl animate-ping"></div>
+                  <div
+                    class="absolute inset-0 bg-yellow-400/30 dark:bg-yellow-600/30 rounded-full blur-2xl animate-ping"
+                  ></div>
                   <div
                     class="relative w-32 h-32 mx-auto flex items-center justify-center rounded-full bg-linear-to-br from-yellow-100 to-orange-100 dark:from-yellow-800/40 dark:to-orange-800/40 border-4 border-yellow-400 dark:border-yellow-600 shadow-2xl animate-badge-bounce"
                   >
                     <span class="text-6xl">{{ badge?.icon }}</span>
                   </div>
                   <div class="absolute -top-2 -right-2">
-                    <Icon name="tabler:check-circle" class="w-10 h-10 text-green-500 animate-scale-in" />
+                    <Icon
+                      name="tabler:check-circle"
+                      class="w-10 h-10 text-green-500 animate-scale-in"
+                    />
                   </div>
                 </div>
 
@@ -117,13 +127,17 @@ watch(
                   <h2 class="text-3xl font-black text-slate-900 dark:text-white">
                     {{ badge?.name }}
                   </h2>
-                  <p class="text-base text-slate-700 dark:text-slate-300 leading-relaxed max-w-sm mx-auto">
+                  <p
+                    class="text-base text-slate-700 dark:text-slate-300 leading-relaxed max-w-sm mx-auto"
+                  >
                     {{ badge?.description }}
                   </p>
                 </div>
 
                 <!-- XP Reward -->
-                <div class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-purple-500/20 dark:bg-purple-600/20 border-2 border-purple-400 dark:border-purple-600">
+                <div
+                  class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-purple-500/20 dark:bg-purple-600/20 border-2 border-purple-400 dark:border-purple-600"
+                >
                   <Icon name="tabler:trophy" class="w-6 h-6 text-purple-600 dark:text-purple-400" />
                   <span class="text-xl font-bold text-purple-700 dark:text-purple-300">
                     +{{ badge?.xpReward }} XP
@@ -195,7 +209,8 @@ watch(
 }
 
 @keyframes badgeBounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
   25% {

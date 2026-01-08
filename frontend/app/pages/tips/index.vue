@@ -9,25 +9,33 @@ const searchQuery = ref((route.query.q as string) || '');
 const selectedTag = ref<string | null>(null);
 const selectedDifficulty = ref<number | null>(null);
 
-const { data: rawTagsResponse } = await useFetch<{ success: boolean; data: string[] }>(`${apiBaseUrl}/tips/tags/all`);
+const { data: rawTagsResponse } = await useFetch<{ success: boolean; data: string[] }>(
+  `${apiBaseUrl}/tips/tags/all`,
+);
 const availableTags = computed<string[]>(() => {
   const tags = rawTagsResponse.value?.data || [];
   console.log('[Tips] Tags loaded:', { hasData: !!rawTagsResponse.value, tagsCount: tags.length });
   return tags;
 });
 
-const { data: rawTipsResponse } = await useFetch<{ success: boolean; data: Tip[] }>(`${apiBaseUrl}/tips`, {
-  query: computed(() => ({
-    q: searchQuery.value,
-    tag: selectedTag.value,
-    difficulty: selectedDifficulty.value,
-  })),
-  watch: [searchQuery, selectedTag, selectedDifficulty],
-});
+const { data: rawTipsResponse } = await useFetch<{ success: boolean; data: Tip[] }>(
+  `${apiBaseUrl}/tips`,
+  {
+    query: computed(() => ({
+      q: searchQuery.value,
+      tag: selectedTag.value,
+      difficulty: selectedDifficulty.value,
+    })),
+    watch: [searchQuery, selectedTag, selectedDifficulty],
+  },
+);
 
 const filteredTips = computed<Tip[]>(() => {
   const tips = rawTipsResponse.value?.data || [];
-  console.log('[Tips] Filtered tips:', { hasData: !!rawTipsResponse.value, tipsCount: tips.length });
+  console.log('[Tips] Filtered tips:', {
+    hasData: !!rawTipsResponse.value,
+    tipsCount: tips.length,
+  });
   return tips;
 });
 

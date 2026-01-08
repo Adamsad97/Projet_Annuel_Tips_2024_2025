@@ -29,9 +29,7 @@ const isModerator = computed(() => {
     <!-- Séparateur + Liens Utilisateur (si connecté) -->
     <div v-if="isAuthenticated && userLinks.length > 0" class="flex flex-col gap-2 w-full">
       <div class="w-full h-px bg-blue-100 dark:bg-blue-900/30 my-2" />
-      <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1 pl-2">
-        Mon Espace
-      </p>
+      <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1 pl-2">Mon Espace</p>
       <SidebarButton
         v-for="link in userLinks"
         :key="link.to"

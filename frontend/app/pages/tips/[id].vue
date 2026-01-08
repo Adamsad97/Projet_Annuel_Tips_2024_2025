@@ -75,7 +75,7 @@ const tip = computed(() => {
     author: {
       id: bt.user.id,
       name: displayName,
-      xp: 0, 
+      xp: 0,
       avatar: bt.user.avatarProfile || '',
       role: 'Membre',
     },
@@ -102,19 +102,22 @@ const statusConfig = computed(() => {
     case 'PENDING':
       return {
         label: 'En attente de validation',
-        color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700',
+        color:
+          'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700',
         icon: 'tabler:clock',
       };
     case 'APPROVED':
       return {
         label: 'Approuvé',
-        color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700',
+        color:
+          'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700',
         icon: 'tabler:check-circle',
       };
     case 'REJECTED':
       return {
         label: 'Rejeté',
-        color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700',
+        color:
+          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700',
         icon: 'tabler:x-circle',
       };
     default:
@@ -149,8 +152,16 @@ useSeoMeta({
             />
 
             <!-- Status Badge (owner only) - Cleaner position at top of content -->
-            <div v-if="statusConfig && isOwner" class="relative mb-6 flex justify-between items-center">
-              <div :class="['inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-medium', statusConfig.color]">
+            <div
+              v-if="statusConfig && isOwner"
+              class="relative mb-6 flex justify-between items-center"
+            >
+              <div
+                :class="[
+                  'inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-medium',
+                  statusConfig.color,
+                ]"
+              >
                 <Icon :name="statusConfig.icon" class="w-5 h-5" />
                 {{ statusConfig.label }}
               </div>

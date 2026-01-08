@@ -39,7 +39,7 @@ export const useWebSocket = () => {
 
   const connect = () => {
     const config = useRuntimeConfig();
-    const backendUrl = config.public.backendUrl || 'http://localhost:3001';
+    const backendUrl = (config.public.backendUrl as string) || 'http://localhost:3001';
     const token = storage.getAccessToken();
 
     console.log('[WebSocket] Connecting to:', backendUrl);

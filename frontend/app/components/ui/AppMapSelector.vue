@@ -177,7 +177,9 @@ const locateMe = () => {
     >
       <div class="flex items-start justify-between gap-2">
         <div class="flex-1 space-y-1">
-          <div class="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+          <div
+            class="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400"
+          >
             <Icon name="tabler:map-pin" class="w-4 h-4" />
             Position sélectionnée
           </div>

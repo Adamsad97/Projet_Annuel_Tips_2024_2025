@@ -16,9 +16,10 @@ export function useAuth() {
       });
 
       authStore.setAuth(response);
-      const displayName = response.user.firstname || response.user.lastname
-        ? `${response.user.firstname || ''} ${response.user.lastname || ''}`.trim()
-        : response.user.email;
+      const displayName =
+        response.user.firstname || response.user.lastname
+          ? `${response.user.firstname || ''} ${response.user.lastname || ''}`.trim()
+          : response.user.email;
       toast.success(`Bienvenue ${displayName}`, 'Connexion réussie');
 
       if (import.meta.dev) {

@@ -8,9 +8,12 @@ const TipsCard = defineAsyncComponent(() => import('~/components/TipsCard.vue'))
 const config = useRuntimeConfig();
 const apiBaseUrl = config.public.apiBaseUrl;
 
-const { data: rawResponse } = await useFetch<{ success: boolean; data: Tip[] }>(`${apiBaseUrl}/tips`, {
-  default: () => ({ success: true, data: [] }),
-});
+const { data: rawResponse } = await useFetch<{ success: boolean; data: Tip[] }>(
+  `${apiBaseUrl}/tips`,
+  {
+    default: () => ({ success: true, data: [] }),
+  },
+);
 
 const tips = computed(() => rawResponse.value?.data || []);
 const tipsList = ref<Tip[]>(tips.value);
@@ -82,7 +85,8 @@ definePageMeta({
         <p
           class="text-base md:text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-6 leading-relaxed"
         >
-          Bricolage, Cuisine, Informatique, Jardinage... Trouvez la solution ou aidez quelqu'un aujourd'hui.
+          Bricolage, Cuisine, Informatique, Jardinage... Trouvez la solution ou aidez quelqu'un
+          aujourd'hui.
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -68,15 +68,14 @@ export function useToastMessage() {
       const apiErr = err as ApiErrorResponse;
 
       if (apiErr.details && Array.isArray(apiErr.details) && apiErr.details.length > 0) {
-        message = apiErr.details.map((e) => `${e.path ? e.path + ': ' : ''}${e.message}`).join(', ');
-      }
-      else if (apiErr.errors && Array.isArray(apiErr.errors) && apiErr.errors.length > 0) {
+        message = apiErr.details
+          .map((e) => `${e.path ? e.path + ': ' : ''}${e.message}`)
+          .join(', ');
+      } else if (apiErr.errors && Array.isArray(apiErr.errors) && apiErr.errors.length > 0) {
         message = apiErr.errors.map((e) => e.message).join(', ');
-      }
-      else if (apiErr.message) {
+      } else if (apiErr.message) {
         message = apiErr.message;
-      }
-      else if (apiErr.error) {
+      } else if (apiErr.error) {
         message = apiErr.error;
       }
     }

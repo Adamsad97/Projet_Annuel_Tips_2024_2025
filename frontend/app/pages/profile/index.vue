@@ -187,17 +187,23 @@ const xpSteps = [
           Collection de Badges
         </h2>
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          {{ gamification.earnedBadges.value.length }} / {{ gamification.badges.value.length }} débloqués
+          {{ gamification.earnedBadges.value.length }} /
+          {{ gamification.badges.value.length }} débloqués
         </div>
       </div>
 
       <div v-if="gamification.loading.value" class="text-center py-12">
-        <div class="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full mx-auto"></div>
+        <div
+          class="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full mx-auto"
+        ></div>
         <p class="text-gray-500 dark:text-gray-400 mt-4">Chargement des badges...</p>
       </div>
 
       <div v-else-if="gamification.badges.value.length === 0" class="text-center py-12">
-        <Icon name="tabler:trophy-off" class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+        <Icon
+          name="tabler:trophy-off"
+          class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4"
+        />
         <p class="text-gray-500 dark:text-gray-400">Aucun badge disponible pour le moment.</p>
       </div>
 
@@ -215,7 +221,11 @@ const xpSteps = [
           <div class="text-center space-y-2">
             <div
               class="text-4xl mx-auto w-16 h-16 flex items-center justify-center rounded-full"
-              :class="badge.earned ? 'bg-yellow-100 dark:bg-yellow-900/40' : 'bg-gray-200 dark:bg-gray-700'"
+              :class="
+                badge.earned
+                  ? 'bg-yellow-100 dark:bg-yellow-900/40'
+                  : 'bg-gray-200 dark:bg-gray-700'
+              "
             >
               {{ badge.icon }}
             </div>
@@ -225,7 +235,10 @@ const xpSteps = [
             <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
               {{ badge.description }}
             </p>
-            <div class="text-xs font-semibold" :class="badge.earned ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'">
+            <div
+              class="text-xs font-semibold"
+              :class="badge.earned ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'"
+            >
               +{{ badge.xpReward }} XP
             </div>
 
@@ -250,7 +263,11 @@ const xpSteps = [
           <div
             class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-xl"
           >
-            {{ badge.earned ? `Débloqué le ${new Date(badge.earnedAt!).toLocaleDateString('fr-FR')}` : 'Non débloqué' }}
+            {{
+              badge.earned
+                ? `Débloqué le ${new Date(badge.earnedAt!).toLocaleDateString('fr-FR')}`
+                : 'Non débloqué'
+            }}
           </div>
         </div>
       </div>

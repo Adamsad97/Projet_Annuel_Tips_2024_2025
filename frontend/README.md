@@ -1,75 +1,146 @@
-# Nuxt Minimal Starter
+# Documentation Frontend - AideFlash
+Repository: https://github.com/Froggys974/projet-annuel-4IWJ-tips
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## Vue d'ensemble
 
-## Setup
+AideFlash est une plateforme communautaire de partage d'astuces et conseils pratiques. Le frontend est une application web moderne construite avec Nuxt 4 et Vue 3.
 
-Make sure to install dependencies:
+## Technologies principales
 
-```bash
-# npm
-npm install
+- **Nuxt 4** - Framework Vue.js
+- **Vue 3**
+- **TypeScript 5**
+- **Pinia** - Gestion d'état officielle Vue
+- **Tailwind CSS 4** - Framework CSS utility-first
+- **Socket.io Client** - Communication temps reel WebSocket
+- **Leaflet** - Cartes interactives
+- **@nuxt/ui** - Bibliotheque de composants UI
 
-# pnpm
-pnpm install
+## Fonctionnalites cles
 
-# yarn
-yarn install
+### Authentification JWT
+- Inscription et connexion utilisateur
+- Refresh token automatique
+- Middleware de protection des routes
+- Persistance de session avec localStorage
 
-# bun
-bun install
+### Gamification
+- Systeme XP et grades
+- Systeme de badges avec notifications temps reel
+- Classement des utilisateurs (leaderboard)
+- Barre de progression visuelle
+
+### Tips (astuces)
+- Creation, edition, suppression de tips
+- Systeme de votes et commentaires
+- Galerie d'images
+- Geolocalisation sur carte interactive
+- Moderation par les moderateurs
+
+### Temps reel
+- Notifications de badge debloque via WebSocket
+- Approbation/rejet de tips en direct
+- Mise a jour dynamique du contenu
+
+### SEO et Performance
+- Server-Side Rendering (SSR)
+- Sitemap.xml dynamique
+- Robots.txt configurable
+- Meta tags optimises
+- Lazy loading et code splitting automatique
+- Optimisation d'images avec @nuxt/image
+
+## Structure de la documentation
+
+1. [architecture.md](./doc/architecture.md) - Architecture du projet
+2. [state-management.md](./doc/state-management.md) - Gestion d'etat avec Pinia
+3. [api.md](./doc/api.md) - Communication avec le backend
+4. [realtime.md](./doc/realtime.md) - WebSocket et temps reel
+5. [maps.md](./doc/maps.md) - Integration Leaflet
+6. [composables.md](./doc/composables.md) - Logique metier reutilisable
+7. [run-project.md](./doc/run-project.md) - Lancer le projet en local
+
+## Arborescence simplifiee
+
+```
+frontend/
+├── app/                    # Code source principal
+│   ├── components/         # Composants Vue
+│   ├── composables/        # Logique reutilisable
+│   ├── config/             # Configuration (routes, API)
+│   ├── layouts/            # Layouts globaux
+│   ├── middleware/         # Route guards
+│   ├── pages/              # File-based routing
+│   ├── plugins/            # Plugins Nuxt
+│   ├── stores/             # Stores Pinia
+│   ├── types/              # Types TypeScript
+│   └── utils/              # Utilitaires
+├── public/                 # Assets statiques
+├── server/                 # Server-side API routes
+├── doc/                    # Documentation (ce dossier)
+├── nuxt.config.ts          # Configuration Nuxt
+├── package.json            # Dependances
+└── tsconfig.json           # Configuration TypeScript
 ```
 
-## Development Server
+## Conventions de code
 
-Start the development server on `http://localhost:3000`:
+### Naming
+- Composants: PascalCase (`AppHeader.vue`)
+- Composables: camelCase avec prefix `use` (`useAuth.ts`)
+- Types: PascalCase (`User`, `LoginResponse`)
+- Constantes: UPPER_SNAKE_CASE (`API_ROUTES`)
 
-```bash
-# npm
-npm run dev
+### TypeScript
+- Mode strict active
+- Typage explicite des parametres et retours de fonction
+- Interfaces pour les objets complexes
+- Types generiques pour les reponses API
 
-# pnpm
-pnpm dev
+### Style
+- Tailwind CSS uniquement (pas de CSS manuel)
+- Dark mode supporte via `@nuxtjs/color-mode`
+- Mobile-first responsive design
 
-# yarn
-yarn dev
+## Environnement
 
-# bun
-bun run dev
+### Variables d'environnement
+
+Fichier `.env` a la racine:
+
+```env
+NUXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
+NUXT_PUBLIC_SITE_ENV=development
 ```
 
-## Production
+### Ports par defaut
 
-Build the application for production:
+- Frontend dev: `http://localhost:3000`
+- Backend API: `http://localhost:3001`
+- WebSocket: `http://localhost:3001`
 
-```bash
-# npm
-npm run build
+## Qualite de code
 
-# pnpm
-pnpm build
+- **ESLint** avec config Nuxt officielle
+- **Prettier** pour le formatage
+- **TypeScript strict mode**
 
-# yarn
-yarn build
+## Deploiement
 
-# bun
-bun run build
-```
+Le projet inclut un Dockerfile multi-stage pour production:
 
-Locally preview production build:
+1. Build stage: compilation Nuxt
+2. Production stage: serveur Nginx + Node
 
-```bash
-# npm
-npm run preview
+Configuration Nginx fournie à la racine `/nginx/default.conf`.
 
-# pnpm
-pnpm preview
+## Liens utiles
 
-# yarn
-yarn preview
+- [Nuxt 4 Documentation](https://nuxt.com)
+- [Vue 3 Documentation](https://vuejs.org)
+- [Pinia Documentation](https://pinia.vuejs.org)
+- [Tailwind CSS Documentation](https://tailwindcss.com)
 
-# bun
-bun run preview
-```
+## Auteurs
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+GRONDIN Florent, VANDERLYNDEN Louis-Martin

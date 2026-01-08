@@ -1,5 +1,5 @@
-import type { Tip } from './tip';
-import type { User } from './user';
+import type { Tip } from './user';
+import type { CurrentUser } from './user';
 
 export interface ModerationStats {
   pendingTips: number;
@@ -9,7 +9,7 @@ export interface ModerationStats {
 }
 
 export interface PendingTip extends Tip {
-  user: User;
+  user: CurrentUser;
   categories: Array<{
     category: {
       id: number;

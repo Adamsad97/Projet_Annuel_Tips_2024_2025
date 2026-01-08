@@ -38,9 +38,7 @@ useSeoMeta({
             >Tips</span
           >
         </h1>
-        <p class="text-gray-500 dark:text-gray-400">
-          Gérez et consultez tous vos tips publiés.
-        </p>
+        <p class="text-gray-500 dark:text-gray-400">Gérez et consultez tous vos tips publiés.</p>
       </div>
 
       <!-- Bouton créer un tip -->
@@ -59,11 +57,15 @@ useSeoMeta({
         class="bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-white/20 dark:border-slate-700 shadow-lg"
       >
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+          <div
+            class="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center"
+          >
             <Icon name="tabler:clock" class="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
           </div>
           <div>
-            <p class="text-3xl font-black text-slate-900 dark:text-white">{{ pendingTips.length }}</p>
+            <p class="text-3xl font-black text-slate-900 dark:text-white">
+              {{ pendingTips.length }}
+            </p>
             <p class="text-sm text-gray-500 dark:text-gray-400">En attente</p>
           </div>
         </div>
@@ -73,11 +75,15 @@ useSeoMeta({
         class="bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-white/20 dark:border-slate-700 shadow-lg"
       >
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+          <div
+            class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
+          >
             <Icon name="tabler:check" class="w-6 h-6 text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <p class="text-3xl font-black text-slate-900 dark:text-white">{{ approvedTips.length }}</p>
+            <p class="text-3xl font-black text-slate-900 dark:text-white">
+              {{ approvedTips.length }}
+            </p>
             <p class="text-sm text-gray-500 dark:text-gray-400">Approuvés</p>
           </div>
         </div>
@@ -87,11 +93,15 @@ useSeoMeta({
         class="bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-white/20 dark:border-slate-700 shadow-lg"
       >
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+          <div
+            class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center"
+          >
             <Icon name="tabler:x" class="w-6 h-6 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <p class="text-3xl font-black text-slate-900 dark:text-white">{{ rejectedTips.length }}</p>
+            <p class="text-3xl font-black text-slate-900 dark:text-white">
+              {{ rejectedTips.length }}
+            </p>
             <p class="text-sm text-gray-500 dark:text-gray-400">Refusés</p>
           </div>
         </div>

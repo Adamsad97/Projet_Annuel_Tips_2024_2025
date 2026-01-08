@@ -1,9 +1,3 @@
-/**
- * =========================
- * FOLLOW SYSTEM
- * =========================
- */
-
 model UserSubscription {
   followerId Int
   followedId Int
