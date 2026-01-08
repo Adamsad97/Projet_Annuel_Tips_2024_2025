@@ -5,7 +5,7 @@ import { verifyAccessTokenOrThrow } from '../../../utils/jwt.util';
 import { createMockResponse } from '../../../types/test.types';
 import type { Response } from 'express';
 
-// Mock du module jwt.util
+// mock du module jwt.util
 jest.mock('../../../utils/jwt.util', () => ({
   verifyAccessTokenOrThrow: jest.fn(),
 }));
@@ -35,7 +35,7 @@ describe('requireAuth middleware', () => {
     const err = next.mock.calls[0][0];
     expect(err).toBeInstanceOf(AppError);
     expect(err.statusCode).toBe(401);
-    expect(err.message).toBe('Missing authorization header');
+    expect(err.message).toBe('missing authorization header');
   });
 
   it('calls next with AppError if authorization format is invalid (no Bearer)', () => {
@@ -47,7 +47,7 @@ describe('requireAuth middleware', () => {
     const err = next.mock.calls[0][0];
     expect(err).toBeInstanceOf(AppError);
     expect(err.statusCode).toBe(401);
-    expect(err.message).toContain('Invalid authorization format');
+    expect(err.message).toContain('invalid authorization format');
   });
 
   it('calls next with AppError if token is empty after Bearer', () => {
@@ -59,11 +59,11 @@ describe('requireAuth middleware', () => {
     const err = next.mock.calls[0][0];
     expect(err).toBeInstanceOf(AppError);
     expect(err.statusCode).toBe(401);
-    expect(err.message).toBe('Token not provided');
+    expect(err.message).toBe('token not provided');
   });
 
   it('sets req.user and calls next() on valid token', () => {
-    const mockUser = { id: 123, email: 'test@example.com', tokenVersion: 0 };
+    const mockUser = { id: 123, email: 'test@example.com' };
     mockVerifyToken.mockReturnValue(mockUser);
 
     req.headers = { authorization: 'Bearer valid-token' };
