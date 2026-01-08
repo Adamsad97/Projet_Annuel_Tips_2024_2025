@@ -18,9 +18,7 @@ const mockVerifyRefreshToken = verifyRefreshTokenOrThrow as jest.MockedFunction<
   typeof verifyRefreshTokenOrThrow
 >;
 const mockCreateAccessToken = createAccessToken as jest.MockedFunction<typeof createAccessToken>;
-const mockCreateRefreshToken = createRefreshToken as jest.MockedFunction<
-  typeof createRefreshToken
->;
+const mockCreateRefreshToken = createRefreshToken as jest.MockedFunction<typeof createRefreshToken>;
 const mockUserRepository = userRepository as jest.Mocked<typeof userRepository>;
 
 describe('AuthController', () => {

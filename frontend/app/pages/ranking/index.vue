@@ -14,31 +14,35 @@ const UserProgressBar = defineAsyncComponent(() => import('~/components/UserProg
 const { user } = useAuth();
 const api = useApi();
 
-const leaderboardData = ref<Array<{
-  userId: number;
-  username: string;
-  xp: number;
-  rank: number;
-  avatarProfile?: string;
-  role?: string;
-  tips?: number;
-  votes?: number;
-}>>([]);
+const leaderboardData = ref<
+  Array<{
+    userId: number;
+    username: string;
+    xp: number;
+    rank: number;
+    avatarProfile?: string;
+    role?: string;
+    tips?: number;
+    votes?: number;
+  }>
+>([]);
 
 onMounted(async () => {
   try {
     console.log('[Ranking] Loading leaderboard data...');
 
-    const leaderboardResponse = await api.get<Array<{
-      userId: number;
-      username: string;
-      xp: number;
-      rank: number;
-      avatarProfile?: string;
-      role?: string;
-      tips?: number;
-      votes?: number;
-    }>>('/users/leaderboard?take=100');
+    const leaderboardResponse = await api.get<
+      Array<{
+        userId: number;
+        username: string;
+        xp: number;
+        rank: number;
+        avatarProfile?: string;
+        role?: string;
+        tips?: number;
+        votes?: number;
+      }>
+    >('/users/leaderboard?take=100');
 
     console.log('[Ranking] Leaderboard response:', {
       isArray: Array.isArray(leaderboardResponse),

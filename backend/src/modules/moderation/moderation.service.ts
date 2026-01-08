@@ -236,7 +236,6 @@ export class ModerationService {
     return { success: true, role };
   }
 
-
   async demoteModerator(userId: number, adminId: number, reason: string) {
     const isAdmin = await moderationRepository.isAdmin(adminId);
     if (!isAdmin) {

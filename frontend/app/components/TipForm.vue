@@ -159,7 +159,10 @@ const difficultyOptions = [
           label="Adresse / Lieu (complément)"
           placeholder="Ex: Bâtiment A, Entrée principale"
         />
-        <p v-if="mapPosition?.address" class="text-xs text-emerald-600 dark:text-emerald-500 flex items-center gap-1">
+        <p
+          v-if="mapPosition?.address"
+          class="text-xs text-emerald-600 dark:text-emerald-500 flex items-center gap-1"
+        >
           <Icon name="tabler:info-circle" class="w-3 h-3" />
           Adresse détectée: {{ mapPosition.address }}
         </p>

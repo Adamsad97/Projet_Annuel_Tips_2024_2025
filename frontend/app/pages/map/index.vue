@@ -10,7 +10,9 @@ definePageMeta({
 const config = useRuntimeConfig();
 const apiBaseUrl = config.public.apiBaseUrl;
 
-const { data: rawResponse } = await useFetch<{ success: boolean; data: Tip[] }>(`${apiBaseUrl}/tips`);
+const { data: rawResponse } = await useFetch<{ success: boolean; data: Tip[] }>(
+  `${apiBaseUrl}/tips`,
+);
 
 const tips = computed(() => {
   const tipsData = rawResponse.value?.data || [];
@@ -31,7 +33,7 @@ const tips = computed(() => {
 
 const filters = ref({ country: '', dateStart: '', dateEnd: '' });
 const zoom = ref(5);
-const center = ref([46.603354, 1.888334]); // France center
+const center = ref<[number, number]>([46.603354, 1.888334]); // France center
 const mapRef = ref<InstanceType<typeof LMap> | null>(null);
 const colorMode = useColorMode();
 
@@ -66,12 +68,12 @@ const onFilterChange = async () => {
 
   if (filteredTips.value.length === 1) {
     const tip = filteredTips.value[0];
-    center.value = [tip.lat, tip.lng];
+    center.value = [tip!.lat, tip!.lng];
     zoom.value = 10;
     return;
   }
 
-  const bounds = filteredTips.value.map((t) => [t.lat, t.lng]);
+  const bounds = filteredTips.value.map((t) => [t.lat, t.lng]) as [number, number][];
 
   if (mapRef.value && mapRef.value.leafletObject) {
     mapRef.value.leafletObject.fitBounds(bounds, {
@@ -266,9 +268,7 @@ const locateUser = () => {
               class-name="drop-shadow-lg animate-pulse"
             />
             <LPopup :options="{ closeButton: false, offset: [0, -10] }">
-              <div class="text-sm font-medium text-slate-800">
-                Votre position
-              </div>
+              <div class="text-sm font-medium text-slate-800">Votre position</div>
             </LPopup>
           </LMarker>
 

@@ -10,9 +10,9 @@ interface ApiCallOptions {
   headers?: Record<string, string>;
   retry?: boolean;
   skipAuth?: boolean;
-  showErrorToast?: boolean; // Afficher automatiquement les erreurs en toast (défaut: true)
-  showSuccessToast?: boolean; // Afficher automatiquement les succès en toast (défaut: false)
-  successMessage?: string; // Message de succès personnalisé
+  showErrorToast?: boolean;
+  showSuccessToast?: boolean;
+  successMessage?: string;
 }
 
 export function useApi() {
@@ -48,7 +48,11 @@ export function useApi() {
       });
 
       if (import.meta.dev) {
-        console.log('[api] response:', { success: response.success, hasData: response.data !== undefined, message: response.message });
+        console.log('[api] response:', {
+          success: response.success,
+          hasData: response.data !== undefined,
+          message: response.message,
+        });
       }
 
       if (response.success && response.data !== undefined) {

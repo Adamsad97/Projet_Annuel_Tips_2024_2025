@@ -67,7 +67,9 @@ const handleRegister = async () => {
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
-                <label class="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">Prénom</label>
+                <label class="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1"
+                  >Prénom</label
+                >
                 <div class="relative group">
                   <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <Icon

@@ -2,22 +2,22 @@
 definePageMeta({
   layout: 'auth',
   middleware: 'guest',
-})
+});
 
-const { register } = useAuth()
-const router = useRouter()
+const { register } = useAuth();
+const router = useRouter();
 
-const loading = ref(false)
+const loading = ref(false);
 const form = reactive({
   username: '',
   email: '',
   password: '',
-})
+});
 const errors = reactive({
   username: '',
   email: '',
   password: '',
-})
+});
 
 const passwordValidation = computed(() => ({
   minLength: form.password.length >= 8,
@@ -25,45 +25,45 @@ const passwordValidation = computed(() => ({
   hasLowercase: /[a-z]/.test(form.password),
   hasNumber: /\d/.test(form.password),
   hasSpecial: /[@.$!%*?&]/.test(form.password),
-}))
+}));
 
 const isPasswordValid = computed(() => {
-  return Object.values(passwordValidation.value).every(v => v === true)
-})
+  return Object.values(passwordValidation.value).every((v) => v === true);
+});
 
 async function handleSubmit() {
-  errors.username = ''
-  errors.email = ''
-  errors.password = ''
+  errors.username = '';
+  errors.email = '';
+  errors.password = '';
 
   if (!form.username) {
-    errors.username = 'nom utilisateur requis'
-    return
+    errors.username = 'nom utilisateur requis';
+    return;
   }
   if (!form.email) {
-    errors.email = 'email requis'
-    return
+    errors.email = 'email requis';
+    return;
   }
   if (!form.password) {
-    errors.password = 'mot de passe requis'
-    return
+    errors.password = 'mot de passe requis';
+    return;
   }
 
   if (!isPasswordValid.value) {
-    errors.password = 'le mot de passe ne respecte pas tous les criteres'
-    return
+    errors.password = 'le mot de passe ne respecte pas tous les criteres';
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
 
   try {
-    const success = await register(form)
+    const success = await register(form);
 
     if (success) {
-      router.push('/dashboard')
+      router.push('/dashboard');
     }
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
@@ -145,13 +145,7 @@ async function handleSubmit() {
           </div>
         </div>
 
-        <UIButton
-          type="submit"
-          variant="primary"
-          size="lg"
-          :loading="loading"
-          class="w-full"
-        >
+        <UIButton type="submit" variant="primary" size="lg" :loading="loading" class="w-full">
           S'inscrire
         </UIButton>
       </form>
@@ -167,5 +161,3 @@ async function handleSubmit() {
     </UICard>
   </div>
 </template>
-
-

@@ -18,7 +18,13 @@ export const userLinks: NavigationLink[] = [
 ];
 
 export const moderatorLinks: NavigationLink[] = [
-  { to: '/moderation', text: 'Modération', icon: 'tabler:shield-check', requiresAuth: true, requiresRole: 'MODERATOR' },
+  {
+    to: '/moderation',
+    text: 'Modération',
+    icon: 'tabler:shield-check',
+    requiresAuth: true,
+    requiresRole: 'MODERATOR',
+  },
 ];
 
 export const secondaryLinks: NavigationLink[] = [

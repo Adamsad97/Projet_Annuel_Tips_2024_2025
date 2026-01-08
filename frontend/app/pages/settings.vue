@@ -14,9 +14,10 @@ const { user, logout } = useAuth();
 const activeTab = ref('general');
 
 const form = reactive({
-  name: user.value?.firstname && user.value?.lastname
-    ? `${user.value.firstname} ${user.value.lastname}`
-    : user.value?.firstname || user.value?.lastname || '',
+  name:
+    user.value?.firstname && user.value?.lastname
+      ? `${user.value.firstname} ${user.value.lastname}`
+      : user.value?.firstname || user.value?.lastname || '',
   email: user.value?.email || '', // Note: Type User needs email or we assume it exists
   bio: user.value?.bio || 'Passionné de bricolage et de partage.',
   address: user.value?.address || '',
@@ -39,9 +40,10 @@ watch(
   user,
   (newUser) => {
     if (newUser) {
-      form.name = newUser.firstname && newUser.lastname
-        ? `${newUser.firstname} ${newUser.lastname}`
-        : newUser.firstname || newUser.lastname || '';
+      form.name =
+        newUser.firstname && newUser.lastname
+          ? `${newUser.firstname} ${newUser.lastname}`
+          : newUser.firstname || newUser.lastname || '';
       form.email = newUser.email || '';
     }
   },

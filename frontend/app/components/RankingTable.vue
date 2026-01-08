@@ -55,9 +55,16 @@ defineProps<Props>();
             <td class="px-6 py-5">
               <div class="flex items-center gap-4">
                 <img
-                  :src="user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=128`"
+                  :src="
+                    user.avatar ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=128`
+                  "
                   class="w-12 h-12 rounded-2xl object-cover shadow-lg ring-2 ring-white/50 group-hover:scale-110 transition-all duration-300"
-                  @error="(e) => (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=128`"
+                  @error="
+                    (e) =>
+                      ((e.target as HTMLImageElement).src =
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=128`)
+                  "
                 />
                 <div>
                   <div
