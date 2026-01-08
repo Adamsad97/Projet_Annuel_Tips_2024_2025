@@ -64,8 +64,21 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Run database migrations
-        run: npx prisma migrate deploy
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U tips_user; then
+              echo "PostgreSQL is ready"
+              break
+            fi
+            echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 2
+          done
+
+      - name: Setup database schema
+        run: npx prisma db push --accept-data-loss --skip-generate
+        env:
+          DATABASE_URL: postgresql://tips_user:tips_password@localhost:5432/tips_db
 
       - name: Run tests
         run: npm test
