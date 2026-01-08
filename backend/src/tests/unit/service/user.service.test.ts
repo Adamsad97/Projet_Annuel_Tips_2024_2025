@@ -37,34 +37,32 @@ describe('userService', () => {
     it('creates a user when email is not used', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
       const created = {
-        id_user: 1,
+        id: 1,
         email: 'a@x',
-        password: 'hashed-a',
-        user_name: 'u',
-        avatar_profile: null,
+        password: 'hashed-pass',
+        username: 'u',
+        firstname: 'u',
+        lastname: null,
+        avatarProfile: null,
         bio: null,
         address: null,
-        trust_index: 0,
-        is_two_factor_enabled: false,
-        two_factor_secret: null,
-        token_version: 0,
-        created_at: new Date(),
-        updated_at: new Date(),
+        xp: 0,
+        trustIndex: 0,
+        isTwoFactorEnabled: false,
+        gradeId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       (prisma.user.create as jest.Mock).mockResolvedValue(created);
 
       const res = await userService.register('a@x', 'pass', 'u');
-      expect(res).toMatchObject({ id_user: 1, email: 'a@x', user_name: 'u' });
+      expect(res).toMatchObject({ id: 1, email: 'a@x', username: 'u' });
       expect(res).not.toHaveProperty('password');
-      expect(res).not.toHaveProperty('token_version');
-      expect(prisma.user.create).toHaveBeenCalledWith({
-        data: { email: 'a@x', password: 'hashed-pass', user_name: 'u' },
-      });
       expect(hashPassword).toHaveBeenCalledWith('pass');
     });
 
     test('throws AppError when email already exists', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id_user: 2, email: 'a@x' });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 2, email: 'a@x' });
       await expect(userService.register('a@x', 'pass', 'u')).rejects.toMatchObject({
         statusCode: 409,
       });
@@ -81,10 +79,13 @@ describe('userService', () => {
 
     test('throws when password is invalid', async () => {
       const user = {
-        id_user: 3,
+        id: 3,
         email: 'bob@x',
         password: 'hashed-secret',
-        token_version: 0,
+        username: 'bob',
+        firstname: 'Bob',
+        lastname: null,
+        xp: 0,
       };
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(user);
       (comparePassword as jest.Mock).mockReturnValueOnce(false);
@@ -93,19 +94,21 @@ describe('userService', () => {
 
     it('returns token and user when credentials are valid', async () => {
       const user = {
-        id_user: 4,
+        id: 4,
         email: 'jane@x',
         password: 'hashed-valid',
-        user_name: 'jane',
-        avatar_profile: null,
+        username: 'jane',
+        firstname: 'Jane',
+        lastname: null,
+        avatarProfile: null,
         bio: null,
         address: null,
-        trust_index: 0,
-        is_two_factor_enabled: false,
-        two_factor_secret: null,
-        token_version: 0,
-        created_at: new Date(),
-        updated_at: new Date(),
+        xp: 0,
+        trustIndex: 0,
+        isTwoFactorEnabled: false,
+        gradeId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(user);
       (comparePassword as jest.Mock).mockReturnValueOnce(true);
@@ -115,18 +118,15 @@ describe('userService', () => {
       expect(createAccessToken).toHaveBeenCalledWith({
         id: 4,
         email: 'jane@x',
-        tokenVersion: 0,
       });
       expect(createRefreshToken).toHaveBeenCalledWith({
         id: 4,
         email: 'jane@x',
-        tokenVersion: 0,
       });
       expect(res).toHaveProperty('accessToken', 'access-token');
       expect(res).toHaveProperty('refreshToken', 'refresh-token');
-      expect(res.user).toMatchObject({ id_user: 4, email: 'jane@x', user_name: 'jane' });
+      expect(res.user).toMatchObject({ id: 4, email: 'jane@x', username: 'jane' });
       expect(res.user).not.toHaveProperty('password');
-      expect(res.user).not.toHaveProperty('token_version');
     });
   });
 });

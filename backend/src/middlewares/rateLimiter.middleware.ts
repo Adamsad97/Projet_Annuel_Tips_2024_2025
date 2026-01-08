@@ -4,7 +4,8 @@ import type { Request, Response } from 'express';
 const getClientIp = (req: Request): string => {
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded && typeof forwarded === 'string') {
-    return forwarded.split(',')[0].trim();
+    const firstIp = forwarded.split(',')[0];
+    return firstIp ? firstIp.trim() : 'unknown';
   }
 
   const realIp = req.headers['x-real-ip'];
