@@ -50,6 +50,14 @@ AideFlash est une application web fullstack permettant aux utilisateurs de parta
 - Docker
 - Docker Compose
 
+## Integration continue (CI)
+
+GitHub Actions avec 3 jobs executes sur push/PR :
+- **test** : lance la suite de tests
+- **lint** : verifie le linting
+- **format** : verifie le formatage Prettier
+![Image Intégration continu](image.png)
+
 ## Lancer le projet en developpement
 
 ### Prerequis
