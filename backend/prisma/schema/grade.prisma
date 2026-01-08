@@ -6,7 +6,7 @@
 
 model Grade {
   id         Int    @id @default(autoincrement())
-  name       String
+  name       String @unique
   xpRequired Int
 
   users User[]

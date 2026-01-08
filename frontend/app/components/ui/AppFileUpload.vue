@@ -18,7 +18,6 @@ const emit = defineEmits<{
 const dragActive = ref(false);
 const inputRef = ref<HTMLInputElement | null>(null);
 
-// Generate preview URLs for images
 const previews = computed(() => {
   return props.modelValue.map((file) => {
     if (file.type.startsWith('image/')) {
@@ -33,7 +32,6 @@ const handleFiles = (files: FileList | null) => {
 
   const newFiles: File[] = [];
   Array.from(files).forEach((file) => {
-    // Check size if needed
     if (props.maxSize && file.size > props.maxSize * 1024 * 1024) {
       alert(`Le fichier ${file.name} est trop volumineux (Max ${props.maxSize}MB)`);
       return;
@@ -41,7 +39,6 @@ const handleFiles = (files: FileList | null) => {
     newFiles.push(file);
   });
 
-  // If not multiple, replace. If multiple, append.
   const updatedFiles = props.multiple ? [...props.modelValue, ...newFiles] : newFiles;
   emit('update:modelValue', updatedFiles);
 };
@@ -54,7 +51,7 @@ const onDrop = (e: DragEvent) => {
 const onChange = (e: Event) => {
   const target = e.target as HTMLInputElement;
   handleFiles(target.files);
-  if (target) target.value = ''; // Reset input
+  if (target) target.value = '';
 };
 
 const removeFile = (index: number) => {

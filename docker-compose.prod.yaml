@@ -1,0 +1,85 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tips_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tips_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-tips_db}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    networks:
+      - projet-tips-prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tips_user} -d ${POSTGRES_DB:-tips_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      target: production
+      dockerfile: Dockerfile
+    container_name: backend-prod
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - projet-tips-prod
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3001/api/ping || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    environment:
+      NODE_ENV: production
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+      dockerfile: Dockerfile
+    container_name: frontend-prod
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - projet-tips-prod
+    environment:
+      NODE_ENV: production
+      NUXT_PUBLIC_API_BASE: http://backend:3001/api
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - projet-tips-prod
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost/api/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  projet-tips-prod:
+    driver: bridge
+
+volumes:
+  postgres_prod_data:

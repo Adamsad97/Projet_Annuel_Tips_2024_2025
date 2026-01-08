@@ -1,20 +1,25 @@
 <script setup lang="ts">
 import ProfilPicture from '@/components/ProfilPicture.vue';
+import XpProgressBar from '@/components/gamification/XpProgressBar.vue';
+import BadgeDisplay from '@/components/gamification/BadgeDisplay.vue';
 
 definePageMeta({
   middleware: 'auth',
 });
 
 const { user: authUser, logout } = useAuth();
+const gamification = useGamification();
 
-// Mock default or loading state if user is fetched client-side (though ideally it's already present from login)
-const xpSteps = [
-  { label: 'Niveau 1 – Découvreur', min: 0, max: 499, range: '0 – 499 XP' },
-  { label: 'Niveau 2 – Collaborateur', min: 500, max: 1999, range: '500 – 1 999 XP' },
-  { label: 'Niveau 3 – Expert', min: 2000, max: 4999, range: '2 000 – 4 999 XP' },
-  { label: 'Niveau 4 – Ambassadeur', min: 5000, max: 9999, range: '5 000 – 9 999 XP' },
-  { label: 'Niveau 5 – Légende', min: 10000, max: Infinity, range: '10 000+ XP' },
-];
+onMounted(async () => {
+  console.log('[Profile] Loading gamification data...');
+  await gamification.refreshAll();
+  console.log('[Profile] Gamification data loaded:', {
+    hasProgress: !!gamification.progress.value,
+    hasBadges: gamification.badges.value.length > 0,
+    progressPercent: gamification.progress.value?.progressPercent,
+    currentXp: gamification.progress.value?.currentXp,
+  });
+});
 
 const user = computed(() => {
   if (!authUser.value)
@@ -25,47 +30,51 @@ const user = computed(() => {
       nextRankXp: 500,
       roleLabel: 'Visiteur',
       roleIcon: 'tabler:user',
-      levelLabel: xpSteps[0]?.label || 'Découvreur',
+      levelLabel: 'Découvreur',
       location: 'Inconnu',
       joinedAt: 'Récemment',
       bio: 'Connectez-vous pour voir votre profil.',
       stats: [],
     };
 
-  // Pour l'instant, utiliser des valeurs par défaut car le backend n'envoie pas encore xp/role/etc
-  const currentXp = 0; // authUser.value.xp quand disponible
-  const currentStep =
-    xpSteps.find((step) => currentXp >= step.min && currentXp <= step.max) || xpSteps[0];
-  const currentIndex = currentStep ? xpSteps.indexOf(currentStep) : 0;
-  const nextStep = xpSteps[currentIndex + 1];
-  const nextRankXp = nextStep ? nextStep.min : currentStep?.max || 500;
-
-  const displayName = authUser.value.firstname && authUser.value.lastname
-    ? `${authUser.value.firstname} ${authUser.value.lastname}`
-    : authUser.value.firstname || authUser.value.lastname || authUser.value.email;
+  const currentProgress = gamification.progress.value;
+  const displayName =
+    authUser.value.firstname && authUser.value.lastname
+      ? `${authUser.value.firstname} ${authUser.value.lastname}`
+      : authUser.value.firstname || authUser.value.lastname || authUser.value.email;
 
   return {
     name: displayName,
     avatar: authUser.value.avatarProfile || '/avatar.svg',
-    xp: currentXp,
-    nextRankXp: nextRankXp === Infinity ? currentXp : nextRankXp,
-    roleLabel: 'Utilisateur', // authUser.value.role quand disponible
-    roleIcon: 'tabler:user',
-    levelLabel: currentStep?.label || xpSteps[0]?.label || 'Découvreur',
+    xp: currentProgress?.currentXp || 0,
+    nextRankXp: currentProgress?.nextGrade?.xpRequired || 500,
+    roleLabel: currentProgress?.currentGrade?.name || 'Débutant',
+    roleIcon: 'tabler:star',
+    levelLabel: currentProgress?.currentGrade?.name || 'Découvreur',
     location: authUser.value.address || 'Non renseigné',
     joinedAt: `Membre depuis ${new Date(authUser.value.createdAt).getFullYear()}`,
     bio: authUser.value.bio || 'Aucune bio renseignée.',
     stats: [
-      { label: 'Tips publiés', value: 0 }, // À implémenter côté backend
-      { label: 'Votes reçus', value: 0 }, // À implémenter côté backend
+      { label: 'Tips publiés', value: currentProgress?.stats?.tipsCreated || 0 },
+      { label: 'Commentaires', value: currentProgress?.stats?.commentsCreated || 0 },
+      { label: 'Votes donnés', value: currentProgress?.stats?.votesGiven || 0 },
+      { label: 'Followers', value: currentProgress?.stats?.followers || 0 },
     ],
   };
 });
 
 const xpPercent = computed(() => {
-  if (user.value.nextRankXp === 0) return 0;
-  return Math.min(100, Math.round((user.value.xp / user.value.nextRankXp) * 100));
+  if (!gamification.progress.value) return 0;
+  return gamification.progress.value.progressPercent || 0;
 });
+
+const xpSteps = [
+  { label: 'Niveau 1 – Découvreur', min: 0, max: 499, range: '0 – 499 XP' },
+  { label: 'Niveau 2 – Collaborateur', min: 500, max: 1999, range: '500 – 1 999 XP' },
+  { label: 'Niveau 3 – Expert', min: 2000, max: 4999, range: '2 000 – 4 999 XP' },
+  { label: 'Niveau 4 – Ambassadeur', min: 5000, max: 9999, range: '5 000 – 9 999 XP' },
+  { label: 'Niveau 5 – Légende', min: 10000, max: Infinity, range: '10 000+ XP' },
+];
 </script>
 
 <template>
@@ -125,7 +134,7 @@ const xpPercent = computed(() => {
 
         <div class="w-full h-3 rounded-full bg-gray-200/80 dark:bg-gray-700 overflow-hidden">
           <div
-            class="h-full rounded-full bg-linear-to-r from-purple-500 to-emerald-400 dark:from-purple-600 dark:to-emerald-500 transition-all"
+            class="h-full rounded-full bg-gradient-to-r from-purple-500 to-emerald-400 dark:from-purple-600 dark:to-emerald-500 transition-all duration-500"
             :style="{ width: xpPercent + '%' }"
           />
         </div>
@@ -164,6 +173,84 @@ const xpPercent = computed(() => {
               <Icon name="tabler:shield-check" class="w-3 h-3" />
               Compte sécurisé (2FA)
             </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section Badges -->
+    <section
+      class="rounded-3xl bg-white/60 dark:bg-slate-800 shadow-md border border-purple-100/70 dark:border-purple-700/70 backdrop-blur-sm px-6 md:px-10 py-6 md:py-8"
+    >
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg md:text-xl font-semibold text-slate-800 dark:text-slate-100">
+          Collection de Badges
+        </h2>
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+          {{ gamification.earnedBadges.value.length }} / {{ gamification.badges.value.length }} débloqués
+        </div>
+      </div>
+
+      <div v-if="gamification.loading.value" class="text-center py-12">
+        <div class="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full mx-auto"></div>
+        <p class="text-gray-500 dark:text-gray-400 mt-4">Chargement des badges...</p>
+      </div>
+
+      <div v-else-if="gamification.badges.value.length === 0" class="text-center py-12">
+        <Icon name="tabler:trophy-off" class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+        <p class="text-gray-500 dark:text-gray-400">Aucun badge disponible pour le moment.</p>
+      </div>
+
+      <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div
+          v-for="badge in gamification.badges.value"
+          :key="badge.id"
+          class="group relative rounded-2xl p-4 border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+          :class="
+            badge.earned
+              ? 'bg-linear-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-400 dark:border-yellow-600'
+              : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-50'
+          "
+        >
+          <div class="text-center space-y-2">
+            <div
+              class="text-4xl mx-auto w-16 h-16 flex items-center justify-center rounded-full"
+              :class="badge.earned ? 'bg-yellow-100 dark:bg-yellow-900/40' : 'bg-gray-200 dark:bg-gray-700'"
+            >
+              {{ badge.icon }}
+            </div>
+            <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100">
+              {{ badge.name }}
+            </h3>
+            <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+              {{ badge.description }}
+            </p>
+            <div class="text-xs font-semibold" :class="badge.earned ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'">
+              +{{ badge.xpReward }} XP
+            </div>
+
+            <!-- Badge earned indicator -->
+            <div v-if="badge.earned" class="absolute top-2 right-2">
+              <Icon name="tabler:check-circle" class="w-5 h-5 text-green-500" />
+            </div>
+
+            <!-- Progress bar for badges with progress -->
+            <div v-if="!badge.earned && badge.progress > 0" class="mt-2">
+              <div class="w-full h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-purple-500"
+                  :style="{ width: badge.progress + '%' }"
+                />
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ badge.progress }}%</p>
+            </div>
+          </div>
+
+          <!-- Tooltip hover -->
+          <div
+            class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-xl"
+          >
+            {{ badge.earned ? `Débloqué le ${new Date(badge.earnedAt!).toLocaleDateString('fr-FR')}` : 'Non débloqué' }}
           </div>
         </div>
       </div>

@@ -1,7 +1,3 @@
-/**
- * routes.ts — Centralise les chemins d’API
- */
-
 export const ROUTES = {
   api: '/api',
   ping: '/ping',
@@ -10,6 +6,10 @@ export const ROUTES = {
     register: '/register',
     login: '/login',
     profile: '/profile',
+    progress: '/me/progress',
+    badges: '/me/badges',
+    tips: '/me/tips',
+    leaderboard: '/leaderboard',
   },
   auth: {
     base: '/auth',
@@ -23,5 +23,22 @@ export const ROUTES = {
     detail: '/:id',
     update: '/:id',
     delete: '/:id',
+  },
+  moderation: {
+    base: '/moderation',
+    reports: '/reports',
+    reportResolve: '/reports/:id/resolve',
+    tipsPending: '/tips/pending',
+    tipsApprove: '/tips/:id/approve',
+    tipsReject: '/tips/:id/reject',
+    stats: '/stats',
+    history: '/history',
+    promote: '/users/promote',
+    demote: '/users/demote',
+  },
+  grades: {
+    base: '/grades',
+    list: '/',
+    detail: '/:id',
   },
 };

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Tip } from '../../../types/index';
 
-// Props
 defineProps<{
   tip: Tip;
 }>();

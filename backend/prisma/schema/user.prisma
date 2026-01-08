@@ -6,6 +6,7 @@
 
 model User {
   id                 Int      @id @default(autoincrement())
+  username           String   @unique
   firstname          String?
   lastname           String?
   email              String   @unique
@@ -14,6 +15,7 @@ model User {
   avatarProfile      String?
   bio                String?
   address            String?
+  xp                 Int      @default(0)
   trustIndex         Int      @default(0)
   isTwoFactorEnabled Boolean  @default(false)
   createdAt          DateTime @default(now())

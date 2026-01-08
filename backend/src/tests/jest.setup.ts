@@ -19,9 +19,7 @@ try {
   // ignore during setup; migrations can be run manually in CI or via docker-compose
 }
 
-// Mock ESM-only dependencies which Jest can't transform from node_modules
-// bcrypt-ts is provided as ESM; mock it so tests don't try to parse it
-jest.mock('bcrypt-ts', () => ({
+jest.mock('bcrypt', () => ({
   compareSync: jest.fn((a: string, b: string) => `hashed:${a}` === b),
   genSaltSync: jest.fn(() => 10),
   hashSync: jest.fn((p: string) => `hashed:${p}`),

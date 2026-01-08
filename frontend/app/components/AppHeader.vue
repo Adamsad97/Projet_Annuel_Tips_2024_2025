@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ProfilPicture from './ProfilPicture.vue';
 import SearchInput from './SearchInput.vue';
-import { mainLinks, secondaryLinks } from '@/utils/navigation';
+import { mainLinks, secondaryLinks, userLinks, moderatorLinks } from '@/utils/navigation';
 
 const openSidebar = ref(false);
 const { user, isAuthenticated } = useAuth();
@@ -10,6 +10,11 @@ const emit = defineEmits<{
   (e: 'show-search'): void;
 }>();
 const colorMode = useColorMode();
+
+const isModerator = computed(() => {
+  if (!user.value) return false;
+  return user.value.moderator?.isActive || user.value.admin;
+});
 
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
@@ -195,6 +200,44 @@ const toggleTheme = () => {
               <Icon :name="link.icon" class="w-5 h-5" />
               {{ link.text }}
             </NuxtLink>
+
+            <!-- User Links (if authenticated) -->
+            <template v-if="isAuthenticated">
+              <div class="w-full h-px bg-blue-100 dark:bg-blue-900/30 my-2" />
+              <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2 pl-2">
+                Mon Espace
+              </p>
+              <NuxtLink
+                v-for="link in userLinks"
+                :key="link.to"
+                :to="link.to"
+                class="flex items-center gap-3 px-3 py-3 rounded-xl text-base font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 active:scale-95 transition-all"
+                active-class="bg-blue-100/60 text-blue-700 dark:bg-blue-800 dark:text-blue-300 shadow-sm"
+                @click="openSidebar = false"
+              >
+                <Icon :name="link.icon" class="w-5 h-5" />
+                {{ link.text }}
+              </NuxtLink>
+            </template>
+
+            <!-- Moderation Links (if user is moderator/admin) -->
+            <template v-if="isModerator">
+              <div class="w-full h-px bg-purple-100 dark:bg-purple-900/30 my-2" />
+              <p class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-2 pl-2">
+                Modération
+              </p>
+              <NuxtLink
+                v-for="link in moderatorLinks"
+                :key="link.to"
+                :to="link.to"
+                class="flex items-center gap-3 px-3 py-3 rounded-xl text-base font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 active:scale-95 transition-all"
+                active-class="bg-purple-100/60 text-purple-700 dark:bg-purple-800 dark:text-purple-300 shadow-sm"
+                @click="openSidebar = false"
+              >
+                <Icon :name="link.icon" class="w-5 h-5" />
+                {{ link.text }}
+              </NuxtLink>
+            </template>
           </div>
 
           <div class="w-full h-px bg-gray-100 dark:bg-slate-800 mb-6" />

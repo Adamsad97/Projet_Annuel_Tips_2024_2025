@@ -5,7 +5,7 @@ import TextTruncate from '~/components/TextTruncate.vue';
 
 defineProps({
   comment: { type: Object, required: true },
-  depth: { type: Number, default: 0 }, // Pour décaler visuellement les réponses
+  depth: { type: Number, default: 0 },
 });
 
 const isCollapsed = ref(false);

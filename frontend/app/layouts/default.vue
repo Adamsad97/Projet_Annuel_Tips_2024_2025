@@ -1,14 +1,62 @@
 <script setup lang="ts">
-const showSearch = ref(false);
-const inputRef = ref<HTMLInputElement | null>(null);
+import type { ComponentPublicInstance } from 'vue';
+import BadgeUnlockModal from '@/components/gamification/BadgeUnlockModal.vue';
 
-watch(showSearch, (open) => {
+const showSearch = ref<boolean>(false);
+const inputRef = ref<ComponentPublicInstance | null>(null);
+
+watch(showSearch, (open: boolean) => {
   if (open && inputRef.value) {
-    nextTick(() => {
-      inputRef.value?.focus();
-    });
+    setTimeout(() => {
+      const input = inputRef.value?.$el.querySelector('input') as HTMLInputElement | null;
+      input?.focus();
+    }, 50);
   }
 });
+
+const showBadgeModal = ref(false);
+const unlockedBadge = ref<{
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  xpReward: number;
+} | null>(null);
+
+const ws = useWebSocket();
+const { user } = useAuth();
+
+onMounted(() => {
+  if (user.value) {
+    console.log('[Layout] User authenticated, connecting WebSocket for user:', user.value.id);
+    ws.connect();
+
+    ws.onBadgeUnlocked((data) => {
+      console.log('[Layout] Badge unlock event received for user:', data.userId);
+      console.log('[Layout] Current user ID:', user.value?.id);
+
+      if (data.userId === user.value?.id) {
+        console.log('[Layout] Showing badge modal for:', data.badge.name);
+        unlockedBadge.value = data.badge;
+        showBadgeModal.value = true;
+      } else {
+        console.log('[Layout] Badge not for current user, ignoring');
+      }
+    });
+  } else {
+    console.log('[Layout] No user authenticated, WebSocket not connected');
+  }
+});
+
+const closeBadgeModal = () => {
+  showBadgeModal.value = false;
+  setTimeout(() => {
+    unlockedBadge.value = null;
+  }, 300); // Wait for animation to complete
+};
+
+// SEO Config
+useSiteMeta();
 </script>
 
 <template>
@@ -18,7 +66,11 @@ watch(showSearch, (open) => {
     <header
       class="fixed inset-x-0 top-0 z-40 border-b border-purple-100/50 dark:border-slate-800/50 shadow-sm transition-colors duration-300"
     >
-      <AppHeader @show-search="showSearch = true" />
+      <AppHeader @show-search="showSearch = true">
+        <template #sidebar>
+          <AppSidebar />
+        </template>
+      </AppHeader>
 
       <Transition
         enter-active-class="transition duration-200 ease-out"
@@ -61,16 +113,20 @@ watch(showSearch, (open) => {
 
       <main class="flex-1 flex flex-col min-w-0 transition-all duration-300">
         <div class="flex-1 px-4 py-6 md:px-8 md:py-8 w-full max-w-7xl mx-auto">
-          <slot />
+          <NuxtPage />
         </div>
         <AppFooter class="mt-auto border-t border-purple-50 dark:border-slate-800" />
       </main>
     </div>
 
+    <!-- Overlay sombre si recherche active (Mobile) -->
     <div
       v-if="showSearch"
       class="fixed inset-0 bg-black/20 backdrop-blur-xs z-30 md:hidden"
       @click="showSearch = false"
     />
+
+    <!-- Badge Unlock Modal (Global) -->
+    <BadgeUnlockModal :badge="unlockedBadge" :show="showBadgeModal" @close="closeBadgeModal" />
   </div>
 </template>

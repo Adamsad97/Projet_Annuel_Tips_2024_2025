@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = withDefaults(
   defineProps<{
     placeholder?: string;
@@ -12,7 +11,6 @@ const props = withDefaults(
 const route = useRoute();
 const search = ref('');
 
-// Sync input with valid URL query if present
 watch(
   () => route.query.q,
   (newQ) => {

@@ -15,6 +15,7 @@ class TipController {
 
   private initializeRoutes(): void {
     this.router.get('/', this.getAllTips);
+    this.router.get('/tags/all', this.getAllTags); // Route pour les tags (avant /:id pour éviter les conflits)
     this.router.get('/:id', this.getTipById);
     this.router.post('/', requireAuth, validateSchema(createTipSchema), this.createTip);
     this.router.patch('/:id', requireAuth, validateSchema(updateTipSchema), this.updateTip);
@@ -31,7 +32,7 @@ class TipController {
       };
       const tips = await tipService.getAllTips(query);
 
-      res.status(200).json(tips);
+      res.status(200).json({ success: true, data: tips });
     } catch (error) {
       next(error);
     }
@@ -41,18 +42,18 @@ class TipController {
     try {
       const idParam = req.params.id;
       if (!idParam) {
-        res.status(400).json({ message: 'Tip ID required' });
+        res.status(400).json({ success: false, message: 'Tip ID required' });
         return;
       }
 
       const id = parseInt(idParam, 10);
       if (isNaN(id)) {
-        res.status(400).json({ message: 'Invalid tip ID' });
+        res.status(400).json({ success: false, message: 'Invalid tip ID' });
         return;
       }
 
       const tip = await tipService.getTipById(id);
-      res.status(200).json(tip);
+      res.status(200).json({ success: true, data: tip });
     } catch (error) {
       next(error);
     }
@@ -65,7 +66,7 @@ class TipController {
   ): Promise<void> => {
     try {
       if (!req.user) {
-        res.status(401).json({ message: 'Unauthorized' });
+        res.status(401).json({ success: false, message: 'Unauthorized' });
         return;
       }
 
@@ -74,7 +75,7 @@ class TipController {
         userId: req.user.id,
       });
 
-      res.status(201).json(tip);
+      res.status(201).json({ success: true, data: tip });
     } catch (error) {
       next(error);
     }
@@ -87,24 +88,24 @@ class TipController {
   ): Promise<void> => {
     try {
       if (!req.user) {
-        res.status(401).json({ message: 'Unauthorized' });
+        res.status(401).json({ success: false, message: 'Unauthorized' });
         return;
       }
 
       const idParam = req.params.id;
       if (!idParam) {
-        res.status(400).json({ message: 'Tip ID required' });
+        res.status(400).json({ success: false, message: 'Tip ID required' });
         return;
       }
 
       const id = parseInt(idParam, 10);
       if (isNaN(id)) {
-        res.status(400).json({ message: 'Invalid tip ID' });
+        res.status(400).json({ success: false, message: 'Invalid tip ID' });
         return;
       }
 
       const tip = await tipService.updateTip(id, req.user.id, req.body);
-      res.status(200).json(tip);
+      res.status(200).json({ success: true, data: tip });
     } catch (error) {
       next(error);
     }
@@ -117,24 +118,33 @@ class TipController {
   ): Promise<void> => {
     try {
       if (!req.user) {
-        res.status(401).json({ message: 'Unauthorized' });
+        res.status(401).json({ success: false, message: 'Unauthorized' });
         return;
       }
 
       const idParam = req.params.id;
       if (!idParam) {
-        res.status(400).json({ message: 'Tip ID required' });
+        res.status(400).json({ success: false, message: 'Tip ID required' });
         return;
       }
 
       const id = parseInt(idParam, 10);
       if (isNaN(id)) {
-        res.status(400).json({ message: 'Invalid tip ID' });
+        res.status(400).json({ success: false, message: 'Invalid tip ID' });
         return;
       }
 
       await tipService.deleteTip(id, req.user.id);
-      res.status(204).send();
+      res.status(200).json({ success: true, message: 'Tip deleted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  private getAllTags = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const tags = await tipService.getAllTags();
+      res.status(200).json({ success: true, data: tags });
     } catch (error) {
       next(error);
     }

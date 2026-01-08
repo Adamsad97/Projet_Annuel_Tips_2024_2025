@@ -7,10 +7,15 @@ definePageMeta({
   middleware: 'auth',
 });
 
-const { data: fetchedTips } = await useFetch<Tip[]>('/api/tips');
+const config = useRuntimeConfig();
+const apiBaseUrl = config.public.apiBaseUrl;
+
+const { data: rawResponse } = await useFetch<{ success: boolean; data: Tip[] }>(`${apiBaseUrl}/tips`);
 
 const tips = computed(() => {
-  return (fetchedTips.value || [])
+  const tipsData = rawResponse.value?.data || [];
+  console.log('[Map] Tips data:', { hasData: !!rawResponse.value, tipsCount: tipsData.length });
+  return tipsData
     .filter((t) => t.lat && t.lng)
     .map((t) => ({
       id: t.id,
@@ -74,6 +79,52 @@ const onFilterChange = async () => {
       maxZoom: 12,
     });
   }
+};
+
+const isLocating = ref(false);
+const locationError = ref<string | null>(null);
+const userMarker = ref<{ lat: number; lng: number } | null>(null);
+
+const locateUser = () => {
+  if (!navigator.geolocation) {
+    locationError.value = 'geolocation not supported';
+    return;
+  }
+
+  isLocating.value = true;
+  locationError.value = null;
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+      center.value = [latitude, longitude];
+      zoom.value = Math.max(zoom.value, 13);
+      userMarker.value = { lat: latitude, lng: longitude };
+      isLocating.value = false;
+    },
+    (error) => {
+      isLocating.value = false;
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          locationError.value = 'Permission de géolocalisation refusée';
+          break;
+        case error.POSITION_UNAVAILABLE:
+          locationError.value = 'Position indisponible';
+          break;
+        case error.TIMEOUT:
+          locationError.value = 'Délai de géolocalisation expiré';
+          break;
+        default:
+          locationError.value = 'Erreur de géolocalisation';
+      }
+      console.error('Geolocation error:', error);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    },
+  );
 };
 </script>
 
@@ -143,6 +194,52 @@ const onFilterChange = async () => {
       </div>
     </div>
 
+    <!-- GEOLOCATION BUTTON (Floating) -->
+    <div class="absolute bottom-24 right-4 z-[400]">
+      <button
+        type="button"
+        @click="locateUser"
+        :disabled="isLocating"
+        class="group relative p-3 rounded-xl bg-white dark:bg-slate-800 shadow-lg border border-purple-100 dark:border-slate-700 hover:bg-purple-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+        :title="isLocating ? 'Localisation en cours...' : 'Me localiser'"
+      >
+        <Icon
+          :name="isLocating ? 'tabler:loader-2' : 'tabler:current-location'"
+          class="w-6 h-6 text-purple-600 dark:text-purple-400"
+          :class="{ 'animate-spin': isLocating }"
+        />
+        <!-- Tooltip -->
+        <div
+          class="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 dark:bg-slate-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap"
+        >
+          {{ isLocating ? 'Localisation...' : 'Me localiser' }}
+        </div>
+      </button>
+      <!-- Error Toast -->
+      <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="translate-y-2 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-2 opacity-0"
+      >
+        <div
+          v-if="locationError"
+          class="absolute right-0 bottom-full mb-2 px-4 py-2 bg-red-500 text-white text-sm rounded-lg shadow-lg max-w-xs"
+        >
+          {{ locationError }}
+          <button
+            type="button"
+            @click="locationError = null"
+            class="ml-2 text-white/80 hover:text-white"
+          >
+            <Icon name="tabler:x" class="w-4 h-4" />
+          </button>
+        </div>
+      </Transition>
+    </div>
+
     <!-- MAP CONTAINER -->
     <div class="flex-1 w-full h-full z-0 bg-gray-100 dark:bg-slate-950">
       <ClientOnly>
@@ -158,6 +255,22 @@ const onFilterChange = async () => {
 
           <!-- CONTRÔLE DE ZOOM DÉPLACÉ EN BAS À DROITE -->
           <LControlZoom position="bottomright" />
+
+          <!-- USER / SELECTED MARKER -->
+          <LMarker v-if="userMarker" :lat-lng="[userMarker.lat, userMarker.lng]">
+            <LIcon
+              icon-url="/pin.svg"
+              :icon-size="[38, 38]"
+              :icon-anchor="[19, 38]"
+              :popup-anchor="[0, -32]"
+              class-name="drop-shadow-lg animate-pulse"
+            />
+            <LPopup :options="{ closeButton: false, offset: [0, -10] }">
+              <div class="text-sm font-medium text-slate-800">
+                Votre position
+              </div>
+            </LPopup>
+          </LMarker>
 
           <LMarker v-for="tip in filteredTips" :key="tip.id" :lat-lng="[tip.lat, tip.lng]">
             <LIcon

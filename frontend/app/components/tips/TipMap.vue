@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-// Leaflet imports are handled by Nuxt module or global import in parent, but good to be explicit for types if needed
-// However, since we use @vue-leaflet/vue-leaflet, we might need to import LMap etc if not auto-imported
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -16,7 +14,6 @@ const mapRef = ref(null);
 
 const toggleMap = () => {
   isMapExpanded.value = !isMapExpanded.value;
-  // Hack resize Leaflet
   setTimeout(() => {
     window.dispatchEvent(new Event('resize'));
   }, 100);

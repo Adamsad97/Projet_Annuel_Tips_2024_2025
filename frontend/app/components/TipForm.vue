@@ -7,6 +7,7 @@ import AppSelect from './ui/AppSelect.vue';
 import AppTagsInput from './ui/AppTagsInput.vue';
 import AppButton from './ui/AppButton.vue';
 import AppFileUpload from './ui/AppFileUpload.vue';
+import AppMapSelector from './ui/AppMapSelector.vue';
 
 const props = defineProps<{
   initialData?: Partial<TipFormData>;
@@ -24,8 +25,31 @@ const formData = ref<TipFormData>({
   tags: props.initialData?.tags || [],
   difficulty: props.initialData?.difficulty || 1,
   address: props.initialData?.address || '',
+  lat: props.initialData?.lat,
+  lng: props.initialData?.lng,
   images: props.initialData?.images || [],
   documents: props.initialData?.documents || [],
+});
+
+const mapPosition = ref<{ lat: number; lng: number; address?: string } | null>(
+  props.initialData?.lat && props.initialData?.lng
+    ? {
+        lat: props.initialData.lat,
+        lng: props.initialData.lng,
+        address: props.initialData.address,
+      }
+    : null,
+);
+
+watch(mapPosition, (newPos) => {
+  if (newPos) {
+    formData.value.lat = newPos.lat;
+    formData.value.lng = newPos.lng;
+    formData.value.address = newPos.address || formData.value.address;
+  } else {
+    formData.value.lat = undefined;
+    formData.value.lng = undefined;
+  }
 });
 
 const errors = ref<Partial<Record<keyof TipFormData, string>>>({});
@@ -126,13 +150,19 @@ const difficultyOptions = [
       >
         Localisation <span class="text-xs font-normal text-gray-400 ml-2">(Optionnel)</span>
       </h3>
-      <div>
+      <div class="space-y-4">
+        <AppMapSelector v-model="mapPosition" label="Position sur la carte" />
+
         <AppInput
           id="address"
           v-model="formData.address!"
-          label="Adresse / Lieu"
-          placeholder="Ex: 12 Rue des Fleurs, Paris"
+          label="Adresse / Lieu (complément)"
+          placeholder="Ex: Bâtiment A, Entrée principale"
         />
+        <p v-if="mapPosition?.address" class="text-xs text-emerald-600 dark:text-emerald-500 flex items-center gap-1">
+          <Icon name="tabler:info-circle" class="w-3 h-3" />
+          Adresse détectée: {{ mapPosition.address }}
+        </p>
       </div>
     </div>
 

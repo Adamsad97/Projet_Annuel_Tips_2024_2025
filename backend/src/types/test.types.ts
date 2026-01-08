@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 
-// Mock types for testing
+// mock types testing
 export type MockRequest<TBody = unknown, TParams = unknown, TQuery = unknown> = Partial<Request> & {
   body?: TBody;
   params?: TParams;
@@ -18,7 +18,7 @@ export type MockResponse = Partial<Response> & {
 
 export type MockNextFunction = jest.Mock;
 
-// Helper to create mock response
+// create mock response
 export function createMockResponse(): MockResponse {
   const res = {
     status: jest.fn().mockReturnThis(),
@@ -28,7 +28,7 @@ export function createMockResponse(): MockResponse {
   return res;
 }
 
-// Helper to create mock request
+// create mock request
 export function createMockRequest<TBody = unknown>(
   overrides?: Partial<MockRequest<TBody>>,
 ): MockRequest<TBody> {

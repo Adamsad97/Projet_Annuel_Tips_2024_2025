@@ -5,7 +5,6 @@ import CommentItem from '~/components/CommentItem.vue';
 const route = useRoute();
 const tipId = route.params.id;
 
-// FETCH COMMENTS
 const { data: comments, refresh } = await useFetch(`/api/tips/${tipId}/comments`);
 
 const newComment = ref('');

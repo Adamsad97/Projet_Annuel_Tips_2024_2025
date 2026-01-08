@@ -8,7 +8,8 @@ import apiRouter from './routes/index';
 
 const app: Application = express();
 
-// Security headers avec helmet
+app.set('trust proxy', 1);
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -34,7 +35,6 @@ app.use(cors(corsOptions));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.json({ limit: '10mb' }));
 
-// Rate limiting global sur toutes les routes API
 app.use('/api', apiLimiter);
 
 app.use('/api', apiRouter);

@@ -4,24 +4,14 @@ import { AppError } from '../../utils/appError.util';
 import { createAccessToken, createRefreshToken } from '../../utils/jwt.util';
 import { userRepository } from './user.repository';
 
-/**
- * Type pour un utilisateur sans données sensibles
- */
 export type PublicUser = Omit<User, 'password'>;
 
-/**
- * Convertit un User Prisma en PublicUser (enlève les champs sensibles)
- */
 function toPublicUser(user: User): PublicUser {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...publicUser } = user;
   return publicUser;
 }
 
 export const userService = {
-  /**
-   * Register a new user
-   */
   async register(
     email: string,
     password: string,
@@ -34,7 +24,7 @@ export const userService = {
 
     const existing = await userRepository.findByEmail(normalizedEmail);
     if (existing) {
-      throw new AppError('Email already in use', 409);
+      throw new AppError('email already in use', 409);
     }
 
     const hash = hashPassword(password);
@@ -49,15 +39,12 @@ export const userService = {
     return toPublicUser(user);
   },
 
-  /**
-   * authenticate user and returns JWT tokens
-   */
   async login(email: string, password: string) {
     const normalizedEmail = email.toLowerCase().trim();
 
     const user = await userRepository.findByEmail(normalizedEmail);
     if (!user || !comparePassword(password, user.password)) {
-      throw new AppError('Invalid credentials', 401);
+      throw new AppError('invalid credentials', 401);
     }
 
     const payload = {
@@ -72,13 +59,10 @@ export const userService = {
     };
   },
 
-  /**
-   * get user by id
-   */
   async getUserById(id: number): Promise<PublicUser> {
     const user = await userRepository.findById(id);
     if (!user) {
-      throw new AppError('User not found', 404);
+      throw new AppError('user not found', 404);
     }
     return toPublicUser(user);
   },
