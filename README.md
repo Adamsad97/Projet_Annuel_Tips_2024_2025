@@ -56,7 +56,14 @@ GitHub Actions avec 3 jobs executes sur push/PR :
 - **test** : lance la suite de tests
 - **lint** : verifie le linting
 - **format** : verifie le formatage Prettier
-![Image Intégration continu](image.png)
+![Image Intégration continu](docs/image.png)
+
+## Design et vision produit
+
+- **Figma** : maquettes disponibles ici → https://www.figma.com/design/QX9DWUx99H75nFnZq1o1uW/AideFlash?node-id=0-1&p=f
+![figma](docs/image.png)
+- **GitHub Projects** : tableau de suivi ![screen githubproject](docs/image-1.png)
+- **Use cases / spec PDF** : voir [docs/Projet TipsTop_.pdf](docs/Projet%20TipsTop_.pdf)
 
 ## Lancer le projet en developpement
 
