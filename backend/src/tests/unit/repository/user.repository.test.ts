@@ -21,7 +21,7 @@ describe('userRepository', () => {
   });
 
   describe('findByEmail', () => {
-    it('should find user by email with relations', async () => {
+    it('trouve user par email avec relations', async () => {
       const mockUser = {
         id: 1,
         email: 'test@example.com',
@@ -44,7 +44,7 @@ describe('userRepository', () => {
       expect(result).toEqual(mockUser);
     });
 
-    it('should return null if user not found', async () => {
+    it('retourne null si user introuvable', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
       const result = await userRepository.findByEmail('notfound@example.com');
@@ -54,7 +54,7 @@ describe('userRepository', () => {
   });
 
   describe('findById', () => {
-    it('should find user by id with relations', async () => {
+    it('trouve user par id avec relations', async () => {
       const mockUser = {
         id: 42,
         email: 'user@example.com',
@@ -77,7 +77,7 @@ describe('userRepository', () => {
       expect(result).toEqual(mockUser);
     });
 
-    it('should return null if user not found', async () => {
+    it('retourne null si user introuvable', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
       const result = await userRepository.findById(999);
@@ -87,7 +87,7 @@ describe('userRepository', () => {
   });
 
   describe('create', () => {
-    it('should create user with all fields', async () => {
+    it('cree user avec tous les champs', async () => {
       const mockCreatedUser = {
         id: 10,
         email: 'newuser@example.com',
@@ -127,7 +127,7 @@ describe('userRepository', () => {
       expect(result).toEqual(mockCreatedUser);
     });
 
-    it('should create user with username as firstname when firstname is empty', async () => {
+    it('utilise username comme firstname si firstname vide', async () => {
       const mockCreatedUser = {
         id: 11,
         email: 'test@example.com',
@@ -151,7 +151,7 @@ describe('userRepository', () => {
       });
     });
 
-    it('should create user without optional fields', async () => {
+    it('cree user sans champs optionnels', async () => {
       const mockCreatedUser = {
         id: 12,
         email: 'minimal@example.com',

@@ -5,7 +5,6 @@ import { verifyAccessTokenOrThrow } from '../../../utils/jwt.util';
 import { createMockResponse } from '../../../types/test.types';
 import type { Response } from 'express';
 
-// mock du module jwt.util
 jest.mock('../../../utils/jwt.util', () => ({
   verifyAccessTokenOrThrow: jest.fn(),
 }));
@@ -28,7 +27,7 @@ describe('requireAuth middleware', () => {
     jest.clearAllMocks();
   });
 
-  it('calls next with AppError if authorization header is missing', () => {
+  it('erreur si authorization header absent', () => {
     requireAuth(req as RequestWithUser, res, next);
 
     expect(next).toHaveBeenCalledTimes(1);
@@ -38,7 +37,7 @@ describe('requireAuth middleware', () => {
     expect(err.message).toBe('missing authorization header');
   });
 
-  it('calls next with AppError if authorization format is invalid (no Bearer)', () => {
+  it('erreur si format authorization invalide sans bearer', () => {
     req.headers = { authorization: 'InvalidToken' };
 
     requireAuth(req as RequestWithUser, res, next);
@@ -50,7 +49,7 @@ describe('requireAuth middleware', () => {
     expect(err.message).toContain('invalid authorization format');
   });
 
-  it('calls next with AppError if token is empty after Bearer', () => {
+  it('erreur si token vide apres bearer', () => {
     req.headers = { authorization: 'Bearer ' };
 
     requireAuth(req as RequestWithUser, res, next);
@@ -62,7 +61,7 @@ describe('requireAuth middleware', () => {
     expect(err.message).toBe('token not provided');
   });
 
-  it('sets req.user and calls next() on valid token', () => {
+  it('attache user a la request si token valide', () => {
     const mockUser = { id: 123, email: 'test@example.com' };
     mockVerifyToken.mockReturnValue(mockUser);
 
@@ -76,7 +75,7 @@ describe('requireAuth middleware', () => {
     expect(next).toHaveBeenCalledTimes(1);
   });
 
-  it('forwards error from verifyAccessTokenOrThrow to next', () => {
+  it('transmet erreur de verification a next', () => {
     const tokenError = new AppError('Invalid token', 401);
     mockVerifyToken.mockImplementation(() => {
       throw tokenError;
@@ -91,7 +90,7 @@ describe('requireAuth middleware', () => {
     expect(next).toHaveBeenCalledTimes(1);
   });
 
-  it('handles expired token error', () => {
+  it('gere token expire', () => {
     const expiredError = new AppError('Access token expired', 401);
     mockVerifyToken.mockImplementation(() => {
       throw expiredError;

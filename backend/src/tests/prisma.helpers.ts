@@ -8,6 +8,13 @@ export async function clearTips() {
   await prisma.tip.deleteMany();
 }
 
+export async function clearModerationData() {
+  await prisma.moderationAction.deleteMany();
+  await prisma.report.deleteMany();
+  await prisma.moderator.deleteMany();
+  await prisma.admin.deleteMany();
+}
+
 export async function seedBadges(): Promise<void> {
   await prisma.badge.upsert({
     where: { code: 'FIRST_TIP' },

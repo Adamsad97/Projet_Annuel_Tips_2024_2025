@@ -17,7 +17,7 @@ describe('SocketService', () => {
   });
 
   describe('emitTipApproved', () => {
-    it('should emit tip:approved event with correct data', () => {
+    it('emet tip:approved avec data correcte', () => {
       (socketService as unknown as { io: SocketIOServer }).io = mockIO;
 
       const tipData = {
@@ -35,7 +35,7 @@ describe('SocketService', () => {
       expect(mockIO.emit).toHaveBeenCalledTimes(1);
     });
 
-    it('should not emit when io is not initialized', () => {
+    it('log erreur si io non initialise', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
       const tipData = {
@@ -55,7 +55,7 @@ describe('SocketService', () => {
   });
 
   describe('emitTipRejected', () => {
-    it('should emit tip:rejected event with tipId', () => {
+    it('emet tip:rejected avec tipid', () => {
       (socketService as unknown as { io: SocketIOServer }).io = mockIO;
 
       socketService.emitTipRejected(456);
@@ -64,7 +64,7 @@ describe('SocketService', () => {
       expect(mockIO.emit).toHaveBeenCalledTimes(1);
     });
 
-    it('should not emit when io is not initialized', () => {
+    it('log erreur si io non initialise', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
       socketService.emitTipRejected(456);
@@ -75,11 +75,11 @@ describe('SocketService', () => {
   });
 
   describe('getIO', () => {
-    it('should return null when not initialized', () => {
+    it('retourne null si non initialise', () => {
       expect(socketService.getIO()).toBeNull();
     });
 
-    it('should return io instance when initialized', () => {
+    it('retourne instance io si initialise', () => {
       (socketService as unknown as { io: SocketIOServer }).io = mockIO;
       expect(socketService.getIO()).toBe(mockIO);
     });
