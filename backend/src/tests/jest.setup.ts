@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { execSync } from 'child_process';
 import path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '../../env/.env.test'), quiet: true });
+dotenv.config({ path: path.resolve(__dirname, '../../.env.test'), quiet: true });
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 
@@ -10,7 +10,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 // (commented out by default because it requires prisma binary + db availability)
 try {
   // Run migrations on test DB so schema exists before tests run
-  execSync('npx prisma migrate deploy --schema=./prisma/schema/schema.prisma', {
+  execSync('npx prisma db push --accept-data-loss --force-reset', {
     stdio: 'inherit',
     env: { ...process.env },
   });
