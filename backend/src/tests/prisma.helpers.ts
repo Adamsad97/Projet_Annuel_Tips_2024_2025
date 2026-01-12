@@ -91,10 +91,10 @@ export async function seedBadges(): Promise<void> {
   }
 
   await prisma.grade.upsert({
-      where: { name: 'Débutant' },
-      update: { xpRequired: 0 },
-      create: { name: 'Débutant', xpRequired: 0 },
-    });
+    where: { name: 'Débutant' },
+    update: { xpRequired: 0 },
+    create: { name: 'Débutant', xpRequired: 0 },
+  });
 }
 
 export async function disconnectPrisma() {

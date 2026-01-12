@@ -86,11 +86,11 @@ describe('Tips Integration', () => {
       .post(baseTips + ROUTES.tips.create)
       .set('Authorization', `Bearer ${token}`)
       .send(tipPayload);
-    
+
     const tipId = createRes.body.data.id;
 
     const res = await request(app).get(`${baseTips}/${tipId}`);
-    
+
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.title).toBe(tipPayload.title);
@@ -104,7 +104,7 @@ describe('Tips Integration', () => {
       .post(baseTips + ROUTES.tips.create)
       .set('Authorization', `Bearer ${token}`)
       .send({ title: 'Old Title', content: 'Old Content' });
-    
+
     const tipId = createRes.body.data.id;
 
     const updatePayload = { title: 'New Title' };
@@ -126,7 +126,7 @@ describe('Tips Integration', () => {
       .post(baseTips + ROUTES.tips.create)
       .set('Authorization', `Bearer ${token}`)
       .send({ title: 'To Delete', content: 'Bye content' });
-    
+
     const tipId = createRes.body.data.id;
 
     const res = await request(app)
