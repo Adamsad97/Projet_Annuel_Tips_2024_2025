@@ -1,4 +1,3 @@
-// Mocks must be defined before importing the module that constructs PrismaClient
 jest.mock('@prisma/client', () => {
   const mUser = {
     findUnique: jest.fn(),
@@ -34,7 +33,7 @@ describe('userService', () => {
   });
 
   describe('register', () => {
-    it('creates a user when email is not used', async () => {
+    it('cree user si email disponible', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
       const created = {
         id: 1,
@@ -61,7 +60,7 @@ describe('userService', () => {
       expect(hashPassword).toHaveBeenCalledWith('pass');
     });
 
-    test('throws AppError when email already exists', async () => {
+    test('erreur 409 si email deja utilise', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 2, email: 'a@x' });
       await expect(userService.register('a@x', 'pass', 'u')).rejects.toMatchObject({
         statusCode: 409,
@@ -70,14 +69,14 @@ describe('userService', () => {
   });
 
   describe('login', () => {
-    test('throws when user not found', async () => {
+    test('erreur si user introuvable', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
       await expect(userService.login('no@one', 'whatever')).rejects.toMatchObject({
         statusCode: 401,
       });
     });
 
-    test('throws when password is invalid', async () => {
+    test('erreur si password incorrect', async () => {
       const user = {
         id: 3,
         email: 'bob@x',
@@ -92,7 +91,7 @@ describe('userService', () => {
       await expect(userService.login('bob@x', 'wrong')).rejects.toMatchObject({ statusCode: 401 });
     });
 
-    it('returns token and user when credentials are valid', async () => {
+    it('retourne token et user si credentials valides', async () => {
       const user = {
         id: 4,
         email: 'jane@x',

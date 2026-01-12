@@ -35,7 +35,7 @@ describe('AuthController', () => {
   });
 
   describe('refresh', () => {
-    it('should throw error when no refresh token is provided in body or headers', async () => {
+    it('erreur si pas de refresh token dans body ou headers', async () => {
       req = createMockRequest({ body: {}, headers: {} }) as Request;
 
       await authController.refresh(req, res, next);
@@ -46,7 +46,7 @@ describe('AuthController', () => {
       expect(error.statusCode).toBe(401);
     });
 
-    it('should accept refresh token from request body', async () => {
+    it('accepte le refresh token depuis le body', async () => {
       const mockPayload = { id: 1, email: 'test@test.com' };
       const mockUser = {
         id: 1,
@@ -94,7 +94,7 @@ describe('AuthController', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('should accept refresh token from authorization header', async () => {
+    it('accepte le refresh token depuis authorization header', async () => {
       const mockPayload = { id: 2, email: 'user@test.com' };
       const mockUser = {
         id: 2,
@@ -137,7 +137,7 @@ describe('AuthController', () => {
       });
     });
 
-    it('should throw error when user is not found', async () => {
+    it('erreur si user introuvable', async () => {
       const mockPayload = { id: 999, email: 'notfound@test.com' };
 
       req = createMockRequest({
@@ -155,7 +155,7 @@ describe('AuthController', () => {
       expect(error.statusCode).toBe(401);
     });
 
-    it('should handle token verification errors', async () => {
+    it('gere les erreurs de verification token', async () => {
       const tokenError = new AppError('Token expired', 401);
       req = createMockRequest({
         body: { refreshToken: 'expired-token' },
@@ -170,7 +170,7 @@ describe('AuthController', () => {
       expect(next).toHaveBeenCalledWith(tokenError);
     });
 
-    it('should handle database errors', async () => {
+    it('gere les erreurs database', async () => {
       const mockPayload = { id: 1, email: 'test@test.com' };
       const dbError = new Error('Database connection failed');
 
@@ -188,7 +188,7 @@ describe('AuthController', () => {
   });
 
   describe('logout', () => {
-    it('should return success when user is authenticated', async () => {
+    it('retourne success quand user est authentifie', async () => {
       req = createMockRequest() as RequestWithUser;
       (req as RequestWithUser).user = { id: 1, email: 'test@test.com' };
 
@@ -202,7 +202,7 @@ describe('AuthController', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('should still return success even when user is not present', async () => {
+    it('retourne success meme sans user', async () => {
       req = createMockRequest() as RequestWithUser;
 
       await authController.logout(req as RequestWithUser, res, next);
@@ -216,7 +216,7 @@ describe('AuthController', () => {
   });
 
   describe('build', () => {
-    it('should return a router with the correct routes', () => {
+    it('retourne un router avec les routes', () => {
       const router = authController.build();
 
       expect(router).toBeDefined();

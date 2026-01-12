@@ -4,7 +4,7 @@ import { createMockRequest, createMockResponse } from '../../../types/test.types
 import type { Request, Response, NextFunction } from 'express';
 
 describe('errorHandler', () => {
-  it('sends formatted json response with details', () => {
+  it('envoie reponse json formatee avec details', () => {
     const err = new AppError('Bad', 400, [{ path: 'x', message: 'm' }]);
     const req = createMockRequest({ method: 'GET', originalUrl: '/test' }) as Request;
     const res = createMockResponse() as unknown as Response;
@@ -18,7 +18,7 @@ describe('errorHandler', () => {
     );
   });
 
-  it('defaults to 500 on generic error', () => {
+  it('defaut 500 sur erreur generique', () => {
     const err = new Error('oops');
     const req = createMockRequest({ method: 'POST', originalUrl: '/x' }) as Request;
     const res = createMockResponse() as unknown as Response;
@@ -32,6 +32,5 @@ describe('errorHandler', () => {
     );
   });
 
-  // Note: Logging tests are skipped because the middleware checks for isTest
-  // and skips logging entirely in test mode, making these tests not meaningful
+
 });
