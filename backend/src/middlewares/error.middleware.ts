@@ -29,7 +29,7 @@ export function errorHandler(
   if (!isTest) {
     const log = `[${req.method}] ${req.originalUrl} → ${statusCode}: ${message}`;
     console.error(log);
-    if (!isProduction && err.stack) {
+    if ((!isProduction || !isTest) && err.stack) {
       console.error(err.stack);
     }
   }
