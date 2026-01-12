@@ -21,6 +21,8 @@ Les commandes ci-dessus :
 2. Entrent dans le conteneur backend
 3. Executent les tests avec acces a la DB de test
 
+**Note** : Des `console.error` peuvent apparaitre pendant les tests (ex: erreurs de validation, JWT invalides). C'est normal - ils testent les comportements d'erreur.
+
 ## Structure des tests
 
 ```
