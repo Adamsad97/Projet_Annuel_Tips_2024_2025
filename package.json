@@ -22,6 +22,7 @@
     "backend:logs": "docker compose logs -f backend",
     "backend:restart": "docker compose restart backend",
     "backend:fix-IDE": "cd backend && npm install && npx prisma generate",
+    "backend:test": "docker compose exec backend npm run test",
     "db:push": "docker compose exec backend npx prisma db push",
     "db:generate": "docker compose exec backend npx prisma generate",
     "db:studio": "docker compose exec backend npx prisma studio",

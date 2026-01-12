@@ -4,19 +4,17 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env.test'), quiet: true });
 
-process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+process.env.NODE_ENV = 'test';
 
-// Optionally, run prisma migrate deploy against test DB before tests start
-// (commented out by default because it requires prisma binary + db availability)
+// Reset test DB and apply migrations
 try {
-  // Run migrations on test DB so schema exists before tests run
-  execSync('npx prisma db push --accept-data-loss --force-reset', {
-    stdio: 'inherit',
+  execSync('npx prisma migrate reset --force --skip-generate --schema=./prisma/schema/schema.prisma', {
+    stdio: 'pipe',
     env: { ...process.env },
   });
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 } catch (_e) {
-  // ignore during setup; migrations can be run manually in CI or via docker-compose
+  // Ignore if reset fails
 }
 
 jest.mock('bcrypt', () => ({
