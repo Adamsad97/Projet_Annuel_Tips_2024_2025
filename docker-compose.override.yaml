@@ -15,10 +15,16 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-tips_test_pass}
       POSTGRES_DB: ${POSTGRES_TEST_DB:-tips_test_db}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_TEST_USER:-tips_test_user} -d $${POSTGRES_TEST_DB:-tips_test_db}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_TEST_USER:-tips_test_user} -d $${POSTGRES_TEST_DB:-tips_test_db}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
+    ports:
+      - "5432:5432"
     networks:
       - projet-tips-net
 
