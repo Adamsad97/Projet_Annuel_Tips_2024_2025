@@ -8,7 +8,7 @@ describe('validateSchema', () => {
   const schema = z.object({ name: z.string() });
   const middleware = validateSchema(schema);
 
-  it('calls next with error when validation fails', () => {
+  it('erreur si validation echoue', () => {
     const req = createMockRequest({ body: { name: 123 } }) as Request;
     const res = createMockResponse() as unknown as Response;
     const next = jest.fn();
@@ -21,7 +21,7 @@ describe('validateSchema', () => {
     expect(err.statusCode).toBe(400);
   });
 
-  it('sets req.body to parsed data and calls next on success', () => {
+  it('met les donnees parsees dans body et passe', () => {
     const req = createMockRequest({ body: { name: 'bob', extra: 'x' } }) as Request;
     const res = createMockResponse() as unknown as Response;
     const next = jest.fn();

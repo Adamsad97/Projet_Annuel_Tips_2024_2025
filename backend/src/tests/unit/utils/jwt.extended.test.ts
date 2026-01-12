@@ -1,18 +1,18 @@
 import { createAccessToken, createRefreshToken } from '../../../utils/jwt.util';
 
-// Tests simples pour vérifier que les tokens sont bien créés
+
 describe('JWT Utils - Token Creation', () => {
   describe('createAccessToken', () => {
-    it('should create a valid access token string', () => {
+    it('cree token access valide', () => {
       const payload = { id: 1, email: 'test@example.com' };
       const token = createAccessToken(payload);
 
       expect(typeof token).toBe('string');
       expect(token.length).toBeGreaterThan(0);
-      expect(token.split('.').length).toBe(3); // JWT format: header.payload.signature
+      expect(token.split('.').length).toBe(3);
     });
 
-    it('should create different tokens for different payloads', () => {
+    it('cree tokens differents pour payloads differents', () => {
       const payload1 = { id: 1, email: 'user1@example.com' };
       const payload2 = { id: 2, email: 'user2@example.com' };
 
@@ -22,7 +22,7 @@ describe('JWT Utils - Token Creation', () => {
       expect(token1).not.toBe(token2);
     });
 
-    it('should handle payload with only id and email', () => {
+    it('gere payload minimal id et email', () => {
       const minimalPayload = { id: 99, email: 'minimal@test.com' };
       const token = createAccessToken(minimalPayload);
 
@@ -32,16 +32,16 @@ describe('JWT Utils - Token Creation', () => {
   });
 
   describe('createRefreshToken', () => {
-    it('should create a valid refresh token string', () => {
+    it('cree token refresh valide', () => {
       const payload = { id: 1, email: 'test@example.com' };
       const token = createRefreshToken(payload);
 
       expect(typeof token).toBe('string');
       expect(token.length).toBeGreaterThan(0);
-      expect(token.split('.').length).toBe(3); // JWT format
+      expect(token.split('.').length).toBe(3);
     });
 
-    it('should create different tokens for different payloads', () => {
+    it('cree tokens differents pour payloads differents', () => {
       const payload1 = { id: 1, email: 'user1@example.com' };
       const payload2 = { id: 2, email: 'user2@example.com' };
 
@@ -51,38 +51,37 @@ describe('JWT Utils - Token Creation', () => {
       expect(token1).not.toBe(token2);
     });
 
-    it('should create different access and refresh tokens for same payload', () => {
+    it('access et refresh differents pour meme payload', () => {
       const payload = { id: 1, email: 'test@example.com' };
 
       const accessToken = createAccessToken(payload);
       const refreshToken = createRefreshToken(payload);
 
-      // They should be different because they have different expiration times
       expect(accessToken).not.toBe(refreshToken);
     });
   });
 
   describe('Token format validation', () => {
-    it('access token should be a valid JWT format', () => {
+    it('access token format jwt valide', () => {
       const payload = { id: 1, email: 'test@example.com' };
       const token = createAccessToken(payload);
       const parts = token.split('.');
 
       expect(parts).toHaveLength(3);
-      expect(parts[0]).toBeTruthy(); // header
-      expect(parts[1]).toBeTruthy(); // payload
-      expect(parts[2]).toBeTruthy(); // signature
+      expect(parts[0]).toBeTruthy();
+      expect(parts[1]).toBeTruthy();
+      expect(parts[2]).toBeTruthy();
     });
 
-    it('refresh token should be a valid JWT format', () => {
+    it('refresh token format jwt valide', () => {
       const payload = { id: 1, email: 'test@example.com' };
       const token = createRefreshToken(payload);
       const parts = token.split('.');
 
       expect(parts).toHaveLength(3);
-      expect(parts[0]).toBeTruthy(); // header
-      expect(parts[1]).toBeTruthy(); // payload
-      expect(parts[2]).toBeTruthy(); // signature
+      expect(parts[0]).toBeTruthy();
+      expect(parts[1]).toBeTruthy();
+      expect(parts[2]).toBeTruthy();
     });
   });
 });
