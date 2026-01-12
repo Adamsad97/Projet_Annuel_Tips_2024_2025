@@ -29,7 +29,7 @@ describe('Authorization Middlewares', () => {
   });
 
   describe('requireModerator', () => {
-    it('should call next with error if user is not authenticated', async () => {
+    it('erreur si user non authentifie', async () => {
       await requireModerator(req as RequestWithUser, res, next);
 
       expect(next).toHaveBeenCalledWith(expect.any(AppError));
@@ -38,7 +38,7 @@ describe('Authorization Middlewares', () => {
       expect(error.statusCode).toBe(401);
     });
 
-    it('should call next with error if user is not a moderator', async () => {
+    it('erreur si user pas moderateur', async () => {
       req.user = { id: 1, email: 'user@test.com' };
       (prisma.moderator.findUnique as jest.Mock).mockResolvedValue(null);
 
@@ -53,7 +53,7 @@ describe('Authorization Middlewares', () => {
       expect(error.statusCode).toBe(403);
     });
 
-    it('should call next with error if moderator is not active', async () => {
+    it('erreur si moderateur inactif', async () => {
       req.user = { id: 2, email: 'mod@test.com' };
       (prisma.moderator.findUnique as jest.Mock).mockResolvedValue({
         id: 1,
@@ -69,7 +69,7 @@ describe('Authorization Middlewares', () => {
       expect(error.statusCode).toBe(403);
     });
 
-    it('should call next() if user is an active moderator', async () => {
+    it('passe si moderateur actif', async () => {
       req.user = { id: 3, email: 'activemod@test.com' };
       (prisma.moderator.findUnique as jest.Mock).mockResolvedValue({
         id: 2,
@@ -86,7 +86,7 @@ describe('Authorization Middlewares', () => {
       expect(next).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle database errors', async () => {
+    it('gere erreurs database', async () => {
       req.user = { id: 4, email: 'test@test.com' };
       const dbError = new Error('Database connection failed');
       (prisma.moderator.findUnique as jest.Mock).mockRejectedValue(dbError);
@@ -98,7 +98,7 @@ describe('Authorization Middlewares', () => {
   });
 
   describe('requireAdmin', () => {
-    it('should call next with error if user is not authenticated', async () => {
+    it('erreur si user non authentifie', async () => {
       await requireAdmin(req as RequestWithUser, res, next);
 
       expect(next).toHaveBeenCalledWith(expect.any(AppError));
@@ -107,7 +107,7 @@ describe('Authorization Middlewares', () => {
       expect(error.statusCode).toBe(401);
     });
 
-    it('should call next with error if user is not an admin', async () => {
+    it('erreur si user pas admin', async () => {
       req.user = { id: 1, email: 'user@test.com' };
       (prisma.admin.findUnique as jest.Mock).mockResolvedValue(null);
 
@@ -122,7 +122,7 @@ describe('Authorization Middlewares', () => {
       expect(error.statusCode).toBe(403);
     });
 
-    it('should call next() if user is an admin', async () => {
+    it('passe si user est admin', async () => {
       req.user = { id: 5, email: 'admin@test.com' };
       (prisma.admin.findUnique as jest.Mock).mockResolvedValue({
         id: 1,
@@ -138,7 +138,7 @@ describe('Authorization Middlewares', () => {
       expect(next).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle database errors', async () => {
+    it('gere erreurs database', async () => {
       req.user = { id: 6, email: 'test@test.com' };
       const dbError = new Error('Database connection failed');
       (prisma.admin.findUnique as jest.Mock).mockRejectedValue(dbError);
