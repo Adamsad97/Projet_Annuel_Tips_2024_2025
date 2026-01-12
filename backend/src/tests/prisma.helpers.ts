@@ -13,7 +13,7 @@ export async function clearModerationData() {
   await prisma.report.deleteMany();
   await prisma.moderator.deleteMany();
   await prisma.admin.deleteMany();
-}
+} 
 
 export async function seedBadges(): Promise<void> {
   const badges = [
