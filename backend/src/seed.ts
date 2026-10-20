@@ -394,7 +394,15 @@ async function main() {
     },
   ];
 
+  // Idempotent : un tip de test n'est créé que s'il n'existe pas déjà (même titre, même auteur)
+  let createdTips = 0;
   for (const data of tipData) {
+    const existing = await prisma.tip.findFirst({
+      where: { title: data.title, userId: data.userId },
+    });
+    if (existing) continue;
+
+    createdTips++;
     await prisma.tip.create({
       data: {
         title: data.title,
@@ -412,7 +420,7 @@ async function main() {
       },
     });
   }
-  console.info(`${tipData.length} tips created`);
+  console.info(`${createdTips} tips created (${tipData.length - createdTips} already present)`);
 
   console.info('\nseeding complete');
   console.info('\ntest accounts:');

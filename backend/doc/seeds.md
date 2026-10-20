@@ -258,3 +258,7 @@ await prisma.category.upsert({
   }
 });
 ```
+
+## Relancer le seed
+
+Le seed est idempotent : il peut être relancé sans créer de doublons. Les grades, badges, catégories, utilisateurs et réglages du chatbot sont mis à jour par `upsert`, et un tip de test n'est créé que s'il n'existe pas déjà (même titre, même auteur).
