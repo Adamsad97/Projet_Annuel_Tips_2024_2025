@@ -70,7 +70,7 @@ Créés par les seeds (`npm run db:seed`) :
 | Utilisateur | bob@example.com | Bob123! |
 | Utilisateur | charlie@example.com | Charlie123! |
 
-Le compte admin donne accès à l'espace d'administration (`/admin`), le compte modérateur à la file de modération (`/moderation`).
+Le compte admin donne accès à l'espace d'administration (`/admin`) : utilisateurs, indice de confiance, chatbot, fonctionnalités expérimentales (A/B) et logs d'erreurs. Le compte modérateur donne accès à la file de modération (`/moderation`).
 Charlie (15 XP) ne peut encore que poser des questions : publier un tip demande 20 XP. Un compte tout juste créé est dans le même cas.
 
 ## Scripts utiles

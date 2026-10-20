@@ -76,6 +76,13 @@ All routes prefixed with `/api`.
 **GET|POST /api/admin/chatbot/responses**, **PATCH|DELETE /api/admin/chatbot/responses/:id** - Canned responses (admin)
 **GET /api/admin/chatbot/queries** - Asked questions (?unanswered=true)
 
+## Plateforme
+
+**GET /api/features** - Experimental features enabled for the current user
+**POST /api/logs/client** - Report a frontend JavaScript error
+**GET /api/admin/features**, **PATCH /api/admin/features/:key** - Feature flags / A/B tests (admin)
+**GET /api/admin/logs**, **DELETE /api/admin/logs** - Centralized error logs (admin)
+
 ## Uploads
 
 **POST /api/uploads/tips** - Upload tip images (multipart)
@@ -398,6 +405,33 @@ Chaque question est enregistree, avec le nombre de tips trouves et la reponse ty
 - `PATCH /api/admin/chatbot/config` : `greeting`, `fallbackMessage`, `contextNote` (chaine vide = aucun contexte).
 - Reponses types : `keywords` (1 a 20 expressions), `answer`, `link` (chemin interne uniquement, ex. `/settings`), `priority` (0-100), `isActive`.
 - `GET /api/admin/chatbot/queries?unanswered=true` : questions sans tip ni reponse type, pour creer de nouvelles reponses.
+
+---
+
+## Fonctionnalites experimentales (tests A/B)
+
+Les fonctionnalites sont declarees dans `backend/src/modules/features/feature.service.ts` (`FEATURE_DEFINITIONS`). Elles sont creees en base a la premiere lecture, activees a 100 % par defaut.
+
+| Cle | Effet quand elle est coupee |
+|---|---|
+| `chatbot` | `/api/chatbot/*` renvoie 404, la bulle de l'assistant est masquee |
+| `trends_page` | `GET /api/tips/trending` renvoie 404, le lien Tendances est masque |
+
+- **Deploiement partiel :** `PATCH /api/admin/features/:key` avec `{ enabled, rolloutPercentage }` (0-100).
+- **Repartition des membres :** un membre voit la fonctionnalite si `sha256("cle:userId") % 100 < rolloutPercentage`. Le groupe est donc stable : un membre reste toujours dans le meme groupe tant que le pourcentage ne change pas. Les visiteurs ne la voient que si elle est deployee a 100 %.
+- **`GET /api/features`** (auth optionnelle) : `{ chatbot: boolean, trends_page: boolean }` pour l'utilisateur courant.
+- **`GET /api/admin/features`** : chaque fonctionnalite avec `exposedUsers` et `totalUsers` (taille reelle du groupe).
+
+---
+
+## Logs d'erreurs centralises
+
+Table `ErrorLog`, consultee dans l'onglet Logs de l'admin.
+
+- **Serveur :** toute reponse >= 500 (avec methode, route, statut, utilisateur et stack), les exceptions et promesses non gerees du process, et les echecs du recalcul de l'indice de confiance. Les erreurs 4xx (404, validation...) ne sont pas enregistrees.
+- **Navigateur :** `POST /api/logs/client` (auth optionnelle, 10 par minute). **Body:** `message`, `stack`, `path` et `context`, tous optionnels sauf `message`. Le frontend y envoie les erreurs Vue, les erreurs `window` et les promesses rejetees, au plus 10 par session et sans doublon.
+- **`GET /api/admin/logs`** : **Query params:** `source` (`server` ou `client`), `q` (recherche dans le message ou la route), `skip`, `take`. Reponse `{ items, total, last24h }`.
+- **`DELETE /api/admin/logs?olderThanDays=30`** : purge (0 = tout supprimer).
 
 ---
 
