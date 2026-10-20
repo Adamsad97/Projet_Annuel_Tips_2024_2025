@@ -31,20 +31,11 @@ interface UserProgress {
   };
 }
 
-interface LeaderboardUser {
-  id: number;
-  username: string;
-  xp: number;
-  grade: Grade;
-  avatarProfile?: string;
-}
-
 export const useGamification = () => {
   const api = useApi();
 
   const progress = ref<UserProgress | null>(null);
   const badges = ref<Badge[]>([]);
-  const leaderboard = ref<LeaderboardUser[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -82,25 +73,6 @@ export const useGamification = () => {
     }
   };
 
-  const fetchLeaderboard = async (limit: number = 10, skip: number = 0) => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const response = await api.get<LeaderboardUser[]>(
-        `/users/leaderboard?limit=${limit}&skip=${skip}`,
-      );
-      leaderboard.value = response;
-      console.log('[useGamification] Leaderboard loaded:', response.length, 'users');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch leaderboard';
-      error.value = errorMessage;
-      console.error('[Gamification] Error fetching leaderboard:', err);
-    } finally {
-      loading.value = false;
-    }
-  };
-
   const getCurrentLevel = computed(() => {
     return progress.value?.currentGrade?.name || 'debutant';
   });
@@ -128,7 +100,6 @@ export const useGamification = () => {
   return {
     progress,
     badges,
-    leaderboard,
     loading,
     error,
 
@@ -140,7 +111,6 @@ export const useGamification = () => {
 
     fetchProgress,
     fetchBadges,
-    fetchLeaderboard,
     refreshAll,
   };
 };

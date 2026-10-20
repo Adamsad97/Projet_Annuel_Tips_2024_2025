@@ -106,6 +106,40 @@ describe('Community data Integration (stats, grades, contact, follow, leaderboar
     expect(await prisma.contactMessage.count()).toBe(0);
   });
 
+  it('should answer 404 (not 500) when lifting a sanction on a missing account', async () => {
+    const admin = await createUser('boss', true);
+
+    for (const sanction of ['ban', 'mute']) {
+      const res = await request(app)
+        .delete(`${api}/admin/users/999999/${sanction}`)
+        .set(admin.auth);
+      expect(res.status).toBe(404);
+    }
+  });
+
+  it('should never show trust index adjustments in a member moderation history', async () => {
+    const admin = await createUser('boss', true);
+    const member = await createUser('member');
+
+    await request(app)
+      .patch(`${api}/admin/users/${member.id}/trust-index`)
+      .set(admin.auth)
+      .send({ trustIndex: 90, reason: 'Compte vérifié manuellement' });
+    await request(app)
+      .post(`${api}/moderation/users/${member.id}/warn`)
+      .set(admin.auth)
+      .send({ reason: 'Propos déplacés en commentaire' });
+
+    const res = await request(app)
+      .get(`${api}/moderation/users/${member.id}/actions`)
+      .set(admin.auth);
+
+    expect(res.status).toBe(200);
+    const types = res.body.data.map((action: { actionType: string }) => action.actionType);
+    expect(types).toContain('WARN');
+    expect(types).not.toContain('TRUST_ADJUST');
+  });
+
   it('should follow and unfollow a member, with notifications', async () => {
     const alice = await createUser('alice');
     const bob = await createUser('bob');

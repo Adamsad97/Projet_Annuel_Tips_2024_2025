@@ -373,7 +373,9 @@ export class ModerationService {
 
   async getUserActions(userId: number) {
     return prisma.moderationAction.findMany({
-      where: { userId },
+      // L'indice de confiance est réservé aux admins (panneau dédié) : ses ajustements ne sont
+      // pas montrés aux modérateurs
+      where: { userId, actionType: { not: 'TRUST_ADJUST' } },
       include: {
         moderator: { select: { id: true, username: true } },
         appeal: true,

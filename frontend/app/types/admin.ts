@@ -101,6 +101,12 @@ export const ACTION_LABELS: Record<string, string> = {
   RESOLVE_REPORT_REJECT: 'Contenu retiré après signalement',
   AUTO_PROMOTE: 'Promotion automatique en modérateur',
   AUTO_DEMOTE: 'Retrait automatique du rôle de modérateur',
+  APPROVE_TIP: 'Tip validé',
+  UNBAN: 'Bannissement levé',
+  UNMUTE: 'Interdiction de publier levée',
+  RESET: 'Compte réinitialisé',
+  PROMOTE_TO_MODERATOR: 'Nommé modérateur',
+  DEMOTE_MODERATOR: 'Retiré de la modération',
 };
 
 // Indice de confiance (visible uniquement par les admins)

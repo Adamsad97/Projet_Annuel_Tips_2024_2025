@@ -5,6 +5,7 @@ import TipsCard from '~/components/TipsCard.vue';
 import ActionDialog from '~/components/moderation/ActionDialog.vue';
 import { API_ROUTES } from '~/config/api';
 import { ROUTES } from '~/config/routes';
+import { ACTION_LABELS } from '~/types';
 
 definePageMeta({
   middleware: 'auth',
@@ -76,6 +77,7 @@ const applySanction = async ({ reason }: { reason: string }) => {
     );
     sanction.value = null;
     profile.value = await api.get<PublicProfile>(API_ROUTES.USERS.PUBLIC_PROFILE(userId));
+    await loadHistory();
   } catch {
     // l'erreur est déjà affichée par useApi
   } finally {
@@ -187,12 +189,42 @@ const recentTips = computed<Tip[]>(() => {
   );
 });
 
+// Historique de modération du membre (équipe de modération uniquement)
+interface ModerationHistoryItem {
+  id: number;
+  actionType: string;
+  reason: string | null;
+  createdAt: string;
+  moderator: { id: number; username: string } | null;
+  appeal: { status: string } | null;
+}
+const APPEAL_STATUS: Record<string, string> = {
+  OPEN: 'en attente',
+  ACCEPTED: 'acceptée',
+  REJECTED: 'refusée',
+};
+const history = ref<ModerationHistoryItem[]>([]);
+const loadHistory = async () => {
+  if (!canModerate.value) return;
+  try {
+    history.value = await api.get<ModerationHistoryItem[]>(
+      API_ROUTES.MODERATION.USER_ACTIONS(userId),
+      {
+        showErrorToast: false,
+      },
+    );
+  } catch {
+    history.value = [];
+  }
+};
+
 onMounted(async () => {
   loadBlockStatus();
   try {
     profile.value = await api.get<PublicProfile>(API_ROUTES.USERS.PUBLIC_PROFILE(userId), {
       showErrorToast: false,
     });
+    await loadHistory();
   } catch {
     notFound.value = true;
   } finally {
@@ -363,6 +395,39 @@ useSeoMeta({
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- Historique de modération (visible par l'équipe de modération) -->
+      <section v-if="canModerate" class="space-y-3">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">
+          Historique de modération
+        </h2>
+        <p v-if="history.length === 0" class="text-sm text-gray-500">
+          Aucune action de modération sur ce membre.
+        </p>
+        <ul v-else class="space-y-2">
+          <li
+            v-for="action in history"
+            :key="action.id"
+            class="rounded-xl bg-white/60 dark:bg-slate-800/60 px-4 py-3 text-sm"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="font-bold text-slate-800 dark:text-slate-100">
+                {{ ACTION_LABELS[action.actionType] ?? action.actionType }}
+              </span>
+              <span class="text-xs text-slate-500">
+                {{ new Date(action.createdAt).toLocaleDateString('fr-FR') }} ·
+                {{ action.moderator?.username ?? 'automatique' }}
+              </span>
+            </div>
+            <p v-if="action.reason" class="mt-1 text-slate-600 dark:text-slate-300">
+              {{ action.reason }}
+            </p>
+            <p v-if="action.appeal" class="mt-1 text-xs text-amber-600">
+              Contestée ({{ APPEAL_STATUS[action.appeal.status] ?? action.appeal.status }})
+            </p>
+          </li>
+        </ul>
       </section>
 
       <!-- Derniers tips -->
