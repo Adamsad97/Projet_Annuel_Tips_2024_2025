@@ -25,7 +25,7 @@ const user = computed(() => {
   if (!authUser.value)
     return {
       name: 'Invité',
-      avatar: '/avatar.svg',
+      avatar: '',
       xp: 0,
       nextRankXp: 500,
       roleLabel: 'Visiteur',
@@ -45,7 +45,7 @@ const user = computed(() => {
 
   return {
     name: displayName,
-    avatar: authUser.value.avatarProfile || '/avatar.svg',
+    avatar: authUser.value.avatarProfile || '',
     xp: currentProgress?.currentXp || 0,
     nextRankXp: currentProgress?.nextGrade?.xpRequired || 500,
     roleLabel: currentProgress?.currentGrade?.name || 'Débutant',

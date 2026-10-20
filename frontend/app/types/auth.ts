@@ -1,5 +1,6 @@
 export interface User {
   id: number;
+  username: string;
   firstname?: string | null;
   lastname?: string | null;
   email: string;
@@ -7,7 +8,6 @@ export interface User {
   avatarProfile?: string | null;
   bio?: string | null;
   address?: string | null;
-  trustIndex: number;
   isTwoFactorEnabled: boolean;
   createdAt: string;
   updatedAt: string;

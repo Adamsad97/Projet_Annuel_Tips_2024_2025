@@ -13,17 +13,20 @@ const UserProgressBar = defineAsyncComponent(() => import('~/components/UserProg
 
 const { user } = useAuth();
 const api = useApi();
+const config = useRuntimeConfig();
 
 const leaderboardData = ref<
   Array<{
     userId: number;
     username: string;
+    firstname: string | null;
+    lastname: string | null;
     xp: number;
     rank: number;
-    avatarProfile?: string;
-    role?: string;
-    tips?: number;
-    votes?: number;
+    avatarProfile: string | null;
+    role: string | null;
+    tips: number;
+    badges: number;
   }>
 >([]);
 
@@ -31,18 +34,9 @@ onMounted(async () => {
   try {
     console.log('[Ranking] Loading leaderboard data...');
 
-    const leaderboardResponse = await api.get<
-      Array<{
-        userId: number;
-        username: string;
-        xp: number;
-        rank: number;
-        avatarProfile?: string;
-        role?: string;
-        tips?: number;
-        votes?: number;
-      }>
-    >('/users/leaderboard?take=100');
+    const leaderboardResponse = await api.get<typeof leaderboardData.value>(
+      '/users/leaderboard?take=100',
+    );
 
     console.log('[Ranking] Leaderboard response:', {
       isArray: Array.isArray(leaderboardResponse),
@@ -78,13 +72,13 @@ onMounted(async () => {
 const users = computed(() =>
   leaderboardData.value.map((u) => ({
     id: u.userId,
-    name: u.username,
+    name: [u.firstname, u.lastname].filter(Boolean).join(' ') || u.username,
     xp: u.xp,
     rank: u.rank,
-    avatar: u.avatarProfile || '',
+    avatar: u.avatarProfile ? resolveUploadUrl(u.avatarProfile, config.public.apiBaseUrl) : '',
     role: u.role || 'Membre',
-    tips: u.tips || 0,
-    votes: u.votes || 0,
+    tips: u.tips,
+    votes: 0,
   })),
 );
 

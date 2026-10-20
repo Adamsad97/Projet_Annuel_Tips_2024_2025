@@ -4,23 +4,31 @@ import AppInput from '~/components/ui/AppInput.vue';
 import AppTextarea from '~/components/ui/AppTextarea.vue';
 import AppButton from '~/components/ui/AppButton.vue';
 import ProfilPicture from '~/components/ProfilPicture.vue';
+import type { User } from '~/types';
+import { API_ROUTES } from '~/config/api';
 
 definePageMeta({
   middleware: 'auth',
 });
 
 const { user, logout } = useAuth();
+const authStore = useAuthStore();
+const api = useApi();
+const toast = useToastMessage();
+
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+const MAX_BIO_LENGTH = 500;
 
 const activeTab = ref('general');
 
 const form = reactive({
-  name:
-    user.value?.firstname && user.value?.lastname
-      ? `${user.value.firstname} ${user.value.lastname}`
-      : user.value?.firstname || user.value?.lastname || '',
-  email: user.value?.email || '', // Note: Type User needs email or we assume it exists
-  bio: user.value?.bio || 'Passionné de bricolage et de partage.',
-  address: user.value?.address || '',
+  firstname: '',
+  lastname: '',
+  bio: '',
+  address: '',
+});
+
+const passwordForm = reactive({
   currentPassword: '',
   newPassword: '',
   confirmPassword: '',
@@ -32,30 +40,106 @@ const notifications = reactive<Record<string, boolean>>({
   newsletter: true,
 });
 
-const security = reactive({
-  twoFactor: false,
-});
+const savingProfile = ref(false);
+const savingPassword = ref(false);
+const uploadingAvatar = ref(false);
+const avatarInput = ref<HTMLInputElement | null>(null);
 
 watch(
   user,
   (newUser) => {
     if (newUser) {
-      form.name =
-        newUser.firstname && newUser.lastname
-          ? `${newUser.firstname} ${newUser.lastname}`
-          : newUser.firstname || newUser.lastname || '';
-      form.email = newUser.email || '';
+      form.firstname = newUser.firstname || '';
+      form.lastname = newUser.lastname || '';
+      form.bio = newUser.bio || '';
+      form.address = newUser.address || '';
     }
   },
   { immediate: true },
 );
 
-const saveProfile = () => {
-  alert('Profil mis à jour avec succès !');
+const saveProfile = async () => {
+  savingProfile.value = true;
+  try {
+    const updated = await api.patch<User>(
+      API_ROUTES.USERS.PROFILE,
+      { ...form },
+      { showSuccessToast: true, successMessage: 'Profil mis à jour' },
+    );
+    authStore.setUser(updated);
+  } catch {
+    // l'erreur est déjà affichée par useApi
+  } finally {
+    savingProfile.value = false;
+  }
 };
 
-const updatePassword = () => {
-  alert('Mot de passe modifié !');
+const openAvatarPicker = () => avatarInput.value?.click();
+
+const onAvatarSelected = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+
+  if (file.size > MAX_AVATAR_SIZE) {
+    toast.error('Image trop volumineuse (5 Mo maximum)');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  uploadingAvatar.value = true;
+  try {
+    const updated = await api.post<User>(API_ROUTES.USERS.AVATAR, formData, {
+      showSuccessToast: true,
+      successMessage: 'Photo de profil mise à jour',
+    });
+    authStore.setUser(updated);
+  } catch {
+    // l'erreur est déjà affichée par useApi
+  } finally {
+    uploadingAvatar.value = false;
+  }
+};
+
+const removeAvatar = async () => {
+  uploadingAvatar.value = true;
+  try {
+    const updated = await api.delete<User>(API_ROUTES.USERS.AVATAR);
+    authStore.setUser(updated);
+  } catch {
+    // l'erreur est déjà affichée par useApi
+  } finally {
+    uploadingAvatar.value = false;
+  }
+};
+
+const updatePassword = async () => {
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    toast.error('Les deux mots de passe ne correspondent pas');
+    return;
+  }
+
+  savingPassword.value = true;
+  try {
+    await api.patch(
+      API_ROUTES.USERS.PASSWORD,
+      {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      },
+      { showSuccessToast: true, successMessage: 'Mot de passe modifié' },
+    );
+    passwordForm.currentPassword = '';
+    passwordForm.newPassword = '';
+    passwordForm.confirmPassword = '';
+  } catch {
+    // l'erreur est déjà affichée par useApi
+  } finally {
+    savingPassword.value = false;
+  }
 };
 
 const tabs = [
@@ -132,24 +216,53 @@ const tabs = [
             >
               <div class="relative group">
                 <ProfilPicture
-                  :src="user?.avatarProfile || 'https://i.pravatar.cc/150?u=1'"
-                  size="xl"
+                  :src="user?.avatarProfile || undefined"
+                  :online="false"
                   class="w-24 h-24 text-4xl"
                 />
                 <button
-                  class="absolute bottom-0 -right-2 bg-purple-600 text-white px-2 py-1 rounded-full shadow-lg hover:scale-110 transition-transform z-20"
+                  type="button"
+                  class="absolute bottom-0 -right-2 bg-purple-600 text-white px-2 py-1 rounded-full shadow-lg hover:scale-110 transition-transform z-20 disabled:opacity-50"
+                  :disabled="uploadingAvatar"
+                  title="Changer la photo"
+                  @click="openAvatarPicker"
                 >
-                  <Icon name="tabler:camera" />
+                  <Icon
+                    :name="uploadingAvatar ? 'tabler:loader-2' : 'tabler:camera'"
+                    :class="{ 'animate-spin': uploadingAvatar }"
+                  />
                 </button>
+                <input
+                  ref="avatarInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  class="hidden"
+                  @change="onAvatarSelected"
+                />
               </div>
               <div>
                 <h3 class="font-bold text-lg text-slate-900 dark:text-white">Votre Photo</h3>
                 <p class="text-sm text-slate-500 mb-3">
-                  Affichée sur votre profil et vos commentaires.
+                  Affichée sur votre profil et vos commentaires (JPG, PNG, WebP ou GIF, 5 Mo max).
                 </p>
                 <div class="flex gap-3">
-                  <button class="text-xs font-bold text-purple-600 hover:underline">Changer</button>
-                  <button class="text-xs font-bold text-red-500 hover:underline">Supprimer</button>
+                  <button
+                    type="button"
+                    class="text-xs font-bold text-purple-600 hover:underline disabled:opacity-50"
+                    :disabled="uploadingAvatar"
+                    @click="openAvatarPicker"
+                  >
+                    Changer
+                  </button>
+                  <button
+                    v-if="user?.avatarProfile"
+                    type="button"
+                    class="text-xs font-bold text-red-500 hover:underline disabled:opacity-50"
+                    :disabled="uploadingAvatar"
+                    @click="removeAvatar"
+                  >
+                    Supprimer
+                  </button>
                 </div>
               </div>
             </div>
@@ -157,18 +270,22 @@ const tabs = [
             <!-- Form -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <AppInput
-                id="name"
-                v-model="form.name"
-                label="Nom d'affichage"
-                placeholder="Votre nom"
+                id="firstname"
+                v-model="form.firstname"
+                label="Prénom"
+                placeholder="Prénom"
               />
-              <AppInput
-                id="email"
-                v-model="form.email"
-                label="Email"
-                type="email"
-                placeholder="votre@email.com"
-              />
+              <AppInput id="lastname" v-model="form.lastname" label="Nom" placeholder="Nom" />
+              <div class="md:col-span-2 text-sm text-slate-500">
+                Email :
+                <span class="font-medium text-slate-700 dark:text-slate-300">{{
+                  user?.email
+                }}</span>
+                · Pseudo :
+                <span class="font-medium text-slate-700 dark:text-slate-300">{{
+                  user?.username
+                }}</span>
+              </div>
               <div class="md:col-span-2">
                 <AppTextarea
                   id="bio"
@@ -177,6 +294,12 @@ const tabs = [
                   placeholder="Parlez-nous de vous..."
                   :rows="4"
                 />
+                <p
+                  class="mt-1 text-xs text-right"
+                  :class="form.bio.length > MAX_BIO_LENGTH ? 'text-red-500' : 'text-gray-400'"
+                >
+                  {{ form.bio.length }}/{{ MAX_BIO_LENGTH }}
+                </p>
               </div>
               <div class="md:col-span-2">
                 <AppInput
@@ -190,7 +313,13 @@ const tabs = [
             </div>
 
             <div class="pt-6 border-t border-slate-200 dark:border-slate-800 flex justify-end">
-              <AppButton @click="saveProfile">Sauvegarder les modifications</AppButton>
+              <AppButton
+                :loading="savingProfile"
+                :disabled="form.bio.length > MAX_BIO_LENGTH"
+                @click="saveProfile"
+              >
+                Sauvegarder les modifications
+              </AppButton>
             </div>
           </div>
 
@@ -209,24 +338,35 @@ const tabs = [
                 <div class="grid gap-4 max-w-md">
                   <AppInput
                     id="currentPassword"
-                    v-model="form.currentPassword"
+                    v-model="passwordForm.currentPassword"
                     label="Mot de passe actuel"
                     type="password"
                   />
                   <AppInput
                     id="newPassword"
-                    v-model="form.newPassword"
+                    v-model="passwordForm.newPassword"
                     label="Nouveau mot de passe"
                     type="password"
                   />
                   <AppInput
                     id="confirmPassword"
-                    v-model="form.confirmPassword"
+                    v-model="passwordForm.confirmPassword"
                     label="Confirmer le mot de passe"
                     type="password"
                   />
                   <div class="pt-2">
-                    <AppButton variant="secondary" @click="updatePassword">Mettre à jour</AppButton>
+                    <AppButton
+                      variant="secondary"
+                      :loading="savingPassword"
+                      :disabled="!passwordForm.currentPassword || !passwordForm.newPassword"
+                      @click="updatePassword"
+                    >
+                      Mettre à jour
+                    </AppButton>
+                    <p class="mt-2 text-xs text-slate-500">
+                      8 caractères minimum, avec une majuscule, une minuscule, un chiffre et un
+                      caractère spécial.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -240,16 +380,16 @@ const tabs = [
                   >
                     Double Authentification (2FA)
                     <span
-                      class="px-2 py-0.5 rounded text-[10px] font-black bg-green-500/10 text-green-600 uppercase"
-                      >Recommandé</span
+                      class="px-2 py-0.5 rounded text-[10px] font-black bg-slate-500/10 text-slate-500 uppercase"
+                      >Bientôt disponible</span
                     >
                   </div>
                   <p class="text-sm text-slate-500 mt-1">
                     Sécurisez votre compte avec une étape supplémentaire.
                   </p>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input v-model="security.twoFactor" type="checkbox" class="sr-only peer" />
+                <label class="relative inline-flex items-center cursor-not-allowed opacity-50">
+                  <input type="checkbox" class="sr-only peer" disabled />
                   <div
                     class="w-14 h-7 bg-gray-200 peer-focus:outline-none ring-0 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"
                   ></div>

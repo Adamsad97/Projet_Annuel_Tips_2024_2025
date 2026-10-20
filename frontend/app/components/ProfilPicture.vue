@@ -5,17 +5,26 @@ interface Props {
   online?: boolean;
 }
 
+const DEFAULT_AVATAR = '/Avatar.svg';
+
 const props = withDefaults(defineProps<Props>(), {
-  src: '/avatar.svg',
+  src: DEFAULT_AVATAR,
   alt: 'Avatar',
   online: true,
 });
+
+const config = useRuntimeConfig();
+
+// Les avatars uploadés sont stockés en chemin relatif à l'API (/uploads/avatars/...)
+const imageSrc = computed(() =>
+  props.src ? resolveUploadUrl(props.src, config.public.apiBaseUrl) : DEFAULT_AVATAR,
+);
 </script>
 
 <template>
   <div class="relative flex items-center justify-center" style="width: 57px; height: 62px">
     <div class="absolute inset-1 rounded-full overflow-hidden z-0">
-      <img :src="props.src" :alt="props.alt" class="w-full h-full object-cover" loading="lazy" />
+      <img :src="imageSrc" :alt="props.alt" class="w-full h-full object-cover" loading="lazy" />
     </div>
 
     <!-- Frame SVG -->

@@ -10,6 +10,9 @@ export const API_ROUTES = {
     REGISTER: '/users/register',
     LOGIN: '/users/login',
     PROFILE: '/users/profile',
+    PASSWORD: '/users/profile/password',
+    AVATAR: '/users/profile/avatar',
+    PUBLIC_PROFILE: (id: number) => `/users/${id}`,
   },
 
   TIPS: {

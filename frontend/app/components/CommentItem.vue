@@ -6,6 +6,7 @@ import TextTruncate from '~/components/TextTruncate.vue';
 import VoteButtons from '~/components/interactions/VoteButtons.vue';
 import ReportButton from '~/components/interactions/ReportButton.vue';
 import { API_ROUTES } from '~/config/api';
+import { ROUTES } from '~/config/routes';
 
 const props = withDefaults(
   defineProps<{
@@ -118,7 +119,12 @@ const deleteComment = async () => {
       <div class="flex-1">
         <!-- Header Auteur -->
         <div class="flex items-center gap-2 mb-1">
-          <span class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ authorName }}</span>
+          <NuxtLink
+            :to="ROUTES.USER_PROFILE(comment.user.id)"
+            class="text-sm font-bold text-slate-800 dark:text-slate-200 hover:text-purple-600"
+          >
+            {{ authorName }}
+          </NuxtLink>
           <span class="text-xs text-gray-400">
             {{ publishedAgo }}<template v-if="wasEdited"> · modifié</template>
           </span>

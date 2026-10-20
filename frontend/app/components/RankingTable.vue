@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RankingUser } from '~/types';
+import { ROUTES } from '~/config/routes';
 
 interface Props {
   users: RankingUser[];
@@ -67,11 +68,12 @@ defineProps<Props>();
                   "
                 />
                 <div>
-                  <div
+                  <NuxtLink
+                    :to="ROUTES.USER_PROFILE(user.id)"
                     class="font-black text-lg text-slate-800 dark:text-slate-100 group-hover:text-purple-600 transition-colors"
                   >
                     {{ user.name }}
-                  </div>
+                  </NuxtLink>
                   <div
                     class="text-xs bg-linear-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 px-3 py-1 rounded-full text-slate-600 font-bold"
                   >
