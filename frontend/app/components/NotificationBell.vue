@@ -13,6 +13,7 @@ const ICONS: Record<AppNotification['type'], string> = {
   MODERATION: 'tabler:gavel',
   NEW_TIP: 'tabler:bulb',
   CHALLENGE: 'tabler:trophy',
+  NEW_FOLLOWER: 'tabler:user-plus',
 };
 
 const formatDate = (date: string) =>

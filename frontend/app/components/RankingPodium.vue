@@ -27,16 +27,9 @@ defineProps<Props>();
             class="absolute -top-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-3xl bg-linear-to-br from-slate-200 to-slate-300 p-2 shadow-2xl rotate-6 group-hover:rotate-12"
           >
             <img
-              :src="
-                top2?.avatar ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(top2?.name || 'User')}&background=random&size=128`
-              "
+              :src="top2?.avatar || '/Avatar.svg'"
               class="w-full h-full rounded-2xl object-cover"
-              @error="
-                (e) =>
-                  ((e.target as HTMLImageElement).src =
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(top2?.name || 'User')}&background=random&size=128`)
-              "
+              @error="(e) => ((e.target as HTMLImageElement).src = '/Avatar.svg')"
             />
           </div>
 
@@ -73,16 +66,9 @@ defineProps<Props>();
             class="absolute -top-4 left-1/2 -translate-x-1/2 w-32 h-32 rounded-3xl bg-linear-to-br from-yellow-400 to-orange-400 p-3 shadow-2xl"
           >
             <img
-              :src="
-                top1.avatar ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(top1.name)}&background=random&size=128`
-              "
+              :src="top1.avatar || '/Avatar.svg'"
               class="w-full h-full rounded-2xl object-cover"
-              @error="
-                (e) =>
-                  ((e.target as HTMLImageElement).src =
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(top1.name)}&background=random&size=128`)
-              "
+              @error="(e) => ((e.target as HTMLImageElement).src = '/Avatar.svg')"
             />
           </div>
 
@@ -123,16 +109,9 @@ defineProps<Props>();
             class="absolute -top-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-3xl bg-linear-to-br from-orange-300 to-orange-100 p-2 shadow-2xl -rotate-6 group-hover:-rotate-12"
           >
             <img
-              :src="
-                top3?.avatar ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(top3?.name || 'User')}&background=random&size=128`
-              "
+              :src="top3?.avatar || '/Avatar.svg'"
               class="w-full h-full rounded-2xl object-cover"
-              @error="
-                (e) =>
-                  ((e.target as HTMLImageElement).src =
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(top3?.name || 'User')}&background=random&size=128`)
-              "
+              @error="(e) => ((e.target as HTMLImageElement).src = '/Avatar.svg')"
             />
           </div>
 

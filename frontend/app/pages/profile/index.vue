@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import ProfilPicture from '@/components/ProfilPicture.vue';
-import XpProgressBar from '@/components/gamification/XpProgressBar.vue';
-import BadgeDisplay from '@/components/gamification/BadgeDisplay.vue';
 import GradePerksCard from '@/components/gamification/GradePerksCard.vue';
+import { API_ROUTES } from '~/config/api';
 
 definePageMeta({
   middleware: 'auth',
@@ -10,76 +9,84 @@ definePageMeta({
 
 const { user: authUser, logout } = useAuth();
 const gamification = useGamification();
+const { grades, loadGrades } = useGrades();
+const api = useApi();
+
+// Barème d'XP appliqué par le backend (clé = action)
+const xpRules = ref<Record<string, number>>({});
 
 onMounted(async () => {
-  console.log('[Profile] Loading gamification data...');
-  await gamification.refreshAll();
-  console.log('[Profile] Gamification data loaded:', {
-    hasProgress: !!gamification.progress.value,
-    hasBadges: gamification.badges.value.length > 0,
-    progressPercent: gamification.progress.value?.progressPercent,
-    currentXp: gamification.progress.value?.currentXp,
-  });
+  await Promise.all([
+    gamification.refreshAll(),
+    loadGrades(),
+    api
+      .get<Record<string, number>>(API_ROUTES.PLATFORM.XP_RULES, { showErrorToast: false })
+      .then((rules) => (xpRules.value = rules))
+      .catch(() => {}),
+  ]);
 });
 
 const user = computed(() => {
-  if (!authUser.value)
-    return {
-      name: 'Invité',
-      avatar: '',
-      xp: 0,
-      nextRankXp: 500,
-      roleLabel: 'Visiteur',
-      roleIcon: 'tabler:user',
-      levelLabel: 'Découvreur',
-      location: 'Inconnu',
-      joinedAt: 'Récemment',
-      bio: 'Connectez-vous pour voir votre profil.',
-      stats: [],
-    };
+  if (!authUser.value) return null;
 
   const currentProgress = gamification.progress.value;
-  const displayName =
-    authUser.value.firstname && authUser.value.lastname
-      ? `${authUser.value.firstname} ${authUser.value.lastname}`
-      : authUser.value.firstname || authUser.value.lastname || authUser.value.email;
+  const fullName = [authUser.value.firstname, authUser.value.lastname].filter(Boolean).join(' ');
 
   return {
-    name: displayName,
+    name: fullName || authUser.value.username,
     avatar: authUser.value.avatarProfile || '',
-    xp: currentProgress?.currentXp || 0,
-    nextRankXp: currentProgress?.nextGrade?.xpRequired || 500,
-    roleLabel: currentProgress?.currentGrade?.name || 'Débutant',
-    roleIcon: 'tabler:star',
-    levelLabel: currentProgress?.currentGrade?.name || 'Découvreur',
+    xp: currentProgress?.currentXp ?? authUser.value.xp ?? 0,
+    nextGrade: currentProgress?.nextGrade ?? null,
+    gradeName: currentProgress?.currentGrade?.name ?? null,
     location: authUser.value.address || 'Non renseigné',
     joinedAt: `Membre depuis ${new Date(authUser.value.createdAt).getFullYear()}`,
     bio: authUser.value.bio || 'Aucune bio renseignée.',
+    twoFactor: authUser.value.isTwoFactorEnabled,
     stats: [
-      { label: 'Tips publiés', value: currentProgress?.stats?.tipsCreated || 0 },
-      { label: 'Commentaires', value: currentProgress?.stats?.commentsCreated || 0 },
-      { label: 'Votes donnés', value: currentProgress?.stats?.votesGiven || 0 },
-      { label: 'Followers', value: currentProgress?.stats?.followers || 0 },
+      { label: 'Tips publiés', value: currentProgress?.stats?.tipsCreated ?? 0 },
+      { label: 'Commentaires', value: currentProgress?.stats?.commentsCreated ?? 0 },
+      { label: 'Votes donnés', value: currentProgress?.stats?.votesGiven ?? 0 },
+      { label: 'Abonnés', value: currentProgress?.stats?.followers ?? 0 },
     ],
   };
 });
 
-const xpPercent = computed(() => {
-  if (!gamification.progress.value) return 0;
-  return gamification.progress.value.progressPercent || 0;
-});
+const xpPercent = computed(() => Math.round(gamification.progress.value?.progressPercent ?? 0));
 
-const xpSteps = [
-  { label: 'Niveau 1 – Découvreur', min: 0, max: 499, range: '0 – 499 XP' },
-  { label: 'Niveau 2 – Collaborateur', min: 500, max: 1999, range: '500 – 1 999 XP' },
-  { label: 'Niveau 3 – Expert', min: 2000, max: 4999, range: '2 000 – 4 999 XP' },
-  { label: 'Niveau 4 – Ambassadeur', min: 5000, max: 9999, range: '5 000 – 9 999 XP' },
-  { label: 'Niveau 5 – Légende', min: 10000, max: Infinity, range: '10 000+ XP' },
+// Paliers réels : chaque grade va de son seuil au seuil du grade suivant
+const gradeSteps = computed(() =>
+  grades.value.map((grade, index) => {
+    const next = grades.value[index + 1];
+    const format = (xp: number) => xp.toLocaleString('fr-FR');
+    return {
+      name: grade.name,
+      range: next
+        ? `${format(grade.xpRequired)} – ${format(next.xpRequired - 1)} XP`
+        : `${format(grade.xpRequired)}+ XP`,
+    };
+  }),
+);
+
+const XP_RULE_LABELS: Array<{ key: string; label: string }> = [
+  { key: 'TIP_CREATED', label: 'Publier un tip ou une question' },
+  { key: 'TIP_APPROVED', label: 'Tip validé par un modérateur' },
+  { key: 'TIP_UPVOTED', label: 'Vote positif reçu sur un tip' },
+  { key: 'COMMENT_CREATED', label: 'Écrire un commentaire' },
+  { key: 'COMMENT_UPVOTED', label: 'Vote positif reçu sur un commentaire' },
+  { key: 'MODERATION_ACTION', label: 'Action de modération (modérateurs)' },
+  { key: 'TIP_DOWNVOTED', label: 'Vote négatif reçu sur un tip' },
 ];
+
+const xpRuleRows = computed(() =>
+  XP_RULE_LABELS.filter((rule) => xpRules.value[rule.key] !== undefined).map((rule) => ({
+    ...rule,
+    value: xpRules.value[rule.key]!,
+  })),
+);
 </script>
 
 <template>
-  <main class="max-w-6xl mx-auto py-8 md:py-10 px-4 space-y-8">
+  <main v-if="user" class="max-w-6xl mx-auto py-8 md:py-10 px-4 space-y-8">
     <!-- En‑tête profil -->
     <section
       class="rounded-3xl bg-white/60 dark:bg-slate-800 shadow-md border border-purple-100/70 dark:border-purple-700/70 backdrop-blur-sm px-6 md:px-10 py-6 md:py-8"
@@ -99,18 +106,19 @@ const xpSteps = [
         </div>
         <div class="flex items-center gap-3">
           <div
+            v-if="user.gradeName"
             class="inline-flex items-center gap-2 rounded-full bg-purple-50 dark:bg-purple-900 px-3 py-1 text-xs font-medium text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-700"
           >
-            <Icon :name="user.roleIcon" class="w-4 h-4" />
-            <span>{{ user.roleLabel }}</span>
+            <Icon name="tabler:star" class="w-4 h-4" />
+            <span>{{ user.gradeName }}</span>
           </div>
-          <button
-            type="button"
+          <NuxtLink
+            to="/settings"
             class="inline-flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-slate-800 p-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 hover:border-purple-300 transition"
             aria-label="Éditer le profil"
           >
             <Icon name="tabler:pencil" class="w-4 h-4" />
-          </button>
+          </NuxtLink>
           <button
             type="button"
             @click="logout"
@@ -126,10 +134,15 @@ const xpSteps = [
       <div class="mt-6 space-y-3">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <p class="text-sm text-gray-600 dark:text-gray-400">
-            {{ user.levelLabel }}
+            {{ user.gradeName ?? 'Sans grade' }}
           </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            {{ user.xp }} XP sur {{ user.nextRankXp }} · {{ xpPercent }}% vers le prochain grade
+          <p v-if="user.nextGrade" class="text-xs text-gray-500 dark:text-gray-400">
+            {{ user.xp.toLocaleString('fr-FR') }} XP sur
+            {{ user.nextGrade.xpRequired.toLocaleString('fr-FR') }} · {{ xpPercent }} % vers le
+            grade {{ user.nextGrade.name }}
+          </p>
+          <p v-else class="text-xs text-gray-500 dark:text-gray-400">
+            {{ user.xp.toLocaleString('fr-FR') }} XP · grade maximal atteint
           </p>
         </div>
 
@@ -163,17 +176,20 @@ const xpSteps = [
           </p>
           <div class="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400 mt-2">
             <span
-              class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900 px-3 py-1 text-emerald-700 dark:text-emerald-400"
-            >
-              <Icon name="tabler:sparkles" class="w-3 h-3" />
-              Gamification active
-            </span>
-            <span
+              v-if="user.twoFactor"
               class="inline-flex items-center gap-1 rounded-full bg-purple-50 dark:bg-purple-900 px-3 py-1 text-purple-700 dark:text-purple-400"
             >
               <Icon name="tabler:shield-check" class="w-3 h-3" />
               Compte sécurisé (2FA)
             </span>
+            <NuxtLink
+              v-else
+              to="/settings"
+              class="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-900/40 px-3 py-1 text-amber-700 dark:text-amber-400 hover:underline"
+            >
+              <Icon name="tabler:shield-off" class="w-3 h-3" />
+              2FA désactivée : l'activer
+            </NuxtLink>
           </div>
         </div>
       </div>
@@ -290,50 +306,53 @@ const xpSteps = [
       </p>
 
       <div class="grid gap-6 md:grid-cols-[2fr,3fr]">
-        <!-- Niveaux -->
+        <!-- Grades -->
         <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400 leading-relaxed">
           <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">
-            Paliers de niveaux
+            Paliers de grades
           </h3>
           <ul class="space-y-1.5">
-            <li v-for="step in xpSteps" :key="step.label" class="flex items-center gap-2">
+            <li v-for="step in gradeSteps" :key="step.name" class="flex items-center gap-2">
               <span
                 class="h-2 w-2 rounded-full"
-                :class="step.label === user.levelLabel ? 'bg-emerald-500' : 'bg-purple-300'"
+                :class="step.name === user.gradeName ? 'bg-emerald-500' : 'bg-purple-300'"
               />
               <span class="font-medium text-slate-800 dark:text-slate-100">
-                {{ step.label }}
+                {{ step.name }}
               </span>
               <span class="text-xs text-gray-500 dark:text-gray-400"> · {{ step.range }} </span>
             </li>
           </ul>
         </div>
 
-        <!-- Règles résumé -->
+        <!-- Barème réel -->
         <div class="space-y-2 text-xs md:text-sm text-gray-700 dark:text-gray-400 leading-relaxed">
           <p class="font-semibold text-slate-800 dark:text-slate-100">Comment gagner de l’XP ?</p>
-          <ul class="list-disc pl-4 space-y-1.5">
-            <li>Publier un tip validé par la communauté.</li>
-            <li>Répondre à des questions avec des réponses utiles et bien notées.</li>
-            <li>Commenter de manière constructive et respectueuse.</li>
-            <li>Signaler un contenu inapproprié validé par la modération.</li>
-            <li>Maintenir une activité régulière sans infraction aux règles.</li>
+          <ul class="space-y-1.5">
+            <li v-for="rule in xpRuleRows" :key="rule.key" class="flex justify-between gap-4">
+              <span>{{ rule.label }}</span>
+              <span
+                class="font-bold"
+                :class="rule.value < 0 ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'"
+              >
+                {{ rule.value > 0 ? '+' : '' }}{{ rule.value }} XP
+              </span>
+            </li>
+            <li class="flex justify-between gap-4">
+              <span>Badges et défis sponsorisés</span>
+              <span class="font-bold text-emerald-600 dark:text-emerald-400">bonus variable</span>
+            </li>
           </ul>
           <p class="mt-3 font-semibold text-slate-800 dark:text-slate-100">
             Sanctions & rétrogradations
           </p>
           <ul class="list-disc pl-4 space-y-1.5">
+            <li>Un modérateur peut vous rétrograder d’un grade en cas d’abus.</li>
             <li>
-              Les contenus supprimés pour non‑respect des règles peuvent faire perdre de l’XP.
+              Les comportements abusifs peuvent mener à une suspension, un bannissement ou un
+              passage en lecture seule.
             </li>
-            <li>
-              Des comportements abusifs ou des signalements abusifs répétés peuvent entraîner une
-              perte de grade.
-            </li>
-            <li>
-              Les modérateurs très actifs peuvent gagner des permissions supplémentaires ;
-              l’inactivité prolongée peut entraîner un retour au rôle utilisateur.
-            </li>
+            <li>Chaque sanction peut être contestée depuis la page « Ma modération ».</li>
           </ul>
         </div>
       </div>

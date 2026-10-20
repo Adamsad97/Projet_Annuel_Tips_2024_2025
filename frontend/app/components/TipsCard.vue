@@ -26,7 +26,7 @@ defineProps<Props>();
       </h2>
 
       <div class="text-xs text-gray-400 dark:text-gray-400 mb-2 flex flex-wrap items-center gap-2">
-        <span>Publié {{ tip.publishedAgo }}</span>
+        <span>Publié le {{ tip.publishedAgo }}</span>
         <span>·</span>
         <span>Vue {{ tip.views }} fois</span>
 
@@ -46,41 +46,18 @@ defineProps<Props>();
           <Icon name="tabler:photo" class="w-3 h-3" />
           {{ tip.images.length }}
         </span>
-        <span
-          v-if="tip.documents && tip.documents.length > 0"
-          class="flex items-center gap-1 text-slate-500 dark:text-slate-400 ml-2"
-          title="Documents"
-        >
-          <Icon name="tabler:file-text" class="w-3 h-3" />
-          {{ tip.documents.length }}
-        </span>
       </div>
 
       <p class="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
         {{ tip.description }}
       </p>
-      <div class="flex flex-wrap gap-2 mb-3">
+      <div class="flex flex-wrap gap-2">
         <span
           v-for="tag in tip.tags"
           :key="tag"
           class="px-3 py-1 rounded-md bg-white shadow text-xs md:text-sm text-gray-700 dark:text-gray-300 dark:bg-slate-800"
         >
           {{ tag }}
-        </span>
-      </div>
-      <div class="flex items-center gap-1">
-        <span class="text-xs text-gray-500 dark:text-gray-400">Difficulté</span>
-        <span
-          v-for="i in 5"
-          :key="i"
-          class="flex"
-          :class="
-            i <= (tip.difficulty || 0)
-              ? 'text-emerald-500 dark:text-emerald-400'
-              : 'text-gray-300 dark:text-gray-600'
-          "
-        >
-          <Icon name="tabler:bolt-filled" class="w-4 h-4" />
         </span>
       </div>
     </div>
@@ -93,7 +70,7 @@ defineProps<Props>();
             {{ tip.author?.name }}
           </span>
           <span class="text-xs text-gray-600 dark:text-gray-400">
-            {{ tip.author?.xp?.toLocaleString('fr-FR') }} xp
+            {{ tip.author?.role }} · {{ tip.author?.xp?.toLocaleString('fr-FR') }} XP
           </span>
         </div>
       </div>

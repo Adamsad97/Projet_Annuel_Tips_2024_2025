@@ -4,6 +4,7 @@ export interface Author {
   xp: number;
   avatar: string;
   role?: string;
+  grade?: string;
 }
 
 export interface Tip {
@@ -13,7 +14,6 @@ export interface Tip {
   description: string;
   content?: string;
   tags: string[];
-  difficulty: number;
   author: Author;
   publishedAgo: string;
   views: number;
@@ -22,7 +22,6 @@ export interface Tip {
   lat?: number;
   lng?: number;
   images?: string[];
-  documents?: { name: string; url: string }[];
   status?: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
@@ -47,7 +46,6 @@ export interface CurrentUser {
   xp: number;
   avatar: string;
   role: string;
-  trend: string;
 }
 
 export interface FilterOption {
@@ -77,6 +75,7 @@ export interface PublicProfile {
     icon: string;
     earnedAt: string;
   }>;
-  stats: { publishedTips: number; comments: number; upvotesReceived: number };
+  stats: { publishedTips: number; comments: number; upvotesReceived: number; followers: number };
+  isFollowing: boolean;
   recentTips: import('./tip').ApiTip[];
 }

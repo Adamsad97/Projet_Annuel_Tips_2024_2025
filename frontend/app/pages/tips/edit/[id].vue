@@ -32,8 +32,6 @@ const initialData = computed<Partial<TipFormData>>(() => {
   return {
     kind: tip.value.kind,
     title: tip.value.title,
-    // Champ "Introduction" du formulaire (non stocké séparément) : début du contenu
-    description: (tip.value.content ?? '').slice(0, 200),
     content: tip.value.content ?? '',
     tags: tip.value.categories?.map((c) => c.category.name) ?? [],
     address: tip.value.address ?? '',

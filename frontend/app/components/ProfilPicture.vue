@@ -10,7 +10,7 @@ const DEFAULT_AVATAR = '/Avatar.svg';
 const props = withDefaults(defineProps<Props>(), {
   src: DEFAULT_AVATAR,
   alt: 'Avatar',
-  online: true,
+  online: false,
 });
 
 const config = useRuntimeConfig();

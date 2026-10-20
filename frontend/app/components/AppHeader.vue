@@ -27,6 +27,11 @@ const visibleModeratorLinks = computed(() =>
   moderatorLinks.filter((link) => link.requiresRole !== 'ADMIN' || !!user.value?.admin),
 );
 
+// Progression vers le grade suivant réel
+const { loadGrades, progressFor } = useGrades();
+onMounted(loadGrades);
+const gradeProgress = computed(() => progressFor(user.value?.xp ?? 0));
+
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
 };
@@ -90,8 +95,15 @@ const toggleTheme = () => {
           to="/profile"
           class="flex items-center gap-2 group"
         >
-          <ProfilPicture :src="user.avatarProfile || undefined" :alt="user.username" />
-          <div class="hidden sm:flex flex-col items-start">
+          <ProfilPicture :src="user.avatarProfile || undefined" :alt="user.username" online />
+          <div
+            class="hidden sm:flex flex-col items-start"
+            :title="
+              gradeProgress.next
+                ? `${gradeProgress.percent} % vers le grade ${gradeProgress.next.name}`
+                : 'Grade maximal atteint'
+            "
+          >
             <span
               class="text-xs font-bold text-gray-700 dark:text-slate-200 group-hover:text-purple-600 transition"
               >{{ user.xp ?? 0 }} xp</span
@@ -101,8 +113,8 @@ const toggleTheme = () => {
             >
               <div
                 class="h-full rounded-full"
-                :class="(user.xp ?? 0) >= 5000 ? 'bg-emerald-500' : 'bg-purple-300'"
-                :style="{ width: Math.min(100, ((user.xp ?? 0) / 5000) * 100) + '%' }"
+                :class="gradeProgress.next ? 'bg-purple-300' : 'bg-emerald-500'"
+                :style="{ width: gradeProgress.percent + '%' }"
               />
             </div>
           </div>
@@ -167,6 +179,7 @@ const toggleTheme = () => {
               <ProfilPicture
                 :src="user.avatarProfile || undefined"
                 :alt="user.username"
+                online
                 class="w-12 h-12"
               />
               <div>

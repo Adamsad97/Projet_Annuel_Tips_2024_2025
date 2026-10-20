@@ -13,7 +13,6 @@ const config = useRuntimeConfig();
 const apiBaseUrl = config.public.apiBaseUrl;
 const searchQuery = ref((route.query.q as string) || '');
 const selectedTag = ref<string | null>(null);
-const selectedDifficulty = ref<number | null>(null);
 const selectedKind = ref<'TIP' | 'QUESTION' | null>(null);
 
 const { data: rawTagsResponse } = await useFetch<{ success: boolean; data: string[] }>(
@@ -31,10 +30,9 @@ const { data: rawTipsResponse } = await useFetch<{ success: boolean; data: ApiTi
     query: computed(() => ({
       q: searchQuery.value || undefined,
       category: selectedTag.value ?? undefined,
-      difficulty: selectedDifficulty.value ?? undefined,
       kind: selectedKind.value ?? undefined,
     })),
-    watch: [searchQuery, selectedTag, selectedDifficulty, selectedKind],
+    watch: [searchQuery, selectedTag, selectedKind],
   },
 );
 
@@ -58,7 +56,6 @@ onMounted(loadCategories);
 const resetFilters = () => {
   searchQuery.value = '';
   selectedTag.value = null;
-  selectedDifficulty.value = null;
   selectedKind.value = null;
 };
 </script>
@@ -169,31 +166,9 @@ const resetFilters = () => {
 
       <div class="w-px h-6 bg-gray-300 dark:bg-slate-700 mx-2 hidden md:block" />
 
-      <!-- Difficulté -->
-      <div class="flex items-center gap-1">
-        <button
-          v-for="i in 5"
-          :key="i"
-          class="w-8 h-8 rounded-lg flex items-center justify-center transition-all border"
-          :class="
-            selectedDifficulty === i
-              ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-              : 'bg-white/50 dark:bg-slate-800/50 border-transparent text-gray-400 hover:bg-white dark:hover:bg-slate-700'
-          "
-          :title="`Difficulté ${i}`"
-          @click="selectedDifficulty = selectedDifficulty === i ? null : i"
-        >
-          <Icon
-            name="tabler:bolt"
-            class="w-4 h-4"
-            :class="{ 'fill-current': selectedDifficulty === i }"
-          />
-        </button>
-      </div>
-
       <!-- Reset -->
       <button
-        v-if="searchQuery || selectedTag || selectedDifficulty"
+        v-if="searchQuery || selectedTag || selectedKind"
         class="ml-auto text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1"
         @click="resetFilters"
       >

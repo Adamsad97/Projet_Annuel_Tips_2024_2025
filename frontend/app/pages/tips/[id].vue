@@ -8,7 +8,6 @@ import CommentsSection from '~/components/CommentsSection.vue';
 import TipHero from '~/components/tips/TipHero.vue';
 import TipGallery from '~/components/tips/TipGallery.vue';
 import TipMap from '~/components/tips/TipMap.vue';
-import TipResources from '~/components/tips/TipResources.vue';
 import TipAuthorCard from '~/components/tips/TipAuthorCard.vue';
 
 const route = useRoute();
@@ -38,20 +37,7 @@ const tip = computed(() => {
   const bt = backendTip.value;
   const mapped = mapApiTip(bt, apiBaseUrl);
 
-  return {
-    ...mapped,
-    id: bt.id,
-    userId: bt.userId,
-    difficulty: 1,
-    author: {
-      id: bt.user?.id ?? bt.userId,
-      name: getAuthorName(bt.user),
-      xp: 0,
-      avatar: bt.user?.avatarProfile || '',
-      role: 'Membre',
-    },
-    status: bt.status,
-  };
+  return { ...mapped, id: bt.id, userId: bt.userId, status: bt.status };
 });
 
 const isOwner = computed(() => currentUser.value?.id === tip.value?.userId);
@@ -259,11 +245,8 @@ useSeoMeta({
           <!-- 2. PHOTOS -->
           <TipGallery :images="tip.images" />
 
-          <!-- 3. BENTO GRID (Map & Docs) -->
-          <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <TipMap :lat="tip.lat" :lng="tip.lng" :address="tip.address" />
-            <TipResources :documents="tip.documents" />
-          </section>
+          <!-- 3. Carte -->
+          <TipMap :lat="tip.lat" :lng="tip.lng" :address="tip.address" />
 
           <!-- Commentaires -->
           <CommentsSection

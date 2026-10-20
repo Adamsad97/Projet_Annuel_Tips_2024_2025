@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { RankingUser, CurrentUser } from '~/types';
+import { API_ROUTES } from '~/config/api';
 
 definePageMeta({
   middleware: 'auth',
@@ -11,65 +12,58 @@ const RankingPodium = defineAsyncComponent(() => import('~/components/RankingPod
 const RankingTable = defineAsyncComponent(() => import('~/components/RankingTable.vue'));
 const UserProgressBar = defineAsyncComponent(() => import('~/components/UserProgressBar.vue'));
 
+type RankingSort = 'xp' | 'tips' | 'votes';
+type RankingPeriod = 'week' | 'month' | 'all';
+
+interface LeaderboardRow {
+  userId: number;
+  username: string;
+  firstname: string | null;
+  lastname: string | null;
+  xp: number;
+  rank: number;
+  avatarProfile: string | null;
+  role: string | null;
+  tips: number;
+  votes: number;
+  badges: number;
+}
+
+const LEADERBOARD_SIZE = 100;
+
 const { user } = useAuth();
 const api = useApi();
 const config = useRuntimeConfig();
+const { loadGrades, progressFor } = useGrades();
 
-const leaderboardData = ref<
-  Array<{
-    userId: number;
-    username: string;
-    firstname: string | null;
-    lastname: string | null;
-    xp: number;
-    rank: number;
-    avatarProfile: string | null;
-    role: string | null;
-    tips: number;
-    badges: number;
-  }>
->([]);
+const timeFilter = ref<RankingPeriod>('all');
+const categoryFilter = ref<RankingSort>('xp');
+const leaderboardData = ref<LeaderboardRow[]>([]);
+const loading = ref(true);
 
-onMounted(async () => {
+// Le classement est calculé par l'API : tri par XP, tips publiés ou votes reçus, sur la période
+const loadLeaderboard = async () => {
+  loading.value = true;
   try {
-    console.log('[Ranking] Loading leaderboard data...');
-
-    const leaderboardResponse = await api.get<typeof leaderboardData.value>(
-      '/users/leaderboard?take=100',
+    const query = new URLSearchParams({
+      sort: categoryFilter.value,
+      period: categoryFilter.value === 'xp' ? 'all' : timeFilter.value,
+      take: String(LEADERBOARD_SIZE),
+    });
+    leaderboardData.value = await api.get<LeaderboardRow[]>(
+      `${API_ROUTES.USERS.LEADERBOARD}?${query}`,
     );
-
-    console.log('[Ranking] Leaderboard response:', {
-      isArray: Array.isArray(leaderboardResponse),
-      dataLength: leaderboardResponse?.length,
-    });
-
-    leaderboardData.value = leaderboardResponse;
-
-    console.log('[Ranking] Loading user progress...');
-
-    const progressResponse = await api.get<{
-      currentXp: number;
-      currentGrade: { name: string };
-      nextGrade: { name: string; xpRequired: number } | null;
-      xpToNextGrade: number;
-      progressPercent: number;
-      weeklyXp?: number;
-    }>('/users/me/progress');
-
-    console.log('[Ranking] User progress response:', {
-      hasData: !!progressResponse,
-      currentXp: progressResponse?.currentXp,
-    });
-
-    userProgressData.value = progressResponse;
-
-    console.log('[Ranking] Data loaded. Users count:', leaderboardData.value.length);
-  } catch (err) {
-    console.error('[Ranking] Failed to load ranking data:', err);
+  } catch {
+    leaderboardData.value = [];
+  } finally {
+    loading.value = false;
   }
-});
+};
 
-const users = computed(() =>
+onMounted(() => Promise.all([loadLeaderboard(), loadGrades()]));
+watch([timeFilter, categoryFilter], loadLeaderboard);
+
+const users = computed<RankingUser[]>(() =>
   leaderboardData.value.map((u) => ({
     id: u.userId,
     name: [u.firstname, u.lastname].filter(Boolean).join(' ') || u.username,
@@ -78,89 +72,45 @@ const users = computed(() =>
     avatar: u.avatarProfile ? resolveUploadUrl(u.avatarProfile, config.public.apiBaseUrl) : '',
     role: u.role || 'Membre',
     tips: u.tips,
-    votes: 0,
+    votes: u.votes,
   })),
 );
 
-interface UserProgress {
-  currentXp: number;
-  currentGrade: { name: string };
-  nextGrade: { name: string; xpRequired: number } | null;
-  xpToNextGrade: number;
-  progressPercent: number;
-  weeklyXp?: number;
-}
-
-const userProgressData = ref<UserProgress | null>(null);
-
-const userProgress = computed(() => userProgressData.value);
-
-const currentUser = computed<CurrentUser>(() => {
-  if (!user.value || !userProgress.value) {
-    return {
-      id: 0,
-      rank: 0,
-      name: 'Chargement...',
-      xp: 0,
-      avatar: '',
-      role: '',
-      trend: '+0',
-    };
-  }
-
-  const userRank = users.value.findIndex((u) => u.id === user.value?.id) + 1 || 0;
+const currentUser = computed<CurrentUser | null>(() => {
+  if (!user.value) return null;
+  const xp = user.value.xp ?? 0;
+  const row = users.value.find((u) => u.id === user.value?.id);
 
   return {
     id: user.value.id,
-    rank: userRank,
-    name: `${user.value.firstname || user.value.username}`,
-    xp: user.value.xp || 0,
-    avatar: user.value.avatarProfile || '',
-    role: userProgress.value.currentGrade?.name || 'Débutant',
-    trend: `+${userProgress.value.weeklyXp || 0}`,
+    rank: row?.rank ?? 0,
+    name: user.value.firstname || user.value.username,
+    xp,
+    avatar: user.value.avatarProfile
+      ? resolveUploadUrl(user.value.avatarProfile, config.public.apiBaseUrl)
+      : '',
+    role: progressFor(xp).current?.name ?? 'Membre',
   };
 });
 
-const timeFilter = ref<'week' | 'month' | 'all'>('all');
-const categoryFilter = ref<'xp' | 'tips' | 'votes'>('xp');
-
-const sortedUsers = computed(() => {
-  const list = [...users.value];
-  return list;
-});
-
-const top1 = computed<RankingUser>(
-  () =>
-    sortedUsers.value[0] ?? {
-      id: 0,
-      name: 'N/A',
-      xp: 0,
-      rank: 0,
-      avatar: '',
-      role: 'Membre',
-      tips: 0,
-      votes: 0,
-    },
-);
-
-const top2 = computed<RankingUser | undefined>(() => sortedUsers.value[1] ?? undefined);
-const top3 = computed<RankingUser | undefined>(() => sortedUsers.value[2] ?? undefined);
-
-const restOfRanking = computed<RankingUser[]>(() => sortedUsers.value.slice(3));
+const top1 = computed<RankingUser | undefined>(() => users.value[0]);
+const top2 = computed<RankingUser | undefined>(() => users.value[1]);
+const top3 = computed<RankingUser | undefined>(() => users.value[2]);
+const restOfRanking = computed<RankingUser[]>(() => users.value.slice(3));
 
 const getStatLabel = (): string => {
-  const labels: Record<string, string> = {
+  const labels: Record<RankingSort, string> = {
     xp: 'XP',
-    tips: 'Tips',
-    votes: 'Votes',
+    tips: 'Tips publiés',
+    votes: 'Votes reçus',
   };
-  return labels[categoryFilter.value] || 'XP';
+  return labels[categoryFilter.value];
 };
 
 useSeoMeta({
   title: 'Classement Elite - AideFlash',
   description:
-    'Découvrez le classement des meilleurs contributeurs AideFlash par XP, tips publiés et popularité.',
+    'Découvrez le classement des meilleurs contributeurs AideFlash par XP, tips publiés et votes reçus.',
 });
 </script>
 
@@ -176,8 +126,12 @@ useSeoMeta({
       />
     </ClientOnly>
 
+    <p v-if="!loading && users.length === 0" class="text-center text-slate-500 py-12">
+      Aucun membre classé sur cette période.
+    </p>
+
     <!-- Podium -->
-    <ClientOnly>
+    <ClientOnly v-if="top1">
       <RankingPodium
         :top1="top1"
         :top2="top2"
@@ -197,7 +151,7 @@ useSeoMeta({
     </ClientOnly>
 
     <!-- Barre de progression utilisateur -->
-    <ClientOnly>
+    <ClientOnly v-if="currentUser">
       <UserProgressBar :user="currentUser" />
     </ClientOnly>
   </div>

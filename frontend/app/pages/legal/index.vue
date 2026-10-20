@@ -32,25 +32,17 @@ const currentYear = new Date().getFullYear();
           <h2 class="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
             1. Éditeur du site
           </h2>
-          <p>Le site <span class="font-semibold">AideFlash</span> est édité par :</p>
-          <ul class="mt-2 space-y-1">
-            <li><span class="font-medium">Dénomination sociale :</span> [AideFlash SAS]</li>
-            <li>
-              <span class="font-medium">Forme juridique :</span> [SAS au capital de
-              XX&nbsp;XXX&nbsp;€]
-            </li>
-            <li>
-              <span class="font-medium">Siège social :</span> [Adresse complète, code postal, ville,
-              pays]
-            </li>
-            <li><span class="font-medium">RCS :</span> [Ville] – [Numéro RCS / SIREN]</li>
-            <li><span class="font-medium">N° TVA intracommunautaire :</span> [FRXX XXX XXX XXX]</li>
-            <li><span class="font-medium">Téléphone :</span> [numéro]</li>
-            <li><span class="font-medium">E-mail :</span> [contact@aideflash.fr]</li>
-          </ul>
+          <p>
+            <span class="font-semibold">AideFlash</span> est un projet pédagogique non commercial,
+            réalisé par une équipe d’étudiants dans le cadre du projet annuel de Master 1 (classe
+            4IWJ). Il n’est édité par aucune société.
+          </p>
           <p class="mt-2">
-            <span class="font-medium">Directeur de la publication :</span>
-            [Nom et prénom du responsable légal].
+            Pour toute question, utilisez le
+            <NuxtLink to="/contact" class="font-medium text-purple-600 hover:underline">
+              formulaire de contact
+            </NuxtLink>
+            : les messages sont lus par l’équipe d’administration.
           </p>
         </section>
 
@@ -59,13 +51,11 @@ const currentYear = new Date().getFullYear();
           <h2 class="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
             2. Hébergement du site
           </h2>
-          <p>Le site AideFlash est hébergé par :</p>
-          <ul class="mt-2 space-y-1">
-            <li><span class="font-medium">Raison sociale :</span> [Nom de l’hébergeur]</li>
-            <li><span class="font-medium">Adresse :</span> [Adresse complète de l’hébergeur]</li>
-            <li><span class="font-medium">Site web :</span> [https://…](https://…)</li>
-            <li><span class="font-medium">Téléphone :</span> [numéro]</li>
-          </ul>
+          <p>
+            L’application est déployée par l’équipe projet à l’aide de conteneurs Docker (API, base
+            de données PostgreSQL, interface web). Les données sont stockées sur le serveur de
+            déploiement de l’équipe, sans service d’hébergement tiers.
+          </p>
         </section>
 
         <!-- 3. Objet du site -->
@@ -151,21 +141,22 @@ const currentYear = new Date().getFullYear();
             au Règlement (UE) 2016/679 (RGPD) et à la loi Informatique et Libertés.
           </p>
           <p class="mt-2">
-            Une politique de confidentialité détaillée précise la nature des données collectées, les
-            finalités de traitement, la durée de conservation, ainsi que vos droits (accès,
-            rectification, opposition, effacement, limitation, portabilité). Vous pouvez l consulter
-            à tout moment sur la page
-            <span class="font-medium">« Politique de confidentialité »</span>.
+            Les données sont utilisées uniquement pour le fonctionnement de la plateforme : compte
+            et profil, contenus publiés, messagerie, modération et sécurité. Les publicités
+            sponsorisées ne donnent lieu qu’à des statistiques agrégées (affichages, clics), sans
+            suivi individuel ni transmission de données aux partenaires.
           </p>
           <p class="mt-2">
-            Le site peut utiliser des cookies et technologies similaires à des fins de mesure
-            d’audience, de sécurité, de personnalisation et de publicité. Vous pouvez gérer vos
-            préférences via le bandeau cookies ou les paramètres de votre navigateur.
+            Le site ne dépose aucun cookie publicitaire ou de mesure d’audience. Le stockage local
+            du navigateur sert uniquement à conserver votre session et votre préférence de thème.
           </p>
           <p class="mt-2">
-            Pour exercer vos droits ou toute question concernant vos données, vous pouvez contacter
-            le délégué à la protection des données (DPO) à l’adresse suivante :
-            <span class="font-medium">[dpo@aideflash.fr]</span>.
+            Vous pouvez modifier ou supprimer vos informations de profil depuis les paramètres de
+            votre compte. Pour exercer vos autres droits (accès, rectification, effacement,
+            portabilité), utilisez le
+            <NuxtLink to="/contact" class="font-medium text-purple-600 hover:underline">
+              formulaire de contact </NuxtLink
+            >.
           </p>
         </section>
 
@@ -188,9 +179,8 @@ const currentYear = new Date().getFullYear();
           </h2>
           <p>
             Les présentes mentions légales sont soumises au droit français. En cas de litige, et à
-            défaut de résolution amiable, les tribunaux compétents du ressort du siège social de
-            l’éditeur seront seuls compétents, sous réserve des dispositions légales impératives
-            protectrices du consommateur.
+            défaut de résolution amiable, les tribunaux français compétents seront saisis, sous
+            réserve des dispositions légales impératives protectrices du consommateur.
           </p>
         </section>
 
@@ -205,7 +195,7 @@ const currentYear = new Date().getFullYear();
             réglementation en vigueur. La date de dernière mise à jour figure ci-dessous.
           </p>
           <p class="mt-2 text-xs text-slate-500">
-            Dernière mise à jour : [date à compléter] – © {{ currentYear }} AideFlash.
+            Dernière mise à jour : 20 octobre 2026 – © {{ currentYear }} AideFlash.
           </p>
         </section>
       </div>

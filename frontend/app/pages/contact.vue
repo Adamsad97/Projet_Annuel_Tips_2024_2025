@@ -1,15 +1,30 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { API_ROUTES } from '~/config/api';
 
-const form = ref({ name: '', email: '', message: '' });
+const api = useApi();
+const { user } = useAuth();
+
+// Pré-rempli pour un membre connecté
+const form = ref({
+  name: user.value?.username ?? '',
+  email: user.value?.email ?? '',
+  message: '',
+});
 const loading = ref(false);
 const sent = ref(false);
 
+// Le message est enregistré et traité par un admin (onglet « Contact » de l'administration)
 const submit = async () => {
   loading.value = true;
-  await new Promise((r) => setTimeout(r, 1500)); // Simule l'envoi
-  loading.value = false;
-  sent.value = true;
+  try {
+    await api.post(API_ROUTES.PLATFORM.CONTACT, form.value);
+    sent.value = true;
+  } catch {
+    // l'erreur est déjà affichée par useApi
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
@@ -27,29 +42,16 @@ const submit = async () => {
           </p>
         </div>
 
-        <div class="space-y-6">
-          <div class="flex items-center gap-4">
-            <div
-              class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600"
-            >
-              <Icon name="tabler:mail" class="w-6 h-6" />
-            </div>
-            <div>
-              <div class="font-bold text-slate-800 dark:text-white">Email</div>
-              <div class="text-gray-500">support@aideflash.fr</div>
-            </div>
+        <div class="flex items-start gap-4">
+          <div
+            class="w-12 h-12 shrink-0 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600"
+          >
+            <Icon name="tabler:mail" class="w-6 h-6" />
           </div>
-          <div class="flex items-center gap-4">
-            <div
-              class="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-500"
-            >
-              <Icon name="tabler:brand-discord" class="w-6 h-6" />
-            </div>
-            <div>
-              <div class="font-bold text-slate-800 dark:text-white">Discord</div>
-              <div class="text-gray-500">Rejoindre le serveur</div>
-            </div>
-          </div>
+          <p class="text-gray-600 dark:text-gray-300">
+            Votre message est transmis à l'équipe d'administration, qui vous répond à l'adresse
+            e-mail indiquée.
+          </p>
         </div>
       </div>
 
@@ -59,7 +61,7 @@ const submit = async () => {
           v-if="sent"
           class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 p-4 rounded-xl flex items-center gap-3 animate-fade-in"
         >
-          <Icon name="tabler:check" /> Message envoyé avec succès !
+          <Icon name="tabler:check" /> Message envoyé : l'équipe vous répondra par e-mail.
         </div>
 
         <template v-else>
@@ -89,6 +91,8 @@ const submit = async () => {
             <textarea
               v-model="form.message"
               required
+              minlength="10"
+              maxlength="5000"
               rows="4"
               class="w-full bg-white/50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
             />

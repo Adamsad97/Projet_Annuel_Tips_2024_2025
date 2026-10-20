@@ -144,18 +144,46 @@ const stats = computed(() => [
     value: profile.value?.stats.upvotesReceived ?? 0,
     icon: 'tabler:thumb-up',
   },
+  { label: 'Abonnés', value: profile.value?.stats.followers ?? 0, icon: 'tabler:users' },
   { label: 'XP', value: profile.value?.xp ?? 0, icon: 'tabler:star' },
 ]);
+
+// Abonnement : les nouveaux tips publiés du membre sont notifiés à l'abonné
+const followLoading = ref(false);
+const toggleFollow = async () => {
+  if (!profile.value) return;
+  followLoading.value = true;
+  try {
+    const request = profile.value.isFollowing
+      ? api.delete<{ isFollowing: boolean; followers: number }>(API_ROUTES.USERS.FOLLOW(userId))
+      : api.post<{ isFollowing: boolean; followers: number }>(API_ROUTES.USERS.FOLLOW(userId));
+    const state = await request;
+    profile.value.isFollowing = state.isFollowing;
+    profile.value.stats.followers = state.followers;
+  } catch {
+    // l'erreur est déjà affichée par useApi
+  } finally {
+    followLoading.value = false;
+  }
+};
 
 // Les tips du profil n'embarquent pas leur auteur : on le rajoute pour l'affichage des cartes
 const recentTips = computed<Tip[]>(() => {
   if (!profile.value) return [];
-  const { id, firstname, lastname, avatarProfile } = profile.value;
+  const { id, username, firstname, lastname, avatarProfile, xp, grade, role } = profile.value;
+  const user = {
+    id,
+    username,
+    firstname,
+    lastname,
+    avatarProfile,
+    xp,
+    grade: grade ? { name: grade.name } : null,
+    moderator: role === 'MODERATOR' ? { isActive: true } : null,
+    admin: role === 'ADMIN' ? { userId: id } : null,
+  };
   return profile.value.recentTips.map((tip) =>
-    mapApiTip(
-      { ...tip, user: { id, firstname, lastname, avatarProfile } },
-      config.public.apiBaseUrl,
-    ),
+    mapApiTip({ ...tip, user }, config.public.apiBaseUrl),
   );
 });
 
@@ -233,6 +261,23 @@ useSeoMeta({
             <Icon name="tabler:pencil" class="w-4 h-4" /> Modifier mon profil
           </NuxtLink>
           <div v-else class="self-start flex flex-wrap gap-2">
+            <button
+              type="button"
+              :disabled="followLoading"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition disabled:opacity-50"
+              :class="
+                profile.isFollowing
+                  ? 'border border-purple-300 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              "
+              @click="toggleFollow"
+            >
+              <Icon
+                :name="profile.isFollowing ? 'tabler:user-check' : 'tabler:user-plus'"
+                class="w-4 h-4"
+              />
+              {{ profile.isFollowing ? 'Abonné' : 'Suivre' }}
+            </button>
             <NuxtLink
               v-if="!isBlocked"
               :to="{ path: '/messages', query: { to: profile.id } }"
@@ -280,7 +325,7 @@ useSeoMeta({
         </p>
 
         <!-- Statistiques -->
-        <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4">
           <div
             v-for="stat in stats"
             :key="stat.label"

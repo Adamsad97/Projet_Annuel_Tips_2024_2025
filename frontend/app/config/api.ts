@@ -15,6 +15,8 @@ export const API_ROUTES = {
     PASSWORD: '/users/profile/password',
     AVATAR: '/users/profile/avatar',
     PUBLIC_PROFILE: (id: number) => `/users/${id}`,
+    FOLLOW: (id: number) => `/users/${id}/follow`,
+    LEADERBOARD: '/users/leaderboard',
   },
 
   TWO_FACTOR: {
@@ -109,6 +111,8 @@ export const API_ROUTES = {
     GRADE: (gradeId: number) => `/admin/grades/${gradeId}`,
     BADGES: '/admin/badges',
     BADGE: (badgeId: number) => `/admin/badges/${badgeId}`,
+    CONTACT_MESSAGES: '/admin/contact-messages',
+    CONTACT_MESSAGE: (id: number) => `/admin/contact-messages/${id}`,
   },
 
   CATEGORIES: {
@@ -120,6 +124,10 @@ export const API_ROUTES = {
   PLATFORM: {
     FEATURES: '/features',
     CLIENT_LOGS: '/logs/client',
+    STATS: '/stats',
+    GRADES: '/grades',
+    XP_RULES: '/xp-rules',
+    CONTACT: '/contact',
   },
 
   SPONSORING: {

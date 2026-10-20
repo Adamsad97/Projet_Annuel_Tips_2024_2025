@@ -37,22 +37,6 @@
         <span class="text-xs text-gray-400 dark:text-gray-500"
           >© {{ new Date().getFullYear() }} AideFlash</span
         >
-        <div class="flex gap-2">
-          <a
-            href="#"
-            aria-label="Twitter"
-            class="rounded-full bg-white/70 dark:bg-slate-800 p-1 shadow-sm hover:bg-purple-50 dark:hover:bg-purple-900 transition"
-          >
-            <Icon name="tabler:brand-x" class="h-4 w-4 text-gray-500 dark:text-gray-300" />
-          </a>
-          <a
-            href="#"
-            aria-label="GitHub"
-            class="rounded-full bg-white/70 dark:bg-slate-800 p-1 shadow-sm hover:bg-purple-50 dark:hover:bg-purple-900 transition"
-          >
-            <Icon name="tabler:brand-github" class="h-4 w-4 text-gray-500 dark:text-gray-300" />
-          </a>
-        </div>
       </div>
     </div>
   </footer>

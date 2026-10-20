@@ -7,7 +7,15 @@ export const resolveUploadUrl = (path: string, apiBaseUrl: string): string =>
 export const getAuthorName = (user: ApiTip['user']): string => {
   if (!user) return 'Anonyme';
   const fullName = [user.firstname, user.lastname].filter(Boolean).join(' ');
-  return fullName || user.email || 'Anonyme';
+  return fullName || user.username || 'Anonyme';
+};
+
+// Rôle affiché pour l'auteur : staff d'abord, sinon son grade
+export const getAuthorRole = (user: ApiTip['user']): string => {
+  if (!user) return 'Membre';
+  if (user.admin) return 'Administrateur';
+  if (user.moderator?.isActive) return 'Modérateur';
+  return user.grade?.name ?? 'Membre';
 };
 
 export const mapApiTip = (apiTip: ApiTip, apiBaseUrl: string): Tip => ({
@@ -17,11 +25,13 @@ export const mapApiTip = (apiTip: ApiTip, apiBaseUrl: string): Tip => ({
   description: apiTip.content?.substring(0, 200) || apiTip.title,
   content: apiTip.content || '',
   tags: apiTip.categories?.map((c) => c.category.name) || [],
-  difficulty: 0,
   author: {
+    id: apiTip.user?.id ?? apiTip.userId,
     name: getAuthorName(apiTip.user),
-    xp: 0,
+    xp: apiTip.user?.xp ?? 0,
     avatar: apiTip.user?.avatarProfile || '',
+    role: getAuthorRole(apiTip.user),
+    grade: apiTip.user?.grade?.name,
   },
   publishedAgo: new Date(apiTip.createdAt).toLocaleDateString('fr-FR'),
   views: apiTip._count?.views || 0,

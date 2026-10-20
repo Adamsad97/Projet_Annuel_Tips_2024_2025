@@ -72,7 +72,7 @@ definePageMeta({
             />
             <span class="relative inline-flex rounded-full h-2 w-2 bg-purple-500" />
           </span>
-          La plateforme d'entraide n°1
+          La plateforme d'entraide entre membres
         </div>
 
         <h1

@@ -18,8 +18,8 @@ const timeOptions = [
 
 const categoryOptions = [
   { key: 'xp' as const, label: 'XP Global', icon: 'tabler:trophy' },
-  { key: 'tips' as const, label: 'Contribution', icon: 'tabler:bulb' },
-  { key: 'votes' as const, label: 'Popularité', icon: 'tabler:heart' },
+  { key: 'tips' as const, label: 'Tips publiés', icon: 'tabler:bulb' },
+  { key: 'votes' as const, label: 'Votes reçus', icon: 'tabler:heart' },
 ] as const;
 </script>
 
@@ -56,8 +56,9 @@ const categoryOptions = [
         </button>
       </div>
 
-      <!-- Période -->
+      <!-- Période (l'XP est un total : pas de période) -->
       <div
+        v-if="props.categoryFilter !== 'xp'"
         class="flex gap-1 bg-white/50 dark:bg-slate-800/50 p-1.5 rounded-xl backdrop-blur-sm border border-white/30 dark:border-slate-700 shadow-md"
       >
         <button

@@ -3,15 +3,12 @@ export type TipKind = 'TIP' | 'QUESTION';
 export interface TipFormData {
   kind: TipKind;
   title: string;
-  description: string;
   content: string;
   tags: string[];
-  difficulty: number;
   address?: string;
   lat?: number;
   lng?: number;
   images: File[];
-  documents: File[];
 }
 
 // Forme d'un tip renvoyé par l'API (GET /tips, GET /tips/:id)
@@ -28,12 +25,17 @@ export interface ApiTip {
   createdAt: string;
   updatedAt: string;
   userId: number;
+  // Auteur : identité publique, XP, grade et rôle (jamais l'email)
   user?: {
     id: number;
+    username: string;
     firstname: string | null;
     lastname: string | null;
-    email?: string;
     avatarProfile: string | null;
+    xp: number;
+    grade: { name: string } | null;
+    moderator: { isActive: boolean } | null;
+    admin: { userId: number } | null;
   };
   categories?: Array<{ category: { id: number; name: string } }>;
   comments?: Array<{

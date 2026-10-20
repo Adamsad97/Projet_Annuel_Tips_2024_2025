@@ -9,7 +9,8 @@ const fullscreenImage = ref<string | null>(null);
 
 const handleImageError = (e: Event) => {
   const target = e.target as HTMLImageElement;
-  target.src = 'https://placehold.co/600x400?text=Image+Non+Disponible';
+  // Image locale : aucune requête vers un service tiers
+  target.src = '/image-unavailable.svg';
 };
 
 const openLightbox = (url: string) => {

@@ -1,3 +1,42 @@
+<script setup lang="ts">
+import { API_ROUTES } from '~/config/api';
+
+interface PlatformStats {
+  tips: number;
+  questions: number;
+  members: number;
+  activeMembers: number;
+  activeMemberDays: number;
+  categories: number;
+}
+
+const config = useRuntimeConfig();
+const { data: statsResponse } = await useFetch<{ success: boolean; data: PlatformStats }>(
+  `${config.public.apiBaseUrl}${API_ROUTES.PLATFORM.STATS}`,
+);
+
+const format = (value: number) => value.toLocaleString('fr-FR');
+
+// Chiffres réels de la plateforme (route publique GET /stats)
+const stats = computed(() => {
+  const data = statsResponse.value?.data;
+  if (!data) return [];
+  return [
+    {
+      value: format(data.tips),
+      label: 'Tips publiés',
+      color: 'text-purple-600 dark:text-purple-400',
+    },
+    { value: format(data.members), label: 'Membres', color: 'text-pink-500 dark:text-pink-400' },
+    {
+      value: format(data.activeMembers),
+      label: `Membres actifs (${data.activeMemberDays} derniers jours)`,
+      color: 'text-emerald-500 dark:text-emerald-400',
+    },
+  ];
+});
+</script>
+
 <template>
   <div class="min-h-screen py-20 px-4 max-w-4xl mx-auto text-center space-y-16">
     <!-- Hero Section -->
@@ -14,31 +53,21 @@
         >
       </h1>
       <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-        AideFlash est la plateforme numéro 1 pour trouver des astuces concrètes et résoudre vos
+        AideFlash est une plateforme d'entraide pour trouver des astuces concrètes et résoudre vos
         problèmes du quotidien en quelques minutes. Que ce soit pour le bricolage, l'informatique ou
         la cuisine, la communauté est là pour vous.
       </p>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- Statistiques réelles -->
+    <div v-if="stats.length" class="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div
+        v-for="stat in stats"
+        :key="stat.label"
         class="p-8 rounded-3xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-lg border border-white/20 dark:border-slate-700 shadow-xl"
       >
-        <div class="text-4xl font-black text-purple-600 dark:text-purple-400 mb-2">500+</div>
-        <div class="text-gray-500 font-medium">Tips Partagés</div>
-      </div>
-      <div
-        class="p-8 rounded-3xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-lg border border-white/20 dark:border-slate-700 shadow-xl"
-      >
-        <div class="text-4xl font-black text-pink-500 dark:text-pink-400 mb-2">1.2k</div>
-        <div class="text-gray-500 font-medium">Membres Actifs</div>
-      </div>
-      <div
-        class="p-8 rounded-3xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-lg border border-white/20 dark:border-slate-700 shadow-xl"
-      >
-        <div class="text-4xl font-black text-emerald-500 dark:text-emerald-400 mb-2">100%</div>
-        <div class="text-gray-500 font-medium">Open Source</div>
+        <div class="text-4xl font-black mb-2" :class="stat.color">{{ stat.value }}</div>
+        <div class="text-gray-500 font-medium">{{ stat.label }}</div>
       </div>
     </div>
 

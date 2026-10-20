@@ -3,7 +3,6 @@ import { ref } from 'vue';
 import type { TipFormData, UserPerks } from '~/types/tip';
 import AppInput from './ui/AppInput.vue';
 import AppTextarea from './ui/AppTextarea.vue';
-import AppSelect from './ui/AppSelect.vue';
 import AppButton from './ui/AppButton.vue';
 import AppFileUpload from './ui/AppFileUpload.vue';
 import AppMapSelector from './ui/AppMapSelector.vue';
@@ -45,15 +44,12 @@ const toggleCategory = (category: string) => {
 const formData = ref<TipFormData>({
   kind: props.initialData?.kind ?? (props.perks && !props.perks.canPublishTip ? 'QUESTION' : 'TIP'),
   title: props.initialData?.title || '',
-  description: props.initialData?.description || '',
   content: props.initialData?.content || '',
   tags: props.initialData?.tags || [],
-  difficulty: props.initialData?.difficulty || 1,
   address: props.initialData?.address || '',
   lat: props.initialData?.lat,
   lng: props.initialData?.lng,
   images: props.initialData?.images || [],
-  documents: props.initialData?.documents || [],
 });
 
 const mapPosition = ref<{ lat: number; lng: number; address?: string } | null>(
@@ -91,10 +87,6 @@ const validate = () => {
     errors.value.title = 'Le titre est requis';
     isValid = false;
   }
-  if (!formData.value.description.trim()) {
-    errors.value.description = 'La description courte est requise';
-    isValid = false;
-  }
   if (!formData.value.content.trim()) {
     errors.value.content = 'Le contenu détaillé est requis';
     isValid = false;
@@ -114,10 +106,6 @@ const validate = () => {
       isValid = false;
     }
   }
-  if (formData.value.difficulty < 1 || formData.value.difficulty > 5) {
-    errors.value.difficulty = 'La difficulté doit être entre 1 et 5';
-    isValid = false;
-  }
 
   return isValid;
 };
@@ -127,14 +115,6 @@ const handleSubmit = () => {
     emit('submit', formData.value);
   }
 };
-
-const difficultyOptions = [
-  { value: 1, label: 'Débutant (1/5)' },
-  { value: 2, label: 'Facile (2/5)' },
-  { value: 3, label: 'Intermédiaire (3/5)' },
-  { value: 4, label: 'Avancé (4/5)' },
-  { value: 5, label: 'Expert (5/5)' },
-];
 </script>
 
 <template>
@@ -220,16 +200,7 @@ const difficultyOptions = [
           class="md:col-span-2"
         />
 
-        <AppSelect
-          id="difficulty"
-          v-model="formData.difficulty"
-          label="Niveau de complexité"
-          :options="difficultyOptions"
-          :error="errors.difficulty"
-          required
-        />
-
-        <div>
+        <div class="md:col-span-2">
           <span class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Catégories
             <span class="text-xs font-normal text-gray-400 ml-1">(max {{ MAX_CATEGORIES }})</span>
@@ -251,17 +222,6 @@ const difficultyOptions = [
             </button>
           </div>
         </div>
-
-        <AppTextarea
-          id="description"
-          v-model="formData.description"
-          label="Introduction"
-          placeholder="Résumé court de votre astuce..."
-          :rows="3"
-          :error="errors.description"
-          required
-          class="md:col-span-2"
-        />
       </div>
     </div>
 
@@ -332,29 +292,18 @@ const difficultyOptions = [
       <h3
         class="text-lg font-bold text-slate-800 dark:text-white border-b border-gray-100 dark:border-slate-800 pb-2"
       >
-        Médias & Documents
+        Images
       </h3>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <AppFileUpload
-          id="images"
-          v-model="formData.images"
-          :label="limits ? `Photos / Images (${limits.perks.maxImages} max)` : 'Photos / Images'"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          multiple
-          :max-size="5"
-          :error="errors.images"
-        />
-
-        <AppFileUpload
-          id="documents"
-          v-model="formData.documents"
-          label="Documents (PDF, Txt...)"
-          accept=".pdf,.doc,.docx,.txt"
-          multiple
-          :max-size="10"
-        />
-      </div>
+      <AppFileUpload
+        id="images"
+        v-model="formData.images"
+        :label="limits ? `Photos / Images (${limits.perks.maxImages} max)` : 'Photos / Images'"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        multiple
+        :max-size="5"
+        :error="errors.images"
+      />
     </div>
 
     <!-- Actions -->

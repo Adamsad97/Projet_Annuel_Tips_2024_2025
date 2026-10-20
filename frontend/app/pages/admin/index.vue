@@ -9,6 +9,7 @@ import AdminChatbot from '~/components/admin/AdminChatbot.vue';
 import AdminLogs from '~/components/admin/AdminLogs.vue';
 import AdminFeatures from '~/components/admin/AdminFeatures.vue';
 import AdminSponsoring from '~/components/admin/AdminSponsoring.vue';
+import AdminContact from '~/components/admin/AdminContact.vue';
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -21,6 +22,7 @@ const tabs = [
   { id: 'users', label: 'Utilisateurs', icon: 'tabler:users' },
   { id: 'trust', label: 'Confiance', icon: 'tabler:shield-half' },
   { id: 'appeals', label: 'Contestations', icon: 'tabler:scale' },
+  { id: 'contact', label: 'Contact', icon: 'tabler:mail' },
   { id: 'gamification', label: 'Badges & grades', icon: 'tabler:award' },
   { id: 'chatbot', label: 'Chatbot', icon: 'tabler:message-chatbot' },
   { id: 'sponsoring', label: 'Publicité', icon: 'tabler:speakerphone' },
@@ -88,6 +90,7 @@ const selectTab = (id: TabId) => {
     <AdminUsers v-else-if="activeTab === 'users'" />
     <AdminTrust v-else-if="activeTab === 'trust'" />
     <AdminAppeals v-else-if="activeTab === 'appeals'" />
+    <AdminContact v-else-if="activeTab === 'contact'" />
     <AdminGamification v-else-if="activeTab === 'gamification'" />
     <AdminChatbot v-else-if="activeTab === 'chatbot'" />
     <AdminSponsoring v-else-if="activeTab === 'sponsoring'" />

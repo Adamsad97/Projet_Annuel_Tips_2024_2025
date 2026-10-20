@@ -6,6 +6,8 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const DEFAULT_AVATAR = '/Avatar.svg';
 </script>
 
 <template>
@@ -19,12 +21,14 @@ defineProps<Props>();
         <div
           class="w-14 h-14 bg-linear-to-br from-purple-500/25 to-pink-500/25 backdrop-blur-sm rounded-2xl flex items-center justify-center border-2 border-white/40 shadow-xl group-hover:shadow-2xl transition-all"
         >
-          <span class="font-black text-2xl text-white drop-shadow-lg">#{{ user.rank }}</span>
+          <span class="font-black text-2xl text-white drop-shadow-lg">
+            {{ user.rank ? `#${user.rank}` : '—' }}
+          </span>
         </div>
 
         <!-- PP à côté -->
         <img
-          :src="user.avatar"
+          :src="user.avatar || DEFAULT_AVATAR"
           :alt="user.name"
           class="w-12 h-12 rounded-2xl border-4 border-white/60 shadow-2xl group-hover:scale-105 transition-transform duration-300 object-cover"
         />
@@ -47,9 +51,8 @@ defineProps<Props>();
         <div class="text-3xl font-black leading-none drop-shadow-2xl">
           {{ user.xp.toLocaleString() }}
         </div>
-        <div class="flex items-center justify-end gap-1 text-sm font-bold text-emerald-400 pt-1">
-          <Icon name="tabler:trending-up" class="w-4 h-4 animate-pulse" />
-          {{ user.trend }} cette semaine
+        <div class="text-sm font-bold text-emerald-400 pt-1">
+          {{ user.rank ? 'XP' : 'XP · hors du classement affiché' }}
         </div>
       </div>
     </div>
