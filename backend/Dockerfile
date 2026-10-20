@@ -5,12 +5,10 @@ RUN apk add --no-cache openssl
 
 COPY package*.json ./
 
-FROM base AS production
+# ---------- Build : toutes les dépendances pour compiler le TypeScript ----------
+FROM base AS build
 
-ENV NODE_ENV=production
-
-RUN npm ci --omit=dev --quiet && \
-    npm cache clean --force
+RUN npm ci --quiet
 
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
@@ -18,10 +16,22 @@ RUN npx prisma generate
 
 COPY tsconfig.json ./
 COPY src ./src
-
 RUN npm run build
 
-RUN rm -rf src tsconfig.json
+# ---------- Production : dépendances d'exécution et code compilé uniquement ----------
+FROM base AS production
+
+ENV NODE_ENV=production
+
+RUN npm ci --omit=dev --quiet && \
+    npm cache clean --force
+
+# Schéma et migrations : le client Prisma est généré ici, les migrations sont appliquées au démarrage
+COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
+RUN npx prisma generate
+
+COPY --from=build /app/dist ./dist
 
 RUN mkdir -p uploads && chown node:node uploads
 
@@ -29,8 +39,10 @@ USER node
 
 EXPOSE 3001
 
-CMD ["node", "dist/server.js"]
+# Applique les migrations en attente (verrou Prisma : sûr avec plusieurs instances) puis démarre
+CMD ["npm", "run", "start:prod"]
 
+# ---------- Développement : rechargement à chaud, code monté en volume ----------
 FROM base AS development
 
 ENV NODE_ENV=development

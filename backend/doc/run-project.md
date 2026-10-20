@@ -205,26 +205,24 @@ Apres avoir execute `npm run prisma:seed`, les comptes suivants sont disponibles
 ### Docker
 
 ```bash
-docker build -t aideflash-backend .
-docker run -p 3001:3001 --env-file .env aideflash-backend
+docker build --target production -t aideflash-backend .
+docker run -p 3001:3001 --env-file .env.production aideflash-backend
 ```
 
-### Production
+Le Dockerfile est multi-stage :
 
-1. Compiler le projet:
+- `build` : toutes les dependances, generation du client Prisma et compilation TypeScript ;
+- `production` : dependances d'execution et code compile uniquement ;
+- `development` : rechargement a chaud, code monte en volume par docker compose.
+
+Au demarrage, l'image de production lance `npm run start:prod` : les migrations en attente sont appliquees (`prisma migrate deploy`), puis le serveur demarre. Prisma pose un verrou, donc plusieurs instances peuvent demarrer en meme temps sans risque. Un redemarrage sans nouvelle migration n'applique rien.
+
+### Production sans Docker
 
 ```bash
+npm ci
 npm run build
+npm run start:prod   # prisma migrate deploy puis node dist/server.js
 ```
 
-2. Executer les migrations:
-
-```bash
-npm run prisma:migrate:prod
-```
-
-3. Demarrer le serveur:
-
-```bash
-npm start
-```
+Variables obligatoires en production : `DATABASE_URL`, `JWT_SECRET`, `REFRESH_SECRET` (voir [env.md](./env.md)).
