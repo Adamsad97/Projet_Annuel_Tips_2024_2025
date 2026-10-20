@@ -39,6 +39,7 @@ class TipController {
       const query = {
         q: parsed.q ?? undefined,
         category: parsed.category,
+        kind: parsed.kind,
         located: parsed.located,
         skip: parsed.skip ?? undefined,
         take: parsed.take ?? undefined,

@@ -16,6 +16,7 @@ import type { z } from 'zod';
 import { xpService } from '../xp/xp.service';
 import { badgeService } from '../badges/badge.service';
 import { tipService } from '../tips/tip.service';
+import { gamificationService } from '../gamification/gamification.service';
 import { imageUpload, toUploadPath } from '../../utils/imageUpload.util';
 import { parseIdParam } from '../../utils/params.util';
 
@@ -153,6 +154,15 @@ export class UserController {
     }
   };
 
+  getMyPerks = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const perks = await gamificationService.getPerks(req.user!.id);
+      res.status(200).json({ success: true, data: perks });
+    } catch (e) {
+      next(e);
+    }
+  };
+
   build(): Router {
     const router = express.Router();
 
@@ -164,6 +174,7 @@ export class UserController {
 
     router.get(ROUTES.users.progress, requireAuth, this.getMyProgress);
     router.get(ROUTES.users.badges, requireAuth, this.getMyBadges);
+    router.get(ROUTES.users.perks, requireAuth, this.getMyPerks);
     router.get(ROUTES.users.tips, requireAuth, this.getMyTips);
     router.get(ROUTES.users.leaderboard, this.getLeaderboard);
 

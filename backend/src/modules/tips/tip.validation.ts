@@ -2,9 +2,16 @@ import { z } from 'zod';
 
 export const TIP_IMAGE_PATH_REGEX = /^\/uploads\/tips\/[\w-]+\.(jpg|jpeg|png|webp|gif)$/;
 
+// Plafond absolu ; la longueur réellement autorisée dépend du grade (gamification)
+const MAX_CONTENT_LENGTH = 10000;
+
 const tipFieldsSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters').max(200, 'Title too long'),
-  content: z.string().min(10, 'Content must be at least 10 characters').optional(),
+  content: z
+    .string()
+    .min(10, 'Content must be at least 10 characters')
+    .max(MAX_CONTENT_LENGTH, 'Content too long')
+    .optional(),
   categories: z.array(z.string().trim().min(1).max(50)).max(5, 'Maximum 5 categories').optional(),
   address: z.string().trim().max(255, 'Address too long').optional(),
   latitude: z.number().min(-90).max(90).optional(),
@@ -23,7 +30,9 @@ const coordinatesMessage = {
   path: ['latitude'],
 };
 
-export const createTipSchema = tipFieldsSchema.refine(hasBothOrNoCoordinates, coordinatesMessage);
+export const createTipSchema = tipFieldsSchema
+  .extend({ kind: z.enum(['TIP', 'QUESTION']).default('TIP') })
+  .refine(hasBothOrNoCoordinates, coordinatesMessage);
 
 export const updateTipSchema = tipFieldsSchema
   .partial()
@@ -32,6 +41,7 @@ export const updateTipSchema = tipFieldsSchema
 export const getTipsQuerySchema = z.object({
   q: z.string().optional().or(z.literal(undefined)),
   category: z.string().trim().min(1).optional(),
+  kind: z.enum(['TIP', 'QUESTION']).optional(),
   located: z
     .enum(['true', 'false'])
     .transform((value) => value === 'true')

@@ -7,6 +7,7 @@ import { socketService } from '../../websocket/socket.service';
 import { notificationService } from '../notifications/notification.service';
 import { trustService } from '../trust/trust.service';
 import { categoryService } from '../categories/category.service';
+import { gamificationService } from '../gamification/gamification.service';
 
 // Page où l'utilisateur consulte ses sanctions et peut les contester
 const MY_MODERATION_LINK = '/my-moderation';
@@ -320,6 +321,7 @@ export class ModerationService {
   // Rétrograde d'un grade : l'XP redescend au seuil du grade inférieur
   async downgradeUser(targetId: number, moderatorId: number, reason: string) {
     await this.assertCanSanction(targetId, moderatorId);
+    await gamificationService.assertCanDowngrade(moderatorId);
 
     const user = await prisma.user.findUniqueOrThrow({ where: { id: targetId } });
     // Grade réel d'après l'XP (gradeId peut être en retard si les grades ont changé)

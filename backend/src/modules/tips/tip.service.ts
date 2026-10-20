@@ -8,6 +8,7 @@ import { badgeService } from '../badges/badge.service';
 import { XpAction } from '../../types/xp.types';
 import type { CreateTipDto, GetTipsQuery, UpdateTipDto } from './tip.validation';
 import { isStaff } from '../../utils/roles.util';
+import { gamificationService } from '../gamification/gamification.service';
 
 // Longueur du contenu visible par un visiteur non connecté
 export const PREVIEW_LENGTH = 200;
@@ -46,7 +47,7 @@ export const tipService = {
   getAllTips: async (
     query?: Omit<GetTipsQuery, 'skip' | 'take'> & { skip?: number; take?: number },
   ): Promise<Tip[]> => {
-    const { q, category, located, skip = 0, take = 50 } = query || {};
+    const { q, category, located, kind, skip = 0, take = 50 } = query || {};
 
     const where: Prisma.TipWhereInput = { status: 'APPROVED' }; // Ne montrer que les tips approuvés
 
@@ -61,6 +62,10 @@ export const tipService = {
       where.categories = {
         some: { category: { name: { equals: category, mode: 'insensitive' } } },
       };
+    }
+
+    if (kind) {
+      where.kind = kind;
     }
 
     if (located) {
@@ -198,6 +203,13 @@ export const tipService = {
 
   createTip: async (data: CreateTipDto & { userId: number }): Promise<Tip> => {
     await assertCanParticipate(data.userId);
+    // Seuil d'XP pour les tips, quota quotidien, longueur, images et localisation selon le grade
+    await gamificationService.assertCanCreate(data.userId, {
+      kind: data.kind,
+      content: data.content,
+      images: data.images,
+      latitude: data.latitude,
+    });
 
     const existingTips = await tipRepository.findAll({
       where: {
@@ -230,6 +242,7 @@ export const tipService = {
 
     const tip = await tipRepository.create({
       title: data.title,
+      kind: data.kind,
       content: data.content,
       address: data.address,
       latitude: data.latitude,
@@ -260,6 +273,12 @@ export const tipService = {
     if (tip.userId !== userId) {
       throw new AppError('unauthorized to update this tip', 403);
     }
+
+    await gamificationService.assertCanUpdate(userId, {
+      content: data.content,
+      images: data.images,
+      latitude: data.latitude,
+    });
 
     const { categories, ...fields } = data;
     const updateData: Prisma.TipUpdateInput = { ...fields };

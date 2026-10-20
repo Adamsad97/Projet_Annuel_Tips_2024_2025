@@ -11,6 +11,7 @@ export const ROUTES = {
     publicProfile: '/:id',
     progress: '/me/progress',
     badges: '/me/badges',
+    perks: '/me/perks',
     tips: '/me/tips',
     leaderboard: '/leaderboard',
   },

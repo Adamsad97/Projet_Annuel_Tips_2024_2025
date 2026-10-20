@@ -5,6 +5,8 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../.env.test'), quiet: true });
 
 process.env.NODE_ENV = 'test';
+// Les règles de gamification (seuil d'XP, quotas) sont testées dans gamification.integration.test.ts
+process.env.GAMIFICATION_ENFORCE = 'false';
 
 // Reset test DB and apply migrations
 try {

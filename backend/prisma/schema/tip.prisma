@@ -1,3 +1,9 @@
+// TIP : astuce partagée ; QUESTION : demande d'aide, les réponses passent par les commentaires
+enum TipKind {
+  TIP
+  QUESTION
+}
+
 enum TipStatus {
   PENDING
   APPROVED
@@ -7,6 +13,7 @@ enum TipStatus {
 model Tip {
   id        Int       @id @default(autoincrement())
   title     String
+  kind      TipKind   @default(TIP)
   content   String?
   address   String?
   latitude  Float?
@@ -26,5 +33,6 @@ model Tip {
   reports    Report[]      @relation("reports_on_tips")
 
   @@index([userId])
+  @@index([userId, createdAt])
   @@index([latitude, longitude])
 }
