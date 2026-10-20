@@ -2,6 +2,7 @@ import express from 'express';
 import userRoutes from '../modules/user/user.routes';
 import authRoutes from '../modules/auth/auth.routes';
 import tipRoutes from '../modules/tips/tip.routes';
+import twoFactorRoutes from '../modules/two-factor/twoFactor.routes';
 import uploadRoutes from '../modules/uploads/upload.routes';
 import commentRoutes from '../modules/comments/comment.routes';
 import voteRoutes from '../modules/votes/vote.routes';
@@ -21,6 +22,7 @@ apiRouter.get(ROUTES.ping, (_req, res) => {
 });
 
 apiRouter.use(ROUTES.users.base, userRoutes);
+apiRouter.use(ROUTES.users.base, twoFactorRoutes);
 apiRouter.use(ROUTES.auth.base, authRoutes);
 apiRouter.use(ROUTES.tips.base, tipRoutes);
 apiRouter.use(ROUTES.uploads.base, uploadRoutes);

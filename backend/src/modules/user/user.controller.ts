@@ -32,16 +32,9 @@ export class UserController {
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
-      const { accessToken, refreshToken, user } = await userService.login(email, password);
+      const result = await userService.login(email, password);
 
-      return res.status(200).json({
-        success: true,
-        data: {
-          user,
-          accessToken,
-          refreshToken,
-        },
-      });
+      return res.status(200).json({ success: true, data: result });
     } catch (e) {
       next(e);
     }

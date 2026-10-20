@@ -5,6 +5,11 @@ import { AppError } from './appError.util';
 
 const ACCESS_EXPIRES_IN = '15m';
 const REFRESH_EXPIRES_IN = '7d';
+const TWO_FACTOR_EXPIRES_IN = '5m';
+
+// Clé distincte : un jeton 2FA (mot de passe validé, code pas encore saisi)
+// ne doit jamais être accepté comme token d'accès
+const twoFactorSecret = () => `${env.JWT_SECRET}:two-factor`;
 
 const baseOptions: SignOptions = {
   algorithm: 'HS256',
@@ -64,5 +69,24 @@ export function verifyToken(token: string): Record<string, unknown> {
   } catch (e: unknown) {
     const error = e as Error;
     throw new AppError(error?.message || 'Invalid token', 401);
+  }
+}
+
+export function createTwoFactorToken(userId: number): string {
+  return jwt.sign({ id: userId, purpose: 'two-factor' }, twoFactorSecret(), {
+    ...baseOptions,
+    expiresIn: TWO_FACTOR_EXPIRES_IN,
+  });
+}
+
+export function verifyTwoFactorTokenOrThrow(token: string): number {
+  try {
+    const payload = jwt.verify(token, twoFactorSecret()) as { id: number; purpose?: string };
+    if (payload.purpose !== 'two-factor') {
+      throw new Error('invalid two-factor token');
+    }
+    return payload.id;
+  } catch {
+    throw new AppError('two-factor session expired, please log in again', 401);
   }
 }

@@ -12,6 +12,10 @@ model User {
   xp                 Int      @default(0)
   trustIndex         Int      @default(0)
   isTwoFactorEnabled Boolean  @default(false)
+  // Secret TOTP (renseigné dès la configuration, actif seulement si isTwoFactorEnabled)
+  twoFactorSecret      String?
+  // Codes de secours hachés, chacun utilisable une seule fois
+  twoFactorBackupCodes String[] @default([])
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 

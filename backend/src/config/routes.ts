@@ -14,6 +14,13 @@ export const ROUTES = {
     tips: '/me/tips',
     leaderboard: '/leaderboard',
   },
+  // Montées sous /users
+  twoFactor: {
+    setup: '/profile/2fa/setup',
+    enable: '/profile/2fa/enable',
+    disable: '/profile/2fa/disable',
+    login: '/login/2fa',
+  },
   auth: {
     base: '/auth',
     refresh: '/refresh',

@@ -1,23 +1,42 @@
 import type { User } from '@prisma/client';
 import { comparePassword, hashPassword } from '../../utils/hash.util';
 import { AppError } from '../../utils/appError.util';
-import { createAccessToken, createRefreshToken } from '../../utils/jwt.util';
+import { createAccessToken, createRefreshToken, createTwoFactorToken } from '../../utils/jwt.util';
 import { userRepository } from './user.repository';
 import { prisma } from '../../db/prisma';
 import { removeUploadedFile } from '../../utils/imageUpload.util';
 import type { ChangePasswordInput, UpdateProfileInput } from './user.validation';
 
-// L'indice de confiance reste caché à l'utilisateur (visible uniquement par l'admin)
-export type PublicUser = Omit<User, 'password' | 'trustIndex'>;
+// Champs jamais renvoyés au client : indice de confiance (réservé à l'admin) et secrets 2FA
+type PrivateUserFields = 'password' | 'trustIndex' | 'twoFactorSecret' | 'twoFactorBackupCodes';
+export type PublicUser = Omit<User, PrivateUserFields>;
 
 const RECENT_TIPS_ON_PROFILE = 10;
 
-function toPublicUser<T extends { password: string; trustIndex: number }>(
-  user: T,
-): Omit<T, 'password' | 'trustIndex'> {
+export function toPublicUser<
+  T extends {
+    password: string;
+    trustIndex: number;
+    twoFactorSecret?: string | null;
+    twoFactorBackupCodes?: string[];
+  },
+>(user: T): Omit<T, PrivateUserFields> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password, trustIndex, ...publicUser } = user;
+  const { password, trustIndex, twoFactorSecret, twoFactorBackupCodes, ...publicUser } = user;
   return publicUser;
+}
+
+// Ouvre une session (tokens + utilisateur public) une fois l'authentification terminée
+export function createSession<
+  T extends Parameters<typeof toPublicUser>[0] & { id: number; email: string },
+>(user: T) {
+  const payload = { id: user.id, email: user.email };
+
+  return {
+    accessToken: createAccessToken(payload),
+    refreshToken: createRefreshToken(payload),
+    user: toPublicUser(user),
+  };
 }
 
 export const userService = {
@@ -56,16 +75,16 @@ export const userService = {
       throw new AppError('invalid credentials', 401);
     }
 
-    const payload = {
-      id: user.id,
-      email: user.email,
-    };
+    // Avec la 2FA, le mot de passe seul ne suffit pas : on renvoie un jeton temporaire
+    // à échanger contre une session via POST /users/login/2fa
+    if (user.isTwoFactorEnabled) {
+      return {
+        twoFactorRequired: true as const,
+        twoFactorToken: createTwoFactorToken(user.id),
+      };
+    }
 
-    return {
-      accessToken: createAccessToken(payload),
-      refreshToken: createRefreshToken(payload),
-      user: toPublicUser(user),
-    };
+    return createSession(user);
   },
 
   async getUserById(id: number): Promise<PublicUser> {
