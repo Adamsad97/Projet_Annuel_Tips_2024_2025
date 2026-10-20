@@ -49,6 +49,20 @@ All routes prefixed with `/api`.
 **POST /api/tips/:tipId/reports** - Report tip
 **POST /api/comments/:id/reports** - Report comment
 
+## Messages, blocks, notifications
+
+**GET /api/conversations** - My conversations (unread counts)
+**GET /api/conversations/:id** - Conversation messages (marks as read)
+**GET /api/conversations/with/:userId** - Conversation status with a member
+**POST /api/messages** - Send a private message
+**PATCH /api/messages/:id** - Edit own unread message
+**GET /api/blocks** - Users I blocked
+**POST /api/users/:id/block** - Block a user
+**DELETE /api/users/:id/block** - Unblock a user
+**GET /api/notifications** - My notifications
+**PATCH /api/notifications/:id/read** - Mark one as read
+**POST /api/notifications/read-all** - Mark all as read
+
 ## Uploads
 
 **POST /api/uploads/tips** - Upload tip images (multipart)
@@ -131,6 +145,54 @@ TOTP compatible Google Authenticator, Authy, Microsoft Authenticator...
 **Body:** `password`, `code` (code de l'application ou code de secours). Supprime le secret et les codes de secours.
 
 Le secret et les codes de secours ne sont jamais renvoyes par les autres routes.
+
+---
+
+## Messagerie privee
+
+Toutes ces routes demandent d'etre connecte. Conversations a deux uniquement.
+
+### POST /api/messages
+
+**Body:** `recipientId`, `content` (1-2000 caracteres). Cree la conversation si besoin.
+
+Regles :
+
+- tant que le destinataire n'a jamais repondu, un seul message est autorise (403) ;
+- impossible d'ecrire a un membre bloque, ou qui vous a bloque (403) ;
+- impossible de s'ecrire a soi-meme (400).
+
+**Reponse (201):** `{ conversationId, message }`. Le destinataire recoit `message:new` et une notification en temps reel.
+
+### GET /api/conversations/:id
+
+Renvoie `{ id, otherUser, restriction, messages }` et marque la conversation comme lue (l'autre participant recoit `conversation:read`).
+
+Chaque message contient `isMine`, `isRead` (lu par le destinataire) et `canEdit`.
+
+`restriction` vaut `null` (envoi possible), `waiting_reply`, `you_blocked` ou `blocked`.
+
+### GET /api/conversations/with/:userId
+
+`{ conversationId | null, otherUser, restriction }` : pour ouvrir le fil depuis le profil d'un membre.
+
+### PATCH /api/messages/:id
+
+**Body:** `content`. Auteur uniquement, et seulement tant que le destinataire n'a pas lu le message (sinon 403).
+
+### Blocage
+
+`POST /api/users/:id/block` / `DELETE /api/users/:id/block` / `GET /api/blocks`. Le blocage empeche les messages prives dans les deux sens.
+
+---
+
+## Notifications
+
+Stockees en base et poussees en temps reel. Types : `NEW_MESSAGE` (une seule notification non lue par conversation), `BADGE_UNLOCKED`.
+
+**GET /api/notifications** : `{ items, unreadCount }` (50 dernieres). Chaque notification a `title`, `body`, `link` (page du frontend a ouvrir) et `readAt`.
+
+Ouvrir une conversation marque ses notifications comme lues.
 
 ---
 
@@ -355,13 +417,10 @@ Depasse la limite → 429 Too Many Requests
 
 ### WebSocket
 
-Le backend emet des evenements WebSocket:
+Le client se connecte avec `auth: { token: <accessToken> }`.
 
-- `tip:approved` - Tip approuve par moderateur
-- `tip:rejected` - Tip rejete
-- `badge:unlocked` - Badge debloque
-
-Le frontend ecoute ces evenements pour afficher des notifications.
+- Sans token : evenements publics uniquement (`tip:approved`, `tip:rejected`).
+- Avec un token valide : le socket rejoint la room privee de l'utilisateur et recoit aussi `message:new`, `message:updated`, `conversation:read`, `notification:new` et `badge:unlocked`.
 
 ## Documentation complete
 
