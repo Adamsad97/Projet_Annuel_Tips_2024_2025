@@ -37,6 +37,10 @@ All routes prefixed with `/api`.
 **PATCH /api/tips/:id** - Update tip
 **DELETE /api/tips/:id** - Delete tip
 **GET /api/tips/tags/all** - List category names
+**GET /api/tips/trending** - Trending tips (?days=1|7|30)
+**GET /api/categories** - Categories (tips count, followed)
+**GET /api/categories/followed** - Followed categories
+**POST|DELETE /api/categories/:id/follow** - Follow / unfollow a category
 
 ## Comments, votes, reports
 
@@ -339,7 +343,25 @@ Seuls les tips `APPROVED` sont renvoyes.
 
 Recuperer un tip par son ID.
 
-**Reponse (200):** Details complets du tip
+**Authentification:** Optionnelle
+
+- Visiteur non connecte : apercu du tip publie (`isPreview: true`, contenu tronque a 200 caracteres, sans images ni commentaires). La liste `GET /api/tips` renvoie aussi des apercus aux visiteurs.
+- Membre connecte : contenu complet. Chaque consultation est comptee comme une vue (une par membre, chaque visite pour un visiteur).
+- Tip non publie (en attente ou refuse) : visible uniquement par son auteur, les moderateurs et les admins (404 sinon).
+
+Les commentaires (`GET /api/tips/:tipId/comments`) sont reserves aux membres connectes.
+
+### GET /api/tips/trending
+
+**Query params:** `days` = 1, 7 (defaut) ou 30.
+
+Tips publies classes par activite sur la periode. Score : +3 par vote utile, -2 par vote pas utile, +2 par commentaire, +0,5 par vue, +5 si le tip a ete publie pendant la periode. A score egal, le plus recent passe devant. 20 resultats, chacun avec un objet `trending` (`score`, `upvotes`, `downvotes`, `comments`, `views`).
+
+### Categories suivies
+
+- `GET /api/categories` (auth optionnelle) : `[{ id, name, description, tipsCount, isFollowed }]`.
+- `POST /api/categories/:id/follow` / `DELETE` : suivre ou ne plus suivre.
+- Quand un moderateur publie un tip, chaque abonne a l'une de ses categories recoit une notification `NEW_TIP` en temps reel (une seule meme s'il suit plusieurs categories du tip, jamais pour son propre tip).
 
 ### POST /api/tips
 
@@ -486,6 +508,9 @@ Rejette un tip.
 ```
 
 ## Codes HTTP
+
+Les parametres de requete invalides (ex: `?take=abc`) renvoient 400 avec le detail dans `details`.
+
 
 | Code | Signification |
 |------|---------------|
