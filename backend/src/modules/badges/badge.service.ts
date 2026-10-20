@@ -3,6 +3,8 @@ import { BadgeCode, type BadgeConditions, type UserBadgeStats } from '../../type
 import { AppError } from '../../utils/appError.util';
 import { xpService } from '../xp/xp.service';
 import { XpAction } from '../../types/xp.types';
+import { socketService } from '../../websocket/socket.service';
+import { notificationService } from '../notifications/notification.service';
 
 export class BadgeService {
   private readonly BADGE_CONDITIONS: BadgeConditions = {
@@ -127,6 +129,15 @@ export class BadgeService {
         userId,
         badgeId: badge.id,
       },
+    });
+
+    // Modale "badge débloqué" en direct + notification consultable plus tard
+    socketService.emitToUser(userId, 'badge:unlocked', { badgeId: badge.id, badge, userId });
+    await notificationService.notify(userId, {
+      type: 'BADGE_UNLOCKED',
+      title: `Badge débloqué : ${badge.name}`,
+      body: badge.description ?? undefined,
+      link: '/profile',
     });
 
     const xpReward = this.BADGE_CONDITIONS[badgeCode].xpReward;

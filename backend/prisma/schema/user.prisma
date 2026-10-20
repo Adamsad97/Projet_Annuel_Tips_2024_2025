@@ -38,4 +38,8 @@ model User {
 
   following UserSubscription[] @relation("following")
   followers UserSubscription[] @relation("followers")
+
+  blocksMade     UserBlock[]    @relation("blocks_made")
+  blocksReceived UserBlock[]    @relation("blocks_received")
+  notifications  Notification[]
 }

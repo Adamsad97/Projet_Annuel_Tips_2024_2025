@@ -58,6 +58,20 @@ export const ROUTES = {
     tip: '/tips/:tipId/reports',
     comment: '/comments/:id/reports',
   },
+  messaging: {
+    conversations: '/conversations',
+    conversationWith: '/conversations/with/:userId',
+    conversation: '/conversations/:id',
+    messages: '/messages',
+    message: '/messages/:id',
+    blocks: '/blocks',
+    block: '/users/:id/block',
+  },
+  notifications: {
+    list: '/notifications',
+    readAll: '/notifications/read-all',
+    read: '/notifications/:id/read',
+  },
   uploads: {
     base: '/uploads',
     tipImages: '/tips',

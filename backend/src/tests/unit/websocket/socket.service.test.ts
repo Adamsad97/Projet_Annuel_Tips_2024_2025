@@ -84,4 +84,21 @@ describe('SocketService', () => {
       expect(socketService.getIO()).toBe(mockIO);
     });
   });
+
+  describe('emitToUser', () => {
+    it('emet uniquement dans la room privee de l utilisateur', () => {
+      const roomEmit = jest.fn();
+      const to = jest.fn(() => ({ emit: roomEmit }));
+      (socketService as unknown as { io: unknown }).io = { to };
+
+      socketService.emitToUser(42, 'notification:new', { id: 1 });
+
+      expect(to).toHaveBeenCalledWith('user:42');
+      expect(roomEmit).toHaveBeenCalledWith('notification:new', { id: 1 });
+    });
+
+    it('ne fait rien si io non initialise', () => {
+      expect(() => socketService.emitToUser(42, 'notification:new', {})).not.toThrow();
+    });
+  });
 });
