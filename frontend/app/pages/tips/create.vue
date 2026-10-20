@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import type { TipFormData } from '~/types/tip';
 import TipForm from '~/components/TipForm.vue';
+import { API_ROUTES } from '~/config/api';
 
 definePageMeta({
   title: 'Créer un Tip',
@@ -20,13 +21,22 @@ const handleCreateTip = async (data: TipFormData) => {
     const tipData: Record<string, unknown> = {
       title: data.title,
       content: data.content,
+      categories: data.tags,
     };
 
     if (data.address) tipData.address = data.address;
-    if (data.lat !== undefined) tipData.latitude = data.lat;
-    if (data.lng !== undefined) tipData.longitude = data.lng;
+    if (data.lat !== undefined && data.lng !== undefined) {
+      tipData.latitude = data.lat;
+      tipData.longitude = data.lng;
+    }
 
-    await api.post('/tips', tipData);
+    if (data.images.length > 0) {
+      const formData = new FormData();
+      data.images.slice(0, 5).forEach((image) => formData.append('images', image));
+      tipData.images = await api.post<string[]>(API_ROUTES.UPLOADS.TIP_IMAGES, formData);
+    }
+
+    await api.post(API_ROUTES.TIPS.CREATE, tipData);
 
     toast.success(
       'Votre tip a été créé avec succès ! Il sera visible après validation par un modérateur.',

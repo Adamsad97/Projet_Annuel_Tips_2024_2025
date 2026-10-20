@@ -18,5 +18,10 @@ export const API_ROUTES = {
     CREATE: '/tips',
     UPDATE: (id: number) => `/tips/${id}`,
     DELETE: (id: number) => `/tips/${id}`,
+    CATEGORIES: '/tips/tags/all',
+  },
+
+  UPLOADS: {
+    TIP_IMAGES: '/uploads/tips',
   },
 } as const;

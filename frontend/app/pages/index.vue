@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue';
-import type { Tip } from '~/types';
+import type { ApiTip, Tip } from '~/types';
 import AppButton from '~/components/ui/AppButton.vue';
 
 const TipsCard = defineAsyncComponent(() => import('~/components/TipsCard.vue'));
@@ -8,14 +8,16 @@ const TipsCard = defineAsyncComponent(() => import('~/components/TipsCard.vue'))
 const config = useRuntimeConfig();
 const apiBaseUrl = config.public.apiBaseUrl;
 
-const { data: rawResponse } = await useFetch<{ success: boolean; data: Tip[] }>(
+const { data: rawResponse } = await useFetch<{ success: boolean; data: ApiTip[] }>(
   `${apiBaseUrl}/tips`,
   {
     default: () => ({ success: true, data: [] }),
   },
 );
 
-const tips = computed(() => rawResponse.value?.data || []);
+const tips = computed(() =>
+  (rawResponse.value?.data || []).map((tip) => mapApiTip(tip, apiBaseUrl)),
+);
 const tipsList = ref<Tip[]>(tips.value);
 
 const ws = useWebSocket();

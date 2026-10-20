@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Tip } from '~/types';
+import type { ApiTip, Tip } from '~/types';
 const TipsCard = defineAsyncComponent(() => import('~/components/TipsCard.vue'));
 
 const route = useRoute();
@@ -18,13 +18,13 @@ const availableTags = computed<string[]>(() => {
   return tags;
 });
 
-const { data: rawTipsResponse } = await useFetch<{ success: boolean; data: Tip[] }>(
+const { data: rawTipsResponse } = await useFetch<{ success: boolean; data: ApiTip[] }>(
   `${apiBaseUrl}/tips`,
   {
     query: computed(() => ({
-      q: searchQuery.value,
-      tag: selectedTag.value,
-      difficulty: selectedDifficulty.value,
+      q: searchQuery.value || undefined,
+      category: selectedTag.value ?? undefined,
+      difficulty: selectedDifficulty.value ?? undefined,
     })),
     watch: [searchQuery, selectedTag, selectedDifficulty],
   },
@@ -32,11 +32,7 @@ const { data: rawTipsResponse } = await useFetch<{ success: boolean; data: Tip[]
 
 const filteredTips = computed<Tip[]>(() => {
   const tips = rawTipsResponse.value?.data || [];
-  console.log('[Tips] Filtered tips:', {
-    hasData: !!rawTipsResponse.value,
-    tipsCount: tips.length,
-  });
-  return tips;
+  return tips.map((tip) => mapApiTip(tip, apiBaseUrl));
 });
 
 watch(

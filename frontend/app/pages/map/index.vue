@@ -2,36 +2,35 @@
 import { ref, computed, nextTick } from 'vue';
 import { LMap, LTileLayer, LMarker, LPopup, LIcon, LControlZoom } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
-
-definePageMeta({
-  middleware: 'auth',
-});
+import type { ApiTip } from '~/types';
 
 const config = useRuntimeConfig();
 const apiBaseUrl = config.public.apiBaseUrl;
 
-const { data: rawResponse } = await useFetch<{ success: boolean; data: Tip[] }>(
+// Carte publique : seuls les tips approuvés et géolocalisés sont chargés
+const { data: rawResponse } = await useFetch<{ success: boolean; data: ApiTip[] }>(
   `${apiBaseUrl}/tips`,
+  { query: { located: 'true', take: 100 } },
 );
 
 const tips = computed(() => {
-  const tipsData = rawResponse.value?.data || [];
-  console.log('[Map] Tips data:', { hasData: !!rawResponse.value, tipsCount: tipsData.length });
-  return tipsData
-    .filter((t) => t.lat && t.lng)
+  return (rawResponse.value?.data || [])
+    .map((apiTip) => mapApiTip(apiTip, apiBaseUrl))
+    .filter((t) => t.lat !== undefined && t.lng !== undefined)
     .map((t) => ({
       id: t.id,
       title: t.title,
       lat: t.lat!,
       lng: t.lng!,
       country: t.address ? t.address.split(',').pop()?.trim() || 'France' : 'France',
-      date: t.created_at ? t.created_at.split('T')[0] || '2024-01-01' : '2024-01-01',
+      date: t.created_at ? t.created_at.split('T')[0] || '' : '',
       category: t.tags[0] || 'Général',
+      categories: t.tags,
       address: t.address,
     }));
 });
 
-const filters = ref({ country: '', dateStart: '', dateEnd: '' });
+const filters = ref({ country: '', category: '', dateStart: '', dateEnd: '' });
 const zoom = ref(5);
 const center = ref<[number, number]>([46.603354, 1.888334]); // France center
 const mapRef = ref<InstanceType<typeof LMap> | null>(null);
@@ -40,14 +39,17 @@ const colorMode = useColorMode();
 const filteredTips = computed(() => {
   return tips.value.filter((tip) => {
     const matchCountry = !filters.value.country || tip.country === filters.value.country;
+    const matchCategory =
+      !filters.value.category || tip.categories.includes(filters.value.category);
     const d = new Date(tip.date);
     const start = filters.value.dateStart ? new Date(filters.value.dateStart) : null;
     const end = filters.value.dateEnd ? new Date(filters.value.dateEnd) : null;
-    return matchCountry && (!start || d >= start) && (!end || d <= end);
+    return matchCountry && matchCategory && (!start || d >= start) && (!end || d <= end);
   });
 });
 
 const countries = computed(() => [...new Set(tips.value.map((t) => t.country))]);
+const categories = computed(() => [...new Set(tips.value.flatMap((t) => t.categories))].sort());
 
 const tileUrl = computed(() => {
   return colorMode.value === 'dark'
@@ -154,6 +156,26 @@ const locateUser = () => {
           </select>
           <Icon
             name="tabler:map-pin"
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+          />
+          <Icon
+            name="tabler:chevron-down"
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none"
+          />
+        </div>
+
+        <!-- Filtre Catégorie -->
+        <div class="relative">
+          <select
+            v-model="filters.category"
+            class="appearance-none pl-9 pr-8 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700"
+            @change="onFilterChange"
+          >
+            <option value="">Toutes catégories</option>
+            <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+          </select>
+          <Icon
+            name="tabler:category"
             class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
           />
           <Icon

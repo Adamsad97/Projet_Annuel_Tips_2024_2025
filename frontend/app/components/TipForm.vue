@@ -4,10 +4,10 @@ import type { TipFormData } from '~/types/tip';
 import AppInput from './ui/AppInput.vue';
 import AppTextarea from './ui/AppTextarea.vue';
 import AppSelect from './ui/AppSelect.vue';
-import AppTagsInput from './ui/AppTagsInput.vue';
 import AppButton from './ui/AppButton.vue';
 import AppFileUpload from './ui/AppFileUpload.vue';
 import AppMapSelector from './ui/AppMapSelector.vue';
+import { API_ROUTES } from '~/config/api';
 
 const props = defineProps<{
   initialData?: Partial<TipFormData>;
@@ -17,6 +17,23 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'submit', data: TipFormData): void;
 }>();
+
+const MAX_CATEGORIES = 5;
+
+const config = useRuntimeConfig();
+const { data: categoriesResponse } = await useFetch<{ success: boolean; data: string[] }>(
+  `${config.public.apiBaseUrl}${API_ROUTES.TIPS.CATEGORIES}`,
+);
+const availableCategories = computed(() => categoriesResponse.value?.data || []);
+
+const toggleCategory = (category: string) => {
+  const tags = formData.value.tags;
+  if (tags.includes(category)) {
+    formData.value.tags = tags.filter((tag) => tag !== category);
+  } else if (tags.length < MAX_CATEGORIES) {
+    formData.value.tags = [...tags, category];
+  }
+};
 
 const formData = ref<TipFormData>({
   title: props.initialData?.title || '',
@@ -122,13 +139,28 @@ const difficultyOptions = [
           required
         />
 
-        <AppTagsInput
-          id="tags"
-          v-model="formData.tags"
-          label="Mots-clés (Tags)"
-          placeholder="Bricolage, Cuisine, Code..."
-          :max-tags="5"
-        />
+        <div>
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Catégories
+            <span class="text-xs font-normal text-gray-400 ml-1">(max {{ MAX_CATEGORIES }})</span>
+          </span>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="category in availableCategories"
+              :key="category"
+              type="button"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border"
+              :class="
+                formData.tags.includes(category)
+                  ? 'bg-purple-500 border-purple-500 text-white shadow-lg shadow-purple-500/20'
+                  : 'bg-white/50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-700'
+              "
+              @click="toggleCategory(category)"
+            >
+              {{ category }}
+            </button>
+          </div>
+        </div>
 
         <AppTextarea
           id="description"
@@ -201,7 +233,7 @@ const difficultyOptions = [
           id="images"
           v-model="formData.images"
           label="Photos / Images"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp,image/gif"
           multiple
           :max-size="5"
         />

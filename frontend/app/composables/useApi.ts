@@ -23,8 +23,10 @@ export function useApi() {
 
   async function apiCall<T>(endpoint: string, options: ApiCallOptions = {}): Promise<T> {
     const baseURL = config.public.apiBaseUrl;
+    // Pour un FormData, le navigateur doit poser lui-même le Content-Type (avec le boundary)
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(options.headers || {}),
     };
 

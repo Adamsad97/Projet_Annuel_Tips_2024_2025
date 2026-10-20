@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Tip as PrismaTip, User } from '@prisma/client';
+import type { ApiTip } from '~/types';
 import CommentsSection from '~/components/CommentsSection.vue';
 import TipHero from '~/components/tips/TipHero.vue';
 import TipGallery from '~/components/tips/TipGallery.vue';
@@ -22,30 +22,7 @@ if (!tipId || Array.isArray(tipId)) {
   throw createError({ statusCode: 400, statusMessage: 'ID de tip invalide', fatal: true });
 }
 
-interface BackendTipResponse extends PrismaTip {
-  user: Pick<User, 'id' | 'firstname' | 'lastname' | 'email' | 'avatarProfile'> & {
-    role?: string;
-  };
-  categories?: Array<{
-    category: {
-      id: number;
-      name: string;
-    };
-  }>;
-  comments?: Array<{
-    id: number;
-    content: string;
-    createdAt: Date;
-    user: Pick<User, 'id' | 'firstname' | 'lastname' | 'avatarProfile'>;
-  }>;
-  _count?: {
-    comments: number;
-    votes: number;
-    views: number;
-  };
-}
-
-const { data: rawResponse, error } = await useFetch<{ success: boolean; data: BackendTipResponse }>(
+const { data: rawResponse, error } = await useFetch<{ success: boolean; data: ApiTip }>(
   `${apiBaseUrl}/tips/${tipId}`,
 );
 
@@ -59,34 +36,20 @@ const tip = computed(() => {
   if (!backendTip.value) return null;
 
   const bt = backendTip.value;
-  const displayName =
-    bt.user.firstname && bt.user.lastname
-      ? `${bt.user.firstname} ${bt.user.lastname}`
-      : bt.user.firstname || bt.user.lastname || bt.user.email;
+  const mapped = mapApiTip(bt, apiBaseUrl);
 
   return {
+    ...mapped,
     id: bt.id,
-    userId: bt.user.id,
-    title: bt.title,
-    description: bt.content?.substring(0, 200) || bt.title,
-    content: bt.content || '',
-    tags: bt.categories?.map((c) => c.category.name) || [],
+    userId: bt.userId,
     difficulty: 1,
     author: {
-      id: bt.user.id,
-      name: displayName,
+      id: bt.user?.id ?? bt.userId,
+      name: getAuthorName(bt.user),
       xp: 0,
-      avatar: bt.user.avatarProfile || '',
+      avatar: bt.user?.avatarProfile || '',
       role: 'Membre',
     },
-    publishedAgo: new Date(bt.createdAt).toLocaleDateString('fr-FR'),
-    views: bt._count?.views || 0,
-    created_at: bt.createdAt.toString(),
-    address: bt.address || undefined,
-    lat: bt.latitude || undefined,
-    lng: bt.longitude || undefined,
-    images: bt.images as string[] | undefined,
-    documents: bt.documents as { name: string; url: string }[] | undefined,
     status: bt.status,
   };
 });
