@@ -27,6 +27,8 @@ class TipController {
       const parsed = getTipsQuerySchema.parse(req.query);
       const query = {
         q: parsed.q ?? undefined,
+        category: parsed.category,
+        located: parsed.located,
         skip: parsed.skip ?? undefined,
         take: parsed.take ?? undefined,
       };

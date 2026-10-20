@@ -266,9 +266,21 @@ async function main() {
   // tips test
   console.info('creating test tips...');
 
-  const tipData = [
+  const tipData: Array<{
+    title: string;
+    content: string;
+    userId: number;
+    categoryId: number;
+    status: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+  }> = [
     {
       title: 'Comment bien débuter avec Git ?',
+      address: 'Paris, France',
+      latitude: 48.8566,
+      longitude: 2.3522,
       content:
         'Git est un système de contrôle de version essentiel. Commencez par `git init` pour initialiser un repo, `git add .` pour ajouter vos fichiers, et `git commit -m "message"` pour enregistrer vos changements.',
       userId: users[0].id,
@@ -277,6 +289,9 @@ async function main() {
     },
     {
       title: 'Astuces pour économiser sur les courses',
+      address: 'Lyon, France',
+      latitude: 45.764,
+      longitude: 4.8357,
       content:
         "Planifiez vos repas à l'avance, faites une liste de courses et achetez en vrac quand c'est possible. Évitez de faire vos courses quand vous avez faim !",
       userId: users[1].id,
@@ -293,6 +308,9 @@ async function main() {
     },
     {
       title: 'Recette rapide : Pâtes carbonara authentiques',
+      address: 'Marseille, France',
+      latitude: 43.2965,
+      longitude: 5.3698,
       content:
         "Ingrédients : pâtes, œufs, parmesan, guanciale (ou lardons), poivre. Astuce : mélangez les œufs hors du feu pour éviter qu'ils ne cuisent trop !",
       userId: users[1].id,
@@ -324,6 +342,9 @@ async function main() {
     },
     {
       title: 'Les meilleurs outils pour le télétravail',
+      address: 'Bordeaux, France',
+      latitude: 44.8378,
+      longitude: -0.5792,
       content:
         "Slack pour la communication, Notion pour l'organisation, Zoom pour les visios, et un bon casque antibruit.",
       userId: moderator.id,
@@ -338,6 +359,9 @@ async function main() {
         title: data.title,
         content: data.content,
         status: data.status as 'PENDING' | 'APPROVED' | 'REJECTED',
+        address: data.address,
+        latitude: data.latitude,
+        longitude: data.longitude,
         user: { connect: { id: data.userId } },
         categories: {
           create: {

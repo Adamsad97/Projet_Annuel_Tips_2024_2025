@@ -97,6 +97,11 @@ export const tipRepository = {
             avatarProfile: true,
           },
         },
+        categories: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
   },
@@ -105,6 +110,13 @@ export const tipRepository = {
     return prisma.tip.update({
       where: { id },
       data,
+      include: {
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+      },
     });
   },
 

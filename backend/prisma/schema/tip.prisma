@@ -8,6 +8,10 @@ model Tip {
   id        Int       @id @default(autoincrement())
   title     String
   content   String?
+  address   String?
+  latitude  Float?
+  longitude Float?
+  images    String[]  @default([])
   status    TipStatus @default(PENDING)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -22,4 +26,5 @@ model Tip {
   reports    Report[]      @relation("reports_on_tips")
 
   @@index([userId])
+  @@index([latitude, longitude])
 }

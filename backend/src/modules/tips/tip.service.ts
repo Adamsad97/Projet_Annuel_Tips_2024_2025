@@ -1,23 +1,49 @@
 import { tipRepository } from './tip.repository';
-import type { Tip } from '@prisma/client';
+import type { Prisma, Tip } from '@prisma/client';
+import { prisma } from '../../db/prisma';
 import { AppError } from '../../utils/appError.util';
 import { xpService } from '../xp/xp.service';
 import { badgeService } from '../badges/badge.service';
 import { XpAction } from '../../types/xp.types';
+import type { CreateTipDto, GetTipsQuery, UpdateTipDto } from './tip.validation';
+
+const resolveCategoryIds = async (names: string[]): Promise<number[]> => {
+  const categories = await prisma.category.findMany({ select: { id: true, name: true } });
+  const byName = new Map(categories.map((category) => [category.name.toLowerCase(), category.id]));
+
+  const unknown = names.filter((name) => !byName.has(name.toLowerCase()));
+  if (unknown.length > 0) {
+    throw new AppError(`Unknown categories: ${unknown.join(', ')}`, 400);
+  }
+
+  return [...new Set(names.map((name) => byName.get(name.toLowerCase()) as number))];
+};
 
 export const tipService = {
-  getAllTips: async (query?: { q?: string; skip?: number; take?: number }): Promise<Tip[]> => {
-    const { q, skip = 0, take = 50 } = query || {};
+  getAllTips: async (
+    query?: Omit<GetTipsQuery, 'skip' | 'take'> & { skip?: number; take?: number },
+  ): Promise<Tip[]> => {
+    const { q, category, located, skip = 0, take = 50 } = query || {};
 
-    const where = q
-      ? {
-          OR: [
-            { title: { contains: q, mode: 'insensitive' as const } },
-            { content: { contains: q, mode: 'insensitive' as const } },
-          ],
-          status: 'APPROVED' as const, // Ne montrer que les tips approuvés
-        }
-      : { status: 'APPROVED' as const };
+    const where: Prisma.TipWhereInput = { status: 'APPROVED' }; // Ne montrer que les tips approuvés
+
+    if (q) {
+      where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { content: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    if (category) {
+      where.categories = {
+        some: { category: { name: { equals: category, mode: 'insensitive' } } },
+      };
+    }
+
+    if (located) {
+      where.latitude = { not: null };
+      where.longitude = { not: null };
+    }
 
     return tipRepository.findAll({ skip, take, where });
   },
@@ -32,7 +58,7 @@ export const tipService = {
     return tip;
   },
 
-  createTip: async (data: { title: string; content?: string; userId: number }): Promise<Tip> => {
+  createTip: async (data: CreateTipDto & { userId: number }): Promise<Tip> => {
     const existingTips = await tipRepository.findAll({
       where: {
         userId: data.userId,
@@ -60,9 +86,18 @@ export const tipService = {
       }
     }
 
+    const categoryIds = data.categories ? await resolveCategoryIds(data.categories) : [];
+
     const tip = await tipRepository.create({
       title: data.title,
       content: data.content,
+      address: data.address,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      images: data.images,
+      categories: {
+        create: categoryIds.map((categoryId) => ({ category: { connect: { id: categoryId } } })),
+      },
       user: {
         connect: { id: data.userId },
       },
@@ -75,11 +110,7 @@ export const tipService = {
     return tip;
   },
 
-  updateTip: async (
-    id: number,
-    userId: number,
-    data: { title?: string; content?: string },
-  ): Promise<Tip> => {
+  updateTip: async (id: number, userId: number, data: UpdateTipDto): Promise<Tip> => {
     const tip = await tipRepository.findById(id);
 
     if (!tip) {
@@ -90,7 +121,18 @@ export const tipService = {
       throw new AppError('unauthorized to update this tip', 403);
     }
 
-    return tipRepository.update(id, data);
+    const { categories, ...fields } = data;
+    const updateData: Prisma.TipUpdateInput = { ...fields };
+
+    if (categories) {
+      const categoryIds = await resolveCategoryIds(categories);
+      updateData.categories = {
+        deleteMany: {},
+        create: categoryIds.map((categoryId) => ({ category: { connect: { id: categoryId } } })),
+      };
+    }
+
+    return tipRepository.update(id, updateData);
   },
 
   deleteTip: async (id: number, userId: number): Promise<void> => {
@@ -121,17 +163,11 @@ export const tipService = {
   },
 
   getAllTags: async (): Promise<string[]> => {
-    return [
-      'React',
-      'Vue',
-      'Docker',
-      'Node.js',
-      'TypeScript',
-      'PostgreSQL',
-      'Git',
-      'CSS',
-      'JavaScript',
-      'API',
-    ];
+    const categories = await prisma.category.findMany({
+      select: { name: true },
+      orderBy: { name: 'asc' },
+    });
+
+    return categories.map((category) => category.name);
   },
 };
