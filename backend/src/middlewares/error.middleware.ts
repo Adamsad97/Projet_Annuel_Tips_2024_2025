@@ -4,6 +4,7 @@ import { AppError } from '../utils/appError.util';
 import { env } from '../config/env';
 import { ZodError } from 'zod';
 import { logService } from '../modules/logs/log.service';
+import { runInBackground } from '../utils/background.util';
 import type { RequestWithUser } from '../types/auth.types';
 
 export function errorHandler(
@@ -36,12 +37,15 @@ export function errorHandler(
 
   // Erreurs serveur (bug, base indisponible...) : enregistrées pour l'admin, avec le vrai message
   if (statusCode >= 500) {
-    void logService.recordServerError(err, {
-      method: req.method,
-      path: req.originalUrl,
-      statusCode,
-      userId: (req as RequestWithUser).user?.id,
-    });
+    const userId = (req as RequestWithUser).user?.id;
+    runInBackground('error-log', () =>
+      logService.recordServerError(err, {
+        method: req.method,
+        path: req.originalUrl,
+        statusCode,
+        userId,
+      }),
+    );
   }
 
   if (!isTest) {

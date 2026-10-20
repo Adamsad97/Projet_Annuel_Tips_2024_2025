@@ -106,11 +106,7 @@ export class AppealService {
       data: { status: decision, response, resolvedAt: new Date(), resolvedById: adminId },
     });
 
-    setImmediate(() => {
-      for (const userId of [appeal.userId, appeal.action.moderatorId]) {
-        if (userId) trustService.recomputeUser(userId).catch(() => undefined);
-      }
-    });
+    trustService.recomputeInBackground(appeal.userId, appeal.action.moderatorId);
 
     await notificationService.notify(appeal.userId, {
       type: 'MODERATION',

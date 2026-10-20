@@ -306,10 +306,8 @@ export class AdminService {
   // ---------- Outils internes ----------
 
   // Recalcule l'indice une fois l'action enregistrée (la sanction compte dans le calcul)
-  private async recomputeTrustAfter(userId: number) {
-    setImmediate(() => {
-      trustService.recomputeUser(userId).catch(() => undefined);
-    });
+  private recomputeTrustAfter(userId: number) {
+    trustService.recomputeInBackground(userId);
   }
 
   // Réaffecte à chaque utilisateur le grade correspondant à son XP

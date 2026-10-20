@@ -1,4 +1,5 @@
 import { prisma } from '../db/prisma';
+import { flushBackgroundTasks } from '../utils/background.util';
 
 export async function clearUsers() {
   await prisma.user.deleteMany();
@@ -13,7 +14,7 @@ export async function clearModerationData() {
   await prisma.report.deleteMany();
   await prisma.moderator.deleteMany();
   await prisma.admin.deleteMany();
-} 
+}
 
 export async function seedBadges(): Promise<void> {
   const badges = [
@@ -97,6 +98,8 @@ export async function seedBadges(): Promise<void> {
   });
 }
 
+// Les tâches de fond (recalculs, logs) doivent finir avant la fermeture de la connexion
 export async function disconnectPrisma() {
+  await flushBackgroundTasks();
   await prisma.$disconnect();
 }

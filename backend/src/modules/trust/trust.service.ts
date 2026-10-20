@@ -2,6 +2,7 @@ import { prisma } from '../../db/prisma';
 import { AppError } from '../../utils/appError.util';
 import { isBanned, isMuted } from '../../utils/accountStatus.util';
 import { notificationService } from '../notifications/notification.service';
+import { runInBackground } from '../../utils/background.util';
 import { SANCTION_ACTIONS, TRUST_BASE, TRUST_RULES, TRUST_WEIGHTS as W } from './trust.config';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -203,6 +204,21 @@ export class TrustService {
       data: { trustIndex, trustUpdatedAt: new Date() },
     });
     return trustIndex;
+  }
+
+  // Recalcul après une sanction ou une décision, sans ralentir la réponse HTTP
+  recomputeInBackground(...userIds: Array<number | null | undefined>): void {
+    for (const userId of new Set(userIds)) {
+      if (userId) {
+        runInBackground(`trust:${userId}`, () =>
+          this.recomputeUser(userId).catch((error) => {
+            // Compte supprimé entre-temps : rien à recalculer
+            if (error instanceof AppError && error.statusCode === 404) return;
+            throw error;
+          }),
+        );
+      }
+    }
   }
 
   // Ajustement manuel : on mémorise l'écart avec le calcul pour qu'il survive aux recalculs
