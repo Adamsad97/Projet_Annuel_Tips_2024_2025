@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from 'vue';
 import BadgeUnlockModal from '@/components/gamification/BadgeUnlockModal.vue';
+import ChatbotWidget from '@/components/chatbot/ChatbotWidget.vue';
 import type { AppNotification } from '~/types';
 
 const showSearch = ref<boolean>(false);
@@ -145,5 +146,10 @@ useSiteMeta();
 
     <!-- Badge Unlock Modal (Global) -->
     <BadgeUnlockModal :badge="unlockedBadge" :show="showBadgeModal" @close="closeBadgeModal" />
+
+    <!-- Assistant pour trouver le bon tip (membres connectés) -->
+    <ClientOnly>
+      <ChatbotWidget v-if="user" />
+    </ClientOnly>
   </div>
 </template>

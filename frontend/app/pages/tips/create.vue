@@ -13,6 +13,13 @@ const loading = ref(false);
 const toast = useToastMessage();
 const router = useRouter();
 const api = useApi();
+const route = useRoute();
+
+// Pré-remplissage depuis le chatbot : /tips/create?kind=QUESTION&title=...
+const initialData = computed<Partial<TipFormData>>(() => ({
+  ...(route.query.kind === 'QUESTION' ? { kind: 'QUESTION' as const } : {}),
+  ...(typeof route.query.title === 'string' ? { title: route.query.title.slice(0, 200) } : {}),
+}));
 
 // Avantages du grade (quota, longueur, images, localisation) affichés dans le formulaire
 const perks = ref<UserPerks | null>(null);
@@ -88,7 +95,13 @@ const handleCreateTip = async (data: TipFormData) => {
       class="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/50 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl"
     >
       <p v-if="!perksLoaded" class="text-slate-400">Chargement…</p>
-      <TipForm v-else :loading="loading" :perks="perks" @submit="handleCreateTip" />
+      <TipForm
+        v-else
+        :loading="loading"
+        :perks="perks"
+        :initial-data="initialData"
+        @submit="handleCreateTip"
+      />
     </div>
   </div>
 </template>

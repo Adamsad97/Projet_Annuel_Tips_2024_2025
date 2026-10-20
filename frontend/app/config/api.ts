@@ -89,6 +89,10 @@ export const API_ROUTES = {
     TRUST_RANKING: '/admin/trust/ranking',
     TRUST_WATCHLIST: '/admin/trust/watchlist',
     TRUST_RECOMPUTE: '/admin/trust/recompute',
+    CHATBOT_CONFIG: '/admin/chatbot/config',
+    CHATBOT_RESPONSES: '/admin/chatbot/responses',
+    CHATBOT_RESPONSE: (id: number) => `/admin/chatbot/responses/${id}`,
+    CHATBOT_QUERIES: '/admin/chatbot/queries',
     APPEALS: '/admin/appeals',
     RESOLVE_APPEAL: (appealId: number) => `/admin/appeals/${appealId}/resolve`,
     GRADES: '/admin/grades',
@@ -101,6 +105,11 @@ export const API_ROUTES = {
     LIST: '/categories',
     FOLLOWED: '/categories/followed',
     FOLLOW: (id: number) => `/categories/${id}/follow`,
+  },
+
+  CHATBOT: {
+    CONFIG: '/chatbot/config',
+    ASK: '/chatbot/ask',
   },
 
   UPLOADS: {
