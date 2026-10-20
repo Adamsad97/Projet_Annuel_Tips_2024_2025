@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import type { Tip } from '~/types';
+import type { ApiTip, Tip } from '~/types';
+import { ROUTES } from '~/config/routes';
+import { API_ROUTES } from '~/config/api';
 
 definePageMeta({
   middleware: 'auth',
@@ -9,13 +11,31 @@ const TipsCard = defineAsyncComponent(() => import('~/components/TipsCard.vue'))
 const { user } = useAuth();
 
 const api = useApi();
+const config = useRuntimeConfig();
 const myTips = ref<Tip[]>([]);
 
-try {
-  myTips.value = await api.get<Tip[]>('/users/me/tips');
-} catch (e) {
-  myTips.value = [];
-}
+const loadTips = async () => {
+  try {
+    const tips = await api.get<ApiTip[]>('/users/me/tips');
+    myTips.value = tips.map((tip) => mapApiTip(tip, config.public.apiBaseUrl));
+  } catch {
+    myTips.value = [];
+  }
+};
+await loadTips();
+
+const deleteTip = async (tip: Tip) => {
+  if (!confirm(`Supprimer définitivement « ${tip.title} » ?`)) return;
+  try {
+    await api.delete(API_ROUTES.TIPS.DELETE(Number(tip.id)), {
+      showSuccessToast: true,
+      successMessage: 'Tip supprimé',
+    });
+    await loadTips();
+  } catch {
+    // l'erreur est déjà affichée par useApi
+  }
+};
 
 const pendingTips = computed(() => myTips.value.filter((tip) => tip.status === 'PENDING'));
 const approvedTips = computed(() => myTips.value.filter((tip) => tip.status === 'APPROVED'));
@@ -112,7 +132,23 @@ useSeoMeta({
     <div v-if="myTips.length > 0" class="space-y-6">
       <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Tous mes tips</h2>
       <div class="grid gap-6">
-        <TipsCard v-for="tip in myTips" :key="tip.id" :tip="tip" />
+        <div v-for="tip in myTips" :key="tip.id" class="space-y-2">
+          <TipsCard :tip="tip" />
+          <div class="flex justify-end gap-4 pr-4 text-sm font-bold">
+            <span
+              v-if="tip.status === 'APPROVED'"
+              class="mr-auto pl-4 text-xs font-normal text-slate-400"
+            >
+              Une modification repasse par la validation d'un modérateur.
+            </span>
+            <NuxtLink :to="ROUTES.TIP_EDIT(tip.id)" class="text-purple-600 hover:underline">
+              Modifier
+            </NuxtLink>
+            <button type="button" class="text-red-500 hover:underline" @click="deleteTip(tip)">
+              Supprimer
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -14,6 +14,10 @@ const props = defineProps<{
   loading?: boolean;
   // Avantages du grade : limites appliquées dans le formulaire (le backend les vérifie aussi)
   perks?: UserPerks | null;
+  // Modification d'un tip existant : le type (tip / question) ne change pas
+  editing?: boolean;
+  // Images déjà publiées, comptées dans la limite du grade
+  existingImagesCount?: number;
 }>();
 
 const emit = defineEmits<{
@@ -105,7 +109,7 @@ const validate = () => {
       errors.value.content = `${perks.maxContentLength} caractères maximum pour votre grade`;
       isValid = false;
     }
-    if (formData.value.images.length > perks.maxImages) {
+    if (formData.value.images.length + (props.existingImagesCount ?? 0) > perks.maxImages) {
       errors.value.images = `${perks.maxImages} image(s) maximum pour votre grade`;
       isValid = false;
     }
@@ -144,7 +148,7 @@ const difficultyOptions = [
       </h3>
 
       <!-- Type de publication -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div v-if="!editing" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button
           v-for="option in [
             {
@@ -187,7 +191,7 @@ const difficultyOptions = [
       <p v-if="errors.kind" class="text-sm text-red-500">{{ errors.kind }}</p>
 
       <div
-        v-if="limits"
+        v-if="limits && !editing"
         class="text-sm rounded-xl px-4 py-3"
         :class="
           quotaReached
@@ -358,9 +362,15 @@ const difficultyOptions = [
       class="flex items-center justify-end gap-4 pt-6 border-t border-purple-100 dark:border-slate-800"
     >
       <AppButton variant="secondary" @click="$router.back()"> Annuler </AppButton>
-      <AppButton type="submit" :loading="loading" :disabled="quotaReached" variant="primary">
+      <AppButton
+        type="submit"
+        :loading="loading"
+        :disabled="quotaReached && !editing"
+        variant="primary"
+      >
         <Icon name="tabler:send" class="w-5 h-5" />
-        {{ isQuestion ? 'Publier la question' : "Publier l'Astuce" }}
+        <template v-if="editing">Enregistrer les modifications</template>
+        <template v-else>{{ isQuestion ? 'Publier la question' : "Publier l'Astuce" }}</template>
       </AppButton>
     </div>
   </form>

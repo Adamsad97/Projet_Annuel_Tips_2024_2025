@@ -9,7 +9,7 @@ export const ROUTES = {
   MAP: '/map',
 
   TIP_DETAIL: (id: number | string) => `/tips/${id}`,
-  TIP_EDIT: (id: number | string) => `/tips/${id}/edit`,
+  TIP_EDIT: (id: number | string) => `/tips/edit/${id}`,
   TIP_CREATE: '/tips/create',
   USER_PROFILE: (id: number | string) => `/users/${id}`,
 } as const;

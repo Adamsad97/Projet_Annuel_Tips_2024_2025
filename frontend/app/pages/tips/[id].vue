@@ -164,6 +164,12 @@ useSeoMeta({
 
               <!-- Actions : vote, signalement, partage -->
               <div class="flex flex-wrap items-center gap-2">
+                <NuxtLink
+                  :to="ROUTES.TIP_EDIT(numericTipId)"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                >
+                  <Icon name="tabler:pencil" class="w-4 h-4" /> Modifier
+                </NuxtLink>
                 <VoteButtons
                   v-if="isPublished"
                   :endpoint="API_ROUTES.VOTES.TIP(numericTipId)"

@@ -283,6 +283,12 @@ export const tipService = {
     const { categories, ...fields } = data;
     const updateData: Prisma.TipUpdateInput = { ...fields };
 
+    // Un tip déjà validé ou refusé qui est modifié repasse en validation : un contenu approuvé
+    // ne doit pas pouvoir être remplacé sans contrôle
+    if (tip.status !== 'PENDING') {
+      updateData.status = 'PENDING';
+    }
+
     if (categories) {
       const categoryIds = await resolveCategoryIds(categories);
       updateData.categories = {

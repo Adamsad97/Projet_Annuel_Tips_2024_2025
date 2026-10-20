@@ -255,4 +255,25 @@ describe('Tips Integration', () => {
     expect(res.status).toBe(200);
     expect(res.body.data).toContain('Cuisine');
   });
+
+  it('PATCH /tips/:id should send an approved tip back to moderation', async () => {
+    const { token } = await createAndLoginUser('reeditor');
+
+    const createRes = await request(app)
+      .post(baseTips + ROUTES.tips.create)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ title: 'Approved tip', content: 'Approved content here' });
+    await prisma.tip.update({
+      where: { id: createRes.body.data.id },
+      data: { status: 'APPROVED' },
+    });
+
+    const res = await request(app)
+      .patch(`${baseTips}/${createRes.body.data.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ content: 'Contenu remplacé après validation' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe('PENDING');
+  });
 });
