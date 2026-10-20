@@ -28,6 +28,9 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]['id'];
 
+// Gestion directe de la base : lien vers Adminer, affiché seulement s'il est configuré
+const adminerUrl = useRuntimeConfig().public.adminerUrl as string;
+
 const route = useRoute();
 const router = useRouter();
 
@@ -44,9 +47,21 @@ const selectTab = (id: TabId) => {
 
 <template>
   <div class="max-w-7xl mx-auto py-10 px-4 space-y-6">
-    <header>
-      <h1 class="text-4xl font-black text-slate-900 dark:text-white">Administration</h1>
-      <p class="text-slate-500">Utilisateurs, modération, gamification et statistiques.</p>
+    <header class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h1 class="text-4xl font-black text-slate-900 dark:text-white">Administration</h1>
+        <p class="text-slate-500">Utilisateurs, modération, gamification et statistiques.</p>
+      </div>
+      <a
+        v-if="adminerUrl"
+        :href="adminerUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-white/70 dark:hover:bg-slate-800"
+        title="Gestion directe de la base de données (développement)"
+      >
+        <Icon name="tabler:database" class="w-4 h-4" /> Base de données (Adminer)
+      </a>
     </header>
 
     <nav class="flex flex-wrap gap-2">

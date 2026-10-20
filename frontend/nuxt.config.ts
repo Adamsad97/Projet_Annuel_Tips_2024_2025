@@ -28,6 +28,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL,
+      // Interface d'administration de la base (Adminer), à ne renseigner qu'en développement
+      adminerUrl: process.env.NUXT_PUBLIC_ADMINER_URL || '',
     },
   },
 
