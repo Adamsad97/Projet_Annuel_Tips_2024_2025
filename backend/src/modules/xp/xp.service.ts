@@ -2,6 +2,7 @@ import { prisma } from '../../db/prisma';
 import type { XpAction } from '../../types/xp.types';
 import { XP_REWARDS, type XpGainedEvent, type LevelUpEvent } from '../../types/xp.types';
 import { AppError } from '../../utils/appError.util';
+import { TRUST_RULES } from '../trust/trust.config';
 
 export class XpService {
   async addXp(userId: number, action: XpAction, customAmount?: number): Promise<XpGainedEvent> {
@@ -45,6 +46,12 @@ export class XpService {
     });
 
     if (!appropriateGrade || appropriateGrade.id === user.gradeId) {
+      return null;
+    }
+
+    // Anti-troll : un compte peu fiable garde son grade tant que son indice ne remonte pas
+    const isPromotion = appropriateGrade.xpRequired > (user.grade?.xpRequired ?? -1);
+    if (isPromotion && user.trustIndex < TRUST_RULES.minTrustForGradePromotion) {
       return null;
     }
 

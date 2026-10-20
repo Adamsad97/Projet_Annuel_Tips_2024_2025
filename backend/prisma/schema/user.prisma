@@ -10,7 +10,11 @@ model User {
   bio                  String?
   address              String?
   xp                   Int       @default(0)
-  trustIndex           Int       @default(0)
+  // Indice de confiance (0-100), caché à l'utilisateur, recalculé en arrière-plan
+  trustIndex         Int       @default(50)
+  // Décalage posé par un admin, conservé à chaque recalcul
+  trustAdjustment    Int       @default(0)
+  trustUpdatedAt     DateTime?
   isTwoFactorEnabled   Boolean   @default(false)
   // Sanctions : ban (connexion impossible) et mute (lecture seule) ; date de fin null = définitif
   bannedAt             DateTime?

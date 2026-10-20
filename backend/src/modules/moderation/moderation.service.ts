@@ -5,6 +5,7 @@ import { xpService } from '../xp/xp.service';
 import { XpAction } from '../../types/xp.types';
 import { socketService } from '../../websocket/socket.service';
 import { notificationService } from '../notifications/notification.service';
+import { trustService } from '../trust/trust.service';
 
 // Page où l'utilisateur consulte ses sanctions et peut les contester
 const MY_MODERATION_LINK = '/my-moderation';
@@ -89,6 +90,8 @@ export class ModerationService {
       metadata: { reportId, tipId: report.tipId, commentId: report.commentId },
     });
     await this.rewardModerator(moderatorId);
+    // Signalement validé : pénalise l'auteur ; rejeté : pénalise le signaleur
+    this.recomputeTrust(targetUserId, report.userId);
 
     if (action === 'REJECT' && targetUserId) {
       await notificationService.notify(targetUserId, {
@@ -299,6 +302,7 @@ export class ModerationService {
       reason,
     });
     await this.rewardModerator(moderatorId);
+    this.recomputeTrust(targetId);
     await notificationService.notify(targetId, {
       type: 'MODERATION',
       title: 'Vous avez reçu un avertissement',
@@ -342,6 +346,7 @@ export class ModerationService {
       metadata: { previousXp: user.xp, previousGradeId: user.gradeId },
     });
     await this.rewardModerator(moderatorId);
+    this.recomputeTrust(targetId);
     await notificationService.notify(targetId, {
       type: 'MODERATION',
       title: `Vous avez été rétrogradé au grade ${previousGrade.name}`,
@@ -387,6 +392,15 @@ export class ModerationService {
   // Les modérateurs gagnent de l'XP (et donc des grades / badges) avec leur activité
   private async rewardModerator(moderatorId: number) {
     await xpService.addXp(moderatorId, XpAction.MODERATION_ACTION);
+  }
+
+  // Recalcul de l'indice de confiance en tâche de fond, sans ralentir la réponse
+  private recomputeTrust(...userIds: number[]) {
+    setImmediate(() => {
+      for (const userId of userIds) {
+        if (userId) trustService.recomputeUser(userId).catch(() => undefined);
+      }
+    });
   }
 
   async getModerationStats() {

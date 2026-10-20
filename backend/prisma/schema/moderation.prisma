@@ -14,11 +14,11 @@ model ModerationAction {
   overturnedAt DateTime?
   createdAt    DateTime  @default(now())
 
-  // Auteur de l'action : modérateur ou admin
-  moderatorId Int
+  // Auteur de l'action : modérateur ou admin ; null = action automatique du système
+  moderatorId Int?
   userId      Int
 
-  moderator User    @relation("moderator_actions", fields: [moderatorId], references: [id], onDelete: Cascade)
+  moderator User?   @relation("moderator_actions", fields: [moderatorId], references: [id], onDelete: SetNull)
   user      User    @relation("moderation_targets", fields: [userId], references: [id], onDelete: Cascade)
   appeal    Appeal?
 

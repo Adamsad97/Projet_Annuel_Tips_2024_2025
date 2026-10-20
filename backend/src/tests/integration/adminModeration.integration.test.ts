@@ -299,7 +299,7 @@ describe('Advanced moderation, appeals and admin Integration', () => {
         id: user.id,
         role: 'USER',
         isBanned: false,
-        trustIndex: 0,
+        trustIndex: 50,
       });
 
       const trust = await request(app)
@@ -311,8 +311,10 @@ describe('Advanced moderation, appeals and admin Integration', () => {
 
       const reset = await request(app).post(`${api}/admin/users/${user.id}/reset`).set(admin.auth);
       expect(reset.status).toBe(200);
+      // Le reset efface l'ajustement manuel : l'indice revient à sa valeur calculée
       const afterReset = await getUser(user.id);
-      expect(afterReset).toMatchObject({ xp: 0, trustIndex: 0 });
+      expect(afterReset).toMatchObject({ xp: 0, trustAdjustment: 0 });
+      expect(afterReset.trustIndex).not.toBe(75);
 
       const deleted = await request(app).delete(`${api}/admin/users/${user.id}`).set(admin.auth);
       expect(deleted.status).toBe(200);

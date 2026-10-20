@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction, Router } from 'express';
 import express from 'express';
 import { adminService } from './admin.service';
 import { appealService } from '../appeals/appeal.service';
+import { trustService } from '../trust/trust.service';
 import {
   sanctionSchema,
   trustIndexSchema,
@@ -95,6 +96,32 @@ export class AdminController {
       handle(async (req, res) => {
         await adminService.deleteUser(userId(req), req.user!.id);
         ok(res, { deleted: true });
+      }),
+    );
+
+    // Indice de confiance
+    router.get(
+      '/users/:id/trust',
+      handle(async (req, res) => {
+        ok(res, await trustService.computeBreakdown(userId(req)));
+      }),
+    );
+    router.get(
+      '/trust/ranking',
+      handle(async (_req, res) => {
+        ok(res, await trustService.getRanking());
+      }),
+    );
+    router.get(
+      '/trust/watchlist',
+      handle(async (_req, res) => {
+        ok(res, await trustService.getModeratorWatchlist());
+      }),
+    );
+    router.post(
+      '/trust/recompute',
+      handle(async (_req, res) => {
+        ok(res, await trustService.runCycle());
       }),
     );
 

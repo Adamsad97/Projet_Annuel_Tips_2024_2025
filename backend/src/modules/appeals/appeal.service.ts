@@ -3,6 +3,7 @@ import { prisma } from '../../db/prisma';
 import { AppError } from '../../utils/appError.util';
 import { notificationService } from '../notifications/notification.service';
 import { xpService } from '../xp/xp.service';
+import { trustService } from '../trust/trust.service';
 
 // Actions défavorables à l'utilisateur, qu'il peut contester
 export const CONTESTABLE_ACTIONS = [
@@ -70,6 +71,7 @@ export class AppealService {
       include: {
         user: { select: { id: true, username: true, firstname: true, lastname: true } },
         resolvedBy: { select: { id: true, username: true } },
+        // moderator null = action automatique du système
         action: { include: { moderator: { select: { id: true, username: true } } } },
       },
       orderBy: { createdAt: 'desc' },
@@ -102,6 +104,12 @@ export class AppealService {
     const resolved = await prisma.appeal.update({
       where: { id: appealId },
       data: { status: decision, response, resolvedAt: new Date(), resolvedById: adminId },
+    });
+
+    setImmediate(() => {
+      for (const userId of [appeal.userId, appeal.action.moderatorId]) {
+        if (userId) trustService.recomputeUser(userId).catch(() => undefined);
+      }
     });
 
     await notificationService.notify(appeal.userId, {

@@ -4,6 +4,7 @@ import { AppError } from '../../utils/appError.util';
 import { isBanned, isMuted, formatSanctionEnd } from '../../utils/accountStatus.util';
 import { removeUploadedFile } from '../../utils/imageUpload.util';
 import { notificationService } from '../notifications/notification.service';
+import { trustService } from '../trust/trust.service';
 import type {
   BadgeUpdateInput,
   GradeInput,
@@ -20,7 +21,7 @@ const addDays = (days: number) => new Date(Date.now() + days * DAY_MS);
 export class AdminService {
   // ---------- Utilisateurs ----------
 
-  async listUsers(query: { q?: string; skip: number; take: number }) {
+  async listUsers(query: { q?: string; skip: number; take: number; sort?: string }) {
     const where: Prisma.UserWhereInput = query.q
       ? {
           OR: [
@@ -55,7 +56,12 @@ export class AdminService {
           admin: { select: { userId: true } },
           _count: { select: { tips: true, comments: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy:
+          query.sort === 'trust-asc'
+            ? { trustIndex: 'asc' }
+            : query.sort === 'trust-desc'
+              ? { trustIndex: 'desc' }
+              : { createdAt: 'desc' },
         skip: query.skip,
         take: query.take,
       }),
@@ -82,6 +88,7 @@ export class AdminService {
       where: { id: targetId },
       data: { bannedAt: new Date(), bannedUntil, banReason: reason },
     });
+    await this.recomputeTrustAfter(targetId);
     // Connexion et renouvellement de token refusés : l'accès est coupé au plus tard 15 min après
     return this.logAction(adminId, targetId, 'BAN', reason, { days: days ?? null });
   }
@@ -103,6 +110,7 @@ export class AdminService {
 
     await prisma.user.update({ where: { id: targetId }, data: { mutedUntil } });
     const action = await this.logAction(adminId, targetId, 'MUTE', reason, { days });
+    await this.recomputeTrustAfter(targetId);
     await notificationService.notify(targetId, {
       type: 'MODERATION',
       title: `Vous ne pouvez plus publier ${formatSanctionEnd(mutedUntil)}`,
@@ -121,10 +129,15 @@ export class AdminService {
   async setTrustIndex(targetId: number, adminId: number, { trustIndex, reason }: TrustIndexInput) {
     const user = await this.findUserOrThrow(targetId);
 
-    await prisma.user.update({ where: { id: targetId }, data: { trustIndex } });
+    const { computed, trustAdjustment } = await trustService.setManualTrustIndex(
+      targetId,
+      trustIndex,
+    );
     return this.logAction(adminId, targetId, 'TRUST_ADJUST', reason, {
       previous: user.trustIndex,
       next: trustIndex,
+      computed,
+      adjustment: trustAdjustment,
     });
   }
 
@@ -137,9 +150,10 @@ export class AdminService {
       prisma.userBadge.deleteMany({ where: { userId: targetId } }),
       prisma.user.update({
         where: { id: targetId },
-        data: { xp: 0, trustIndex: 0, gradeId: lowestGrade?.id ?? null },
+        data: { xp: 0, trustAdjustment: 0, gradeId: lowestGrade?.id ?? null },
       }),
     ]);
+    await trustService.recomputeUser(targetId);
     return this.logAction(adminId, targetId, 'RESET');
   }
 
@@ -290,6 +304,13 @@ export class AdminService {
   }
 
   // ---------- Outils internes ----------
+
+  // Recalcule l'indice une fois l'action enregistrée (la sanction compte dans le calcul)
+  private async recomputeTrustAfter(userId: number) {
+    setImmediate(() => {
+      trustService.recomputeUser(userId).catch(() => undefined);
+    });
+  }
 
   // Réaffecte à chaque utilisateur le grade correspondant à son XP
   private async recomputeGrades() {

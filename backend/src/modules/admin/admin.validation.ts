@@ -40,6 +40,7 @@ export const listUsersQuerySchema = z.object({
   q: z.string().trim().optional(),
   skip: z.coerce.number().int().min(0).default(0),
   take: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z.enum(['recent', 'trust-asc', 'trust-desc']).optional(),
 });
 
 export type SanctionInput = z.infer<typeof sanctionSchema>;
