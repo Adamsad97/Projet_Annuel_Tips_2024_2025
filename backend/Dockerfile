@@ -59,4 +59,5 @@ USER node
 
 EXPOSE 3001
 
-CMD ["npm", "run", "dev"]
+# Code monté en volume (Windows/macOS) : surveillance par scrutation, les événements fichiers ne traversent pas le montage
+CMD ["npm", "run", "dev:docker"]

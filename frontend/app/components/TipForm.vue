@@ -24,6 +24,9 @@ const emit = defineEmits<{
 }>();
 
 const MAX_CATEGORIES = 5;
+const TITLE_MIN_LENGTH = 5;
+const TITLE_MAX_LENGTH = 200;
+const CONTENT_MIN_LENGTH = 10;
 
 const config = useRuntimeConfig();
 const { data: categoriesResponse } = await useFetch<{ success: boolean; data: string[] }>(
@@ -83,12 +86,24 @@ const validate = () => {
   errors.value = {};
   let isValid = true;
 
-  if (!formData.value.title.trim()) {
+  // Mêmes règles que l'API (backend/src/modules/tips/tip.validation.ts)
+  const title = formData.value.title.trim();
+  const content = formData.value.content.trim();
+  if (!title) {
     errors.value.title = 'Le titre est requis';
     isValid = false;
+  } else if (title.length < TITLE_MIN_LENGTH) {
+    errors.value.title = `Le titre doit faire au moins ${TITLE_MIN_LENGTH} caractères`;
+    isValid = false;
+  } else if (title.length > TITLE_MAX_LENGTH) {
+    errors.value.title = `Le titre ne doit pas dépasser ${TITLE_MAX_LENGTH} caractères`;
+    isValid = false;
   }
-  if (!formData.value.content.trim()) {
+  if (!content) {
     errors.value.content = 'Le contenu détaillé est requis';
+    isValid = false;
+  } else if (content.length < CONTENT_MIN_LENGTH) {
+    errors.value.content = `Le contenu doit faire au moins ${CONTENT_MIN_LENGTH} caractères`;
     isValid = false;
   }
   if (limits.value) {
