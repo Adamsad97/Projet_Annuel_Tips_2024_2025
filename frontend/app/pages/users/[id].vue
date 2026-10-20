@@ -2,6 +2,7 @@
 import type { PublicProfile, Tip } from '~/types';
 import ProfilPicture from '~/components/ProfilPicture.vue';
 import TipsCard from '~/components/TipsCard.vue';
+import ActionDialog from '~/components/moderation/ActionDialog.vue';
 import { API_ROUTES } from '~/config/api';
 import { ROUTES } from '~/config/routes';
 
@@ -31,6 +32,56 @@ const ROLE_LABELS: Record<PublicProfile['role'], string> = {
 
 const isMe = computed(() => currentUser.value?.id === userId);
 const isBlocked = ref(false);
+
+// Actions de modération : un modérateur / admin peut avertir ou rétrograder un simple membre
+type SanctionKind = 'warn' | 'downgrade';
+const sanction = ref<SanctionKind | null>(null);
+const sanctionLoading = ref(false);
+const canModerate = computed(
+  () =>
+    !isMe.value &&
+    profile.value?.role === 'USER' &&
+    !!(currentUser.value?.moderator?.isActive || currentUser.value?.admin),
+);
+
+const SANCTIONS: Record<SanctionKind, { title: string; description: string; confirm: string }> = {
+  warn: {
+    title: 'Avertir ce membre',
+    description: 'Le membre recevra une notification et pourra contester cet avertissement.',
+    confirm: 'Envoyer l’avertissement',
+  },
+  downgrade: {
+    title: 'Rétrograder ce membre',
+    description: 'Son XP redescend au seuil du grade inférieur. Il pourra contester la décision.',
+    confirm: 'Rétrograder',
+  },
+};
+
+const applySanction = async ({ reason }: { reason: string }) => {
+  if (!sanction.value) return;
+
+  sanctionLoading.value = true;
+  try {
+    const endpoint =
+      sanction.value === 'warn'
+        ? API_ROUTES.MODERATION.WARN(userId)
+        : API_ROUTES.MODERATION.DOWNGRADE(userId);
+    await api.post(
+      endpoint,
+      { reason },
+      {
+        showSuccessToast: true,
+        successMessage: sanction.value === 'warn' ? 'Avertissement envoyé' : 'Membre rétrogradé',
+      },
+    );
+    sanction.value = null;
+    profile.value = await api.get<PublicProfile>(API_ROUTES.USERS.PUBLIC_PROFILE(userId));
+  } catch {
+    // l'erreur est déjà affichée par useApi
+  } finally {
+    sanctionLoading.value = false;
+  }
+};
 
 const loadBlockStatus = async () => {
   if (isMe.value) return;
@@ -202,6 +253,22 @@ useSeoMeta({
               <Icon :name="isBlocked ? 'tabler:lock-open' : 'tabler:ban'" class="w-4 h-4" />
               {{ isBlocked ? 'Débloquer' : 'Bloquer' }}
             </button>
+            <template v-if="canModerate">
+              <button
+                type="button"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-300 text-amber-600 text-sm font-bold hover:bg-amber-50 dark:hover:bg-amber-900/20 transition"
+                @click="sanction = 'warn'"
+              >
+                <Icon name="tabler:alert-triangle" class="w-4 h-4" /> Avertir
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-300 text-amber-600 text-sm font-bold hover:bg-amber-50 dark:hover:bg-amber-900/20 transition"
+                @click="sanction = 'downgrade'"
+              >
+                <Icon name="tabler:trending-down" class="w-4 h-4" /> Rétrograder
+              </button>
+            </template>
           </div>
         </div>
 
@@ -264,5 +331,15 @@ useSeoMeta({
         </div>
       </section>
     </template>
+    <ActionDialog
+      :open="!!sanction"
+      :title="sanction ? SANCTIONS[sanction].title : ''"
+      :description="sanction ? SANCTIONS[sanction].description : ''"
+      :confirm-label="sanction ? SANCTIONS[sanction].confirm : ''"
+      :loading="sanctionLoading"
+      danger
+      @confirm="applySanction"
+      @close="sanction = null"
+    />
   </div>
 </template>

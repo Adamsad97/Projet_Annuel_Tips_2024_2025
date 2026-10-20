@@ -62,6 +62,35 @@ export const API_ROUTES = {
     READ: (id: number) => `/notifications/${id}/read`,
   },
 
+  MODERATION: {
+    WARN: (userId: number) => `/moderation/users/${userId}/warn`,
+    DOWNGRADE: (userId: number) => `/moderation/users/${userId}/downgrade`,
+    USER_ACTIONS: (userId: number) => `/moderation/users/${userId}/actions`,
+    PROMOTE: '/moderation/users/promote',
+    DEMOTE: '/moderation/users/demote',
+  },
+
+  APPEALS: {
+    MINE: '/moderation-actions/mine',
+    CREATE: (actionId: number) => `/moderation-actions/${actionId}/appeal`,
+  },
+
+  ADMIN: {
+    ANALYTICS: '/admin/analytics',
+    USERS: '/admin/users',
+    BAN: (userId: number) => `/admin/users/${userId}/ban`,
+    MUTE: (userId: number) => `/admin/users/${userId}/mute`,
+    TRUST_INDEX: (userId: number) => `/admin/users/${userId}/trust-index`,
+    RESET: (userId: number) => `/admin/users/${userId}/reset`,
+    USER: (userId: number) => `/admin/users/${userId}`,
+    APPEALS: '/admin/appeals',
+    RESOLVE_APPEAL: (appealId: number) => `/admin/appeals/${appealId}/resolve`,
+    GRADES: '/admin/grades',
+    GRADE: (gradeId: number) => `/admin/grades/${gradeId}`,
+    BADGES: '/admin/badges',
+    BADGE: (badgeId: number) => `/admin/badges/${badgeId}`,
+  },
+
   UPLOADS: {
     TIP_IMAGES: '/uploads/tips',
   },

@@ -16,6 +16,7 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo({ path: ROUTES.LOGIN, query: { redirect: to.fullPath } });
   }
 
-  // TODO: Add moderator check once User type includes moderator info
-  console.warn('[middleware/moderator] Moderator check not yet implemented');
+  if (!user.moderator?.isActive && !user.admin) {
+    return navigateTo(ROUTES.HOME);
+  }
 });

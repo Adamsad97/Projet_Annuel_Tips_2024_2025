@@ -17,6 +17,11 @@ const isModerator = computed(() => {
   return user.value.moderator?.isActive || user.value.admin;
 });
 
+// Les liens réservés aux admins sont masqués pour les simples modérateurs
+const visibleModeratorLinks = computed(() =>
+  moderatorLinks.filter((link) => link.requiresRole !== 'ADMIN' || !!user.value?.admin),
+);
+
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
 };
@@ -235,7 +240,7 @@ const toggleTheme = () => {
                 Modération
               </p>
               <NuxtLink
-                v-for="link in moderatorLinks"
+                v-for="link in visibleModeratorLinks"
                 :key="link.to"
                 :to="link.to"
                 class="flex items-center gap-3 px-3 py-3 rounded-xl text-base font-medium text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 active:scale-95 transition-all"

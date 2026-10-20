@@ -9,6 +9,11 @@ const isModerator = computed(() => {
   if (!user.value) return false;
   return user.value.moderator?.isActive || user.value.admin;
 });
+
+// Les liens réservés aux admins sont masqués pour les simples modérateurs
+const visibleModeratorLinks = computed(() =>
+  moderatorLinks.filter((link) => link.requiresRole !== 'ADMIN' || !!user.value?.admin),
+);
 </script>
 
 <template>
@@ -46,7 +51,7 @@ const isModerator = computed(() => {
         Modération
       </p>
       <SidebarButton
-        v-for="link in moderatorLinks"
+        v-for="link in visibleModeratorLinks"
         :key="link.to"
         :to="link.to"
         :text="link.text"

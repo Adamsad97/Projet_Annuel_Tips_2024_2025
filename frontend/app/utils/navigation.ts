@@ -16,6 +16,7 @@ export const mainLinks: NavigationLink[] = [
 export const userLinks: NavigationLink[] = [
   { to: '/my-tips', text: 'Mes Tips', icon: 'tabler:notebook', requiresAuth: true },
   { to: '/messages', text: 'Messages', icon: 'tabler:messages', requiresAuth: true },
+  { to: '/my-moderation', text: 'Mes sanctions', icon: 'tabler:gavel', requiresAuth: true },
 ];
 
 export const moderatorLinks: NavigationLink[] = [
@@ -25,6 +26,13 @@ export const moderatorLinks: NavigationLink[] = [
     icon: 'tabler:shield-check',
     requiresAuth: true,
     requiresRole: 'MODERATOR',
+  },
+  {
+    to: '/admin',
+    text: 'Administration',
+    icon: 'tabler:settings-cog',
+    requiresAuth: true,
+    requiresRole: 'ADMIN',
   },
 ];
 
