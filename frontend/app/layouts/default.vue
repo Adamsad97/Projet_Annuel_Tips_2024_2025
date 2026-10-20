@@ -28,12 +28,14 @@ const unlockedBadge = ref<{
 const { user } = useAuth();
 const realtime = useRealtime();
 const notifications = useNotifications();
+const { loadFeatures, isEnabled } = useFeatures();
 const toast = useToastMessage();
 const route = useRoute();
 
 let unsubscribers: Array<() => void> = [];
 
 onMounted(() => {
+  loadFeatures();
   unsubscribers = [
     realtime.on<{ badge: NonNullable<typeof unlockedBadge.value> }>('badge:unlocked', (data) => {
       unlockedBadge.value = { ...data.badge, description: data.badge.description ?? '' };
@@ -57,6 +59,8 @@ watch(
   (userId, previousUserId) => {
     if (import.meta.server || userId === previousUserId) return;
     realtime.reconnect();
+    // Les fonctionnalités en test A/B dépendent du membre connecté
+    loadFeatures();
     if (userId) {
       notifications.fetchNotifications();
     } else {
@@ -149,7 +153,7 @@ useSiteMeta();
 
     <!-- Assistant pour trouver le bon tip (membres connectés) -->
     <ClientOnly>
-      <ChatbotWidget v-if="user" />
+      <ChatbotWidget v-if="user && isEnabled('chatbot')" />
     </ClientOnly>
   </div>
 </template>

@@ -10,6 +10,11 @@ const isModerator = computed(() => {
   return user.value.moderator?.isActive || user.value.admin;
 });
 
+const { isEnabled } = useFeatures();
+const visibleMainLinks = computed(() =>
+  mainLinks.filter((link) => !link.feature || isEnabled(link.feature)),
+);
+
 // Les liens réservés aux admins sont masqués pour les simples modérateurs
 const visibleModeratorLinks = computed(() =>
   moderatorLinks.filter((link) => link.requiresRole !== 'ADMIN' || !!user.value?.admin),
@@ -23,7 +28,7 @@ const visibleModeratorLinks = computed(() =>
     <!-- Navigation Principale -->
     <nav class="flex flex-col gap-2 w-full">
       <SidebarButton
-        v-for="link in mainLinks"
+        v-for="link in visibleMainLinks"
         :key="link.to"
         :to="link.to"
         :text="link.text"

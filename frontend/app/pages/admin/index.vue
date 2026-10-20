@@ -6,6 +6,8 @@ import AdminAppeals from '~/components/admin/AdminAppeals.vue';
 import AdminGamification from '~/components/admin/AdminGamification.vue';
 import AdminTrust from '~/components/admin/AdminTrust.vue';
 import AdminChatbot from '~/components/admin/AdminChatbot.vue';
+import AdminLogs from '~/components/admin/AdminLogs.vue';
+import AdminFeatures from '~/components/admin/AdminFeatures.vue';
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -20,6 +22,8 @@ const tabs = [
   { id: 'appeals', label: 'Contestations', icon: 'tabler:scale' },
   { id: 'gamification', label: 'Badges & grades', icon: 'tabler:award' },
   { id: 'chatbot', label: 'Chatbot', icon: 'tabler:message-chatbot' },
+  { id: 'features', label: 'Fonctionnalités (A/B)', icon: 'tabler:flask' },
+  { id: 'logs', label: 'Logs', icon: 'tabler:bug' },
 ] as const;
 
 type TabId = (typeof tabs)[number]['id'];
@@ -69,5 +73,7 @@ const selectTab = (id: TabId) => {
     <AdminAppeals v-else-if="activeTab === 'appeals'" />
     <AdminGamification v-else-if="activeTab === 'gamification'" />
     <AdminChatbot v-else-if="activeTab === 'chatbot'" />
+    <AdminFeatures v-else-if="activeTab === 'features'" />
+    <AdminLogs v-else-if="activeTab === 'logs'" />
   </div>
 </template>

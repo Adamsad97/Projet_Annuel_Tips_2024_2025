@@ -21,7 +21,7 @@ const { isAuthenticated } = useAuth();
 const period = ref<number>(7);
 
 // Rendu serveur pour les visiteurs (aperçus) ; un membre connecté recharge avec son token
-const { data, refresh } = await useFetch<{ success: boolean; data: ApiTip[] }>(
+const { data, refresh, error } = await useFetch<{ success: boolean; data: ApiTip[] }>(
   `${config.public.apiBaseUrl}${API_ROUTES.TIPS.TRENDING}`,
   { query: computed(() => ({ days: period.value })), watch: [period] },
 );
@@ -82,7 +82,12 @@ const tips = computed(() =>
       </div>
     </div>
 
-    <div v-if="tips.length === 0" class="text-center py-20 text-slate-500">
+    <div v-if="error?.statusCode === 404" class="text-center py-20 text-slate-500">
+      <Icon name="tabler:flask" class="w-12 h-12 mx-auto mb-2 text-slate-300" />
+      Cette fonctionnalité n'est pas disponible pour le moment.
+    </div>
+
+    <div v-else-if="tips.length === 0" class="text-center py-20 text-slate-500">
       <Icon name="tabler:mood-empty" class="w-12 h-12 mx-auto mb-2 text-slate-300" />
       Rien de tendance sur cette période pour l'instant.
       <button

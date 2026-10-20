@@ -17,6 +17,11 @@ const isModerator = computed(() => {
   return user.value.moderator?.isActive || user.value.admin;
 });
 
+const { isEnabled } = useFeatures();
+const visibleMainLinks = computed(() =>
+  mainLinks.filter((link) => !link.feature || isEnabled(link.feature)),
+);
+
 // Les liens réservés aux admins sont masqués pour les simples modérateurs
 const visibleModeratorLinks = computed(() =>
   moderatorLinks.filter((link) => link.requiresRole !== 'ADMIN' || !!user.value?.admin),
@@ -203,7 +208,7 @@ const toggleTheme = () => {
               Navigation
             </p>
             <NuxtLink
-              v-for="link in mainLinks"
+              v-for="link in visibleMainLinks"
               :key="link.to"
               :to="link.to"
               class="flex items-center gap-3 px-3 py-3 rounded-xl text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-purple-50 dark:hover:bg-slate-800 active:scale-95 transition-all"

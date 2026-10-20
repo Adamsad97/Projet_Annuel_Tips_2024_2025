@@ -140,3 +140,27 @@ export interface TrustCycleSummary {
   demoted: number[];
   watchlist: number[];
 }
+
+export interface ErrorLogEntry {
+  id: number;
+  source: 'server' | 'client';
+  message: string;
+  stack: string | null;
+  method: string | null;
+  path: string | null;
+  statusCode: number | null;
+  userId: number | null;
+  context: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+// Fonctionnalité expérimentale vue par l'admin (avec la taille réelle du groupe exposé)
+export interface AdminFeatureFlag {
+  key: string;
+  description: string;
+  enabled: boolean;
+  rolloutPercentage: number;
+  updatedAt: string;
+  exposedUsers: number;
+  totalUsers: number;
+}
