@@ -16,6 +16,11 @@ All routes prefixed with `/api`.
 ## User
 
 **GET /api/users/profile** - Current user info
+**PATCH /api/users/profile** - Update profile (firstname, lastname, bio, address)
+**PATCH /api/users/profile/password** - Change password
+**POST /api/users/profile/avatar** - Upload avatar (multipart)
+**DELETE /api/users/profile/avatar** - Remove avatar
+**GET /api/users/:id** - Public profile of a member
 **GET /api/users/me/progress** - Gamification progress
 **GET /api/users/me/badges** - User badges
 **GET /api/users/leaderboard** - User rankings
@@ -55,6 +60,44 @@ All routes prefixed with `/api`.
 **Body:** `refreshToken`
 
 **Reponse (200):** Message de confirmation
+
+---
+
+## Routes profil
+
+Toutes ces routes demandent d'etre connecte. Les reponses ne contiennent jamais le mot de passe ni l'indice de confiance (`trustIndex`), reserve a l'admin.
+
+### PATCH /api/users/profile
+
+**Body (tous optionnels):** `firstname`, `lastname` (max 100), `bio` (max 500), `address` (max 255). Une chaine vide efface le champ.
+
+**Reponse (200):** Utilisateur mis a jour
+
+### PATCH /api/users/profile/password
+
+**Body:** `currentPassword`, `newPassword` (8 caracteres min, majuscule, minuscule, chiffre, caractere special, different de l'actuel)
+
+Mot de passe actuel incorrect : 400 (et non 401, pour ne pas deconnecter le frontend).
+
+### POST /api/users/profile/avatar
+
+**Body (multipart/form-data):** champ `avatar`, 1 image jpeg/png/webp/gif de 5 Mo max.
+
+L'ancien avatar est supprime du disque. **Reponse (200):** Utilisateur avec `avatarProfile` = `/uploads/avatars/<uuid>.<ext>`
+
+### DELETE /api/users/profile/avatar
+
+Supprime l'avatar (`avatarProfile` = null).
+
+### GET /api/users/:id
+
+Profil public d'un membre : identite (sans email), bio, localisation, XP, grade, role (`USER`, `MODERATOR`, `ADMIN`), badges, statistiques (`publishedTips`, `comments`, `upvotesReceived`) et 10 derniers tips publies.
+
+### GET /api/users/leaderboard
+
+**Query params:** `skip`, `take`
+
+**Reponse (200):** `[{ rank, userId, username, firstname, lastname, avatarProfile, xp, grade, role, tips, badges }]` (sans email)
 
 ---
 
