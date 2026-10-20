@@ -81,7 +81,7 @@ onMounted(loadAppeals);
               <NuxtLink :to="ROUTES.USER_PROFILE(appeal.user.id)" class="hover:text-purple-600">
                 {{ appeal.user.username }}
               </NuxtLink>
-              par {{ appeal.action.moderator.username }}
+              par {{ appeal.action.moderator?.username ?? 'le système' }}
             </span>
           </div>
           <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-500/10">

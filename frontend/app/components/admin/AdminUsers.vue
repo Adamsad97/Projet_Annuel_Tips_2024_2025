@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue';
 import type { AdminUser } from '~/types';
 import ActionDialog from '~/components/moderation/ActionDialog.vue';
+import TrustBreakdownPanel from '~/components/admin/TrustBreakdownPanel.vue';
 import { API_ROUTES } from '~/config/api';
 import { ROUTES } from '~/config/routes';
 
@@ -15,6 +16,8 @@ const users = ref<AdminUser[]>([]);
 const total = ref(0);
 const page = ref(0);
 const search = ref('');
+// Tri : récents, ou par indice de confiance pour comparer les membres
+const sort = ref<'recent' | 'trust-asc' | 'trust-desc'>('recent');
 const loading = ref(false);
 
 type DialogKind = 'ban' | 'mute' | 'trust';
@@ -38,6 +41,7 @@ const loadUsers = async () => {
     const query = new URLSearchParams({
       skip: String(page.value * PAGE_SIZE),
       take: String(PAGE_SIZE),
+      sort: sort.value,
       ...(search.value.trim() ? { q: search.value.trim() } : {}),
     });
     const data = await api.get<{ items: AdminUser[]; total: number }>(
@@ -61,6 +65,10 @@ watch(search, () => {
   }, 300);
 });
 watch(page, loadUsers);
+watch(sort, () => {
+  if (page.value === 0) loadUsers();
+  else page.value = 0;
+});
 
 // Exécute une action puis recharge la liste ; l'erreur éventuelle est affichée par useApi
 const run = async (action: () => Promise<unknown>, successMessage: string) => {
@@ -150,7 +158,17 @@ onMounted(loadUsers);
         placeholder="Rechercher (pseudo, email, nom)…"
         class="w-full sm:w-80 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-2 focus:ring-purple-500"
       />
-      <span class="text-sm text-slate-500">{{ total }} utilisateur(s)</span>
+      <div class="flex items-center gap-3">
+        <select
+          v-model="sort"
+          class="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
+        >
+          <option value="recent">Plus récents</option>
+          <option value="trust-desc">Indice de confiance décroissant</option>
+          <option value="trust-asc">Indice de confiance croissant</option>
+        </select>
+        <span class="text-sm text-slate-500">{{ total }} utilisateur(s)</span>
+      </div>
     </div>
 
     <div class="overflow-x-auto rounded-2xl bg-white/70 dark:bg-slate-800/60">
@@ -311,9 +329,10 @@ onMounted(loadUsers);
       @confirm="confirmDialog"
       @close="dialog = null"
     >
-      <div v-if="dialog?.kind === 'trust'">
+      <div v-if="dialog?.kind === 'trust'" class="space-y-4">
+        <TrustBreakdownPanel :user-id="dialog.user.id" />
         <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-          Nouvel indice (0 à 100) — actuel : {{ dialog.user.trustIndex }}
+          Nouvel indice (0 à 100) — conservé lors des recalculs automatiques
         </label>
         <input v-model.number="trustValue" type="range" min="0" max="100" class="w-full" />
         <div class="text-center font-black text-2xl">{{ trustValue }}</div>

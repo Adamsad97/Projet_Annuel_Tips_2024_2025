@@ -29,7 +29,8 @@ export interface AdminAppeal extends Appeal {
     actionType: string;
     reason: string | null;
     createdAt: string;
-    moderator: { id: number; username: string };
+    // null = action automatique du système
+    moderator: { id: number; username: string } | null;
   };
 }
 
@@ -98,4 +99,44 @@ export const ACTION_LABELS: Record<string, string> = {
   MUTE: 'Interdiction de publier',
   REJECT_TIP: 'Tip refusé',
   RESOLVE_REPORT_REJECT: 'Contenu retiré après signalement',
+  AUTO_PROMOTE: 'Promotion automatique en modérateur',
+  AUTO_DEMOTE: 'Retrait automatique du rôle de modérateur',
 };
+
+// Indice de confiance (visible uniquement par les admins)
+export interface TrustFactor {
+  key: string;
+  label: string;
+  value: number;
+  points: number;
+}
+
+export interface TrustBreakdown {
+  userId: number;
+  computed: number;
+  adjustment: number;
+  trustIndex: number;
+  factors: TrustFactor[];
+}
+
+export interface TrustRankingEntry {
+  id: number;
+  username: string;
+  trustIndex: number;
+  xp: number;
+}
+
+export interface ModeratorWatchEntry {
+  id: number;
+  username: string;
+  trustIndex: number;
+  recentActions: number;
+  reasons: string[];
+}
+
+export interface TrustCycleSummary {
+  usersUpdated: number;
+  promoted: number[];
+  demoted: number[];
+  watchlist: number[];
+}

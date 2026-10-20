@@ -4,6 +4,7 @@ import AdminAnalytics from '~/components/admin/AdminAnalytics.vue';
 import AdminUsers from '~/components/admin/AdminUsers.vue';
 import AdminAppeals from '~/components/admin/AdminAppeals.vue';
 import AdminGamification from '~/components/admin/AdminGamification.vue';
+import AdminTrust from '~/components/admin/AdminTrust.vue';
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -14,6 +15,7 @@ useSeoMeta({ title: 'Administration' });
 const tabs = [
   { id: 'analytics', label: 'Tableau de bord', icon: 'tabler:chart-bar' },
   { id: 'users', label: 'Utilisateurs', icon: 'tabler:users' },
+  { id: 'trust', label: 'Confiance', icon: 'tabler:shield-half' },
   { id: 'appeals', label: 'Contestations', icon: 'tabler:scale' },
   { id: 'gamification', label: 'Badges & grades', icon: 'tabler:award' },
 ] as const;
@@ -61,6 +63,7 @@ const selectTab = (id: TabId) => {
 
     <AdminAnalytics v-if="activeTab === 'analytics'" />
     <AdminUsers v-else-if="activeTab === 'users'" />
+    <AdminTrust v-else-if="activeTab === 'trust'" />
     <AdminAppeals v-else-if="activeTab === 'appeals'" />
     <AdminGamification v-else-if="activeTab === 'gamification'" />
   </div>
