@@ -92,6 +92,10 @@ All routes prefixed with `/api`.
 **GET /api/admin/appeals** - Appeals
 **POST /api/admin/appeals/:id/resolve** - Accept / reject appeal
 **GET|POST /api/admin/grades**, **PATCH|DELETE /api/admin/grades/:id** - Grades
+**GET /api/admin/users/:id/trust** - Trust index breakdown
+**GET /api/admin/trust/ranking** - Most / least trusted users
+**GET /api/admin/trust/watchlist** - Moderators to review
+**POST /api/admin/trust/recompute** - Recompute all trust indexes now
 **GET /api/admin/badges**, **PATCH /api/admin/badges/:id** - Badges
 
 **Body:** `refreshToken`
@@ -250,7 +254,8 @@ Routes `/api/admin/*` : admin uniquement. Un admin ne peut pas agir sur lui-meme
 
 ### Comptes
 
-- `PATCH /api/admin/users/:id/trust-index` : **Body:** `trustIndex` (0-100), `reason`. L'ancienne valeur est tracee dans l'historique de moderation.
+- `PATCH /api/admin/users/:id/trust-index` : **Body:** `trustIndex` (0-100), `reason`. L'ecart avec la valeur calculee est memorise (`trustAdjustment`) pour survivre aux recalculs. L'ancienne valeur est tracee dans l'historique de moderation.
+- `GET /api/admin/users?sort=trust-asc|trust-desc` : comparer les membres par indice.
 - `POST /api/admin/users/:id/reset` : remet XP, grade, badges et indice de confiance a zero (le contenu est conserve).
 - `DELETE /api/admin/users/:id` : supprime le compte et son contenu.
 
@@ -262,6 +267,52 @@ Routes `/api/admin/*` : admin uniquement. Un admin ne peut pas agir sur lui-meme
 ### GET /api/admin/analytics
 
 Utilisateurs (total, nouveaux et actifs sur 30 jours), tips par statut et par jour, categories populaires, file de moderation (signalements, contestations, bannis) et meilleurs contributeurs.
+
+---
+
+## Indice de confiance
+
+Score cache de 0 a 100 (base 50), jamais renvoye aux membres. Poids et seuils : `backend/src/modules/trust/trust.config.ts`.
+
+### Calcul
+
+| Facteur | Effet |
+|---|---|
+| Tips publies, votes « utile » moyens par tip | + |
+| Ratio utile / pas utile recu (a partir de 5 votes) | + / - |
+| Commentaires ecrits, commentaires recus | + |
+| Diversite des categories, anciennete, connexion recente | + |
+| Contenus retires apres signalement valide | - - |
+| Tips refuses a la validation | - |
+| Sanctions non annulees (avertissement, retrogradation, mute, ban) | - - |
+| Signalements abusifs (signalements rejetes) | - |
+| Contestations rejetees | - |
+| Moderateur : actions sur 90 jours | + |
+| Moderateur : decisions annulees par un admin | - - |
+| Moderateur : aucune action sur 30 jours | - |
+
+Une sanction annulee apres contestation ne compte plus. Non mesures faute de donnees : duree de session, score d'orthographe (NLP), rapidite de reponse.
+
+### Utilisation
+
+- **Anti-troll :** pas de montee en grade sous un indice de 35.
+- **Promotion automatique :** un membre passe moderateur s'il remplit toutes ces conditions :
+  - indice d'au moins 80 ;
+  - au moins 500 XP ;
+  - au moins 30 jours d'anciennete ;
+  - au moins 10 tips publies ;
+  - aucune sanction en cours.
+
+  L'action est tracee `AUTO_PROMOTE`, avec `moderatorId` a null (action du systeme).
+- **Retrogradation des moderateurs :**
+  - automatique sous un indice de 30 (`AUTO_DEMOTE`) ;
+  - assistee sous 45, ou en cas d'inactivite de 30 jours : le moderateur apparait dans `GET /api/admin/trust/watchlist` et l'admin decide.
+
+### Recalcul
+
+- Au demarrage du serveur, puis toutes les heures (`trust.scheduler.ts`, desactive en test).
+- Immediatement pour les utilisateurs concernes apres une sanction, un signalement traite ou une contestation tranchee.
+- A la demande via `POST /api/admin/trust/recompute`.
 
 ---
 
