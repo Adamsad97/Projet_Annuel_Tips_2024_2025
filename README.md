@@ -27,7 +27,7 @@ cp frontend/.env.example frontend/.env
 npm run install:all
 npm run backend:fix-IDE
 
-# 4. Backend + base de données dans Docker (build, démarrage, schéma Prisma, données de test)
+# 4. Backend + base de données dans Docker (build, démarrage, migrations, données de test)
 npm run docker:dev
 
 # 5. Frontend en local (dans un second terminal)
@@ -41,10 +41,10 @@ Les fois suivantes : `npm run docker:up` puis `cd frontend && npm run dev`.
 
 ### Après un `git pull`
 
-Si le schéma Prisma (`backend/prisma/schema/`) a changé, appliquer les changements à la base :
+Appliquer les nouvelles migrations de base de données (sans effet s'il n'y en a pas) :
 
 ```bash
-npm run db:push
+npm run db:migrate
 ```
 
 Si de nouvelles dépendances ont été ajoutées : `npm run install:all` puis `npm run docker:rebuild`.
@@ -83,9 +83,9 @@ npm run docker:down        # Arrêter les conteneurs
 npm run docker:logs        # Logs de tous les services
 npm run docker:rebuild     # Rebuild de l'image backend
 
-npm run db:push            # Appliquer le schéma Prisma à la base
-npm run db:seed            # Ajouter les données de test
-npm run db:reset           # Redémarrer, appliquer le schéma et reseeder
+npm run db:migrate         # Appliquer les migrations en attente
+npm run db:migrate:status  # Voir les migrations appliquées / en attente
+npm run db:seed            # Ajouter les données de test (relançable sans doublon)
 
 npm run backend:test       # Tests backend (sur la base de test postgres-test)
 npm run lint               # Lint backend + frontend
@@ -94,12 +94,36 @@ npm run format             # Prettier backend + frontend
 
 Les tests backend utilisent la base `postgres-test` et jamais la base de développement. Plus de détails dans [backend/doc/tests.md](./backend/doc/tests.md).
 
+## Modifier le schéma de la base
+
+Le schéma est versionné avec des **migrations Prisma** (`backend/prisma/migrations/`), qui sont commitées avec le code.
+
+1. Modifier les fichiers de `backend/prisma/schema/`.
+2. Générer la migration et l'appliquer à votre base :
+
+   ```bash
+   npm run db:migrate:dev -- --name ajout_champ_xxx
+   ```
+
+3. Relire le SQL généré dans `backend/prisma/migrations/<date>_ajout_champ_xxx/`, puis le commiter avec le code.
+
+La CI applique toutes les migrations sur une base neuve : une migration oubliée ou cassée fait échouer la CI. `prisma db push` n'est plus utilisé, car il peut supprimer des données sans prévenir.
+
+**Base créée avant le passage aux migrations** (avec `db push`) : à faire une seule fois, sans perte de données :
+
+```bash
+npm run db:baseline
+```
+
+Ou, si les données locales n'ont pas d'importance : `npm run docker:clean` puis `npm run docker:dev`.
+
 ## Problèmes courants
 
-- **Le backend ne démarre pas** : vérifier que Docker est lancé, puis `npm run docker:logs` et `npm run db:push`.
+- **Le backend ne démarre pas** : vérifier que Docker est lancé, puis `npm run docker:logs` et `npm run db:migrate`.
 - **Erreurs API dans le frontend** : vérifier http://localhost:3001/api/ping, `NUXT_PUBLIC_API_BASE_URL` dans `frontend/.env` et `CORS_ORIGIN` dans `backend/.env`.
 - **Erreurs TypeScript / Prisma dans l'IDE** : `npm run backend:fix-IDE` puis recharger l'IDE.
-- **Colonne ou table manquante** : le schéma a changé, lancer `npm run db:push`.
+- **Colonne ou table manquante** : des migrations sont en attente, lancer `npm run db:migrate`.
+- **`migrate deploy` refuse de s'appliquer (P3005, base non vide)** : la base a été créée avec `db push`, lancer une fois `npm run db:baseline`.
 
 ## Documentation
 

@@ -13,7 +13,7 @@ cp .env.sample .env
 docker-compose up -d
 
 # Run migrations
-npm run prisma:migrate
+npm run prisma:migrate:dev
 
 # Seed database
 npm run prisma:seed
