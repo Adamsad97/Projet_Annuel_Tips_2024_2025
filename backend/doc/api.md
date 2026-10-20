@@ -10,6 +10,7 @@ All routes prefixed with `/api`.
 
 **POST /api/users/register** - Create account (username, email, password)
 **POST /api/users/login** - Login (email, password)
+**POST /api/users/login/2fa** - Login second step (two-factor code)
 **POST /api/auth/refresh** - Refresh token
 **POST /api/auth/logout** - Logout
 
@@ -20,6 +21,9 @@ All routes prefixed with `/api`.
 **PATCH /api/users/profile/password** - Change password
 **POST /api/users/profile/avatar** - Upload avatar (multipart)
 **DELETE /api/users/profile/avatar** - Remove avatar
+**POST /api/users/profile/2fa/setup** - Start 2FA setup (QR code)
+**POST /api/users/profile/2fa/enable** - Enable 2FA (code)
+**POST /api/users/profile/2fa/disable** - Disable 2FA (password + code)
 **GET /api/users/:id** - Public profile of a member
 **GET /api/users/me/progress** - Gamification progress
 **GET /api/users/me/badges** - User badges
@@ -98,6 +102,35 @@ Profil public d'un membre : identite (sans email), bio, localisation, XP, grade,
 **Query params:** `skip`, `take`
 
 **Reponse (200):** `[{ rank, userId, username, firstname, lastname, avatarProfile, xp, grade, role, tips, badges }]` (sans email)
+
+---
+
+## Double authentification (2FA)
+
+TOTP compatible Google Authenticator, Authy, Microsoft Authenticator...
+
+### Connexion d'un compte avec 2FA
+
+1. `POST /api/users/login` avec email et mot de passe. Si la 2FA est active, la reponse ne contient pas de tokens mais `{ twoFactorRequired: true, twoFactorToken }`. Ce jeton expire au bout de 5 minutes et n'est pas accepte comme token d'acces.
+2. `POST /api/users/login/2fa` avec `{ twoFactorToken, code }`. `code` est le code a 6 chiffres de l'application, ou un code de secours (`xxxx-xxxx`, utilisable une seule fois). **Reponse (200):** `{ accessToken, refreshToken, user }`. Code invalide ou jeton expire : 401.
+
+### POST /api/users/profile/2fa/setup
+
+**Authentification:** Requise. Genere un nouveau secret (pas encore actif).
+
+**Reponse (200):** `{ secret, otpauthUrl, qrCode }` (`qrCode` est une image PNG en data URL)
+
+### POST /api/users/profile/2fa/enable
+
+**Body:** `code` (code a 6 chiffres de l'application). Active la 2FA.
+
+**Reponse (200):** `{ backupCodes }` : 8 codes de secours, affiches une seule fois et stockes haches.
+
+### POST /api/users/profile/2fa/disable
+
+**Body:** `password`, `code` (code de l'application ou code de secours). Supprime le secret et les codes de secours.
+
+Le secret et les codes de secours ne sont jamais renvoyes par les autres routes.
 
 ---
 
