@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import type { ApiTip, Tip } from '~/types';
 const TipsCard = defineAsyncComponent(() => import('~/components/TipsCard.vue'));
+const SponsoredCard = defineAsyncComponent(
+  () => import('~/components/sponsoring/SponsoredCard.vue'),
+);
+const ChallengesBanner = defineAsyncComponent(
+  () => import('~/components/sponsoring/ChallengesBanner.vue'),
+);
 
 const route = useRoute();
 const config = useRuntimeConfig();
@@ -89,6 +95,9 @@ const resetFilters = () => {
         />
       </div>
     </div>
+
+    <!-- Défis sponsorisés en cours -->
+    <ChallengesBanner />
 
     <!-- Type de publication -->
     <div class="flex gap-2">
@@ -194,7 +203,14 @@ const resetFilters = () => {
 
     <!-- Grille de résultats -->
     <div v-if="filteredTips && filteredTips.length > 0" class="grid gap-6">
-      <TipsCard v-for="tip in filteredTips" :key="tip.id" :tip="tip" />
+      <template v-for="(tip, index) in filteredTips" :key="tip.id">
+        <TipsCard :tip="tip" />
+        <!-- Un seul encart sponsorisé, après le 3e tip (ou à la fin d'une liste plus courte) -->
+        <SponsoredCard
+          v-if="index === Math.min(2, filteredTips.length - 1)"
+          :category-id="selectedCategory?.id ?? null"
+        />
+      </template>
     </div>
 
     <!-- État vide -->

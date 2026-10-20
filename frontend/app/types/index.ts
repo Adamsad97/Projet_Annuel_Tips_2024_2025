@@ -5,3 +5,4 @@ export * from './user';
 export * from './messaging';
 export * from './admin';
 export * from './chatbot';
+export * from './sponsoring';

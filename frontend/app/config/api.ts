@@ -96,6 +96,13 @@ export const API_ROUTES = {
     LOGS: '/admin/logs',
     FEATURES: '/admin/features',
     FEATURE: (key: string) => `/admin/features/${key}`,
+    ADS: '/admin/ads',
+    AD: (id: number) => `/admin/ads/${id}`,
+    AD_IMAGE: '/admin/ads/image',
+    AD_STATS: (id: number) => `/admin/ads/${id}/stats`,
+    AD_STATS_CSV: (id: number) => `/admin/ads/${id}/stats.csv`,
+    CHALLENGES: '/admin/challenges',
+    CHALLENGE: (id: number) => `/admin/challenges/${id}`,
     APPEALS: '/admin/appeals',
     RESOLVE_APPEAL: (appealId: number) => `/admin/appeals/${appealId}/resolve`,
     GRADES: '/admin/grades',
@@ -113,6 +120,13 @@ export const API_ROUTES = {
   PLATFORM: {
     FEATURES: '/features',
     CLIENT_LOGS: '/logs/client',
+  },
+
+  SPONSORING: {
+    PLACEMENT: '/ads/placement',
+    // Lien des cartes sponsorisées : l'API compte le clic puis redirige vers le partenaire
+    CLICK: (id: number) => `/ads/${id}/click`,
+    CHALLENGES: '/challenges',
   },
 
   CHATBOT: {

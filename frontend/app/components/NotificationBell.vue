@@ -12,6 +12,7 @@ const ICONS: Record<AppNotification['type'], string> = {
   BADGE_UNLOCKED: 'tabler:award',
   MODERATION: 'tabler:gavel',
   NEW_TIP: 'tabler:bulb',
+  CHALLENGE: 'tabler:trophy',
 };
 
 const formatDate = (date: string) =>

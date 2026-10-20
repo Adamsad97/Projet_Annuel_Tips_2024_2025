@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import type { ApiTip } from '~/types';
 import TipsCard from '~/components/TipsCard.vue';
+import SponsoredCard from '~/components/sponsoring/SponsoredCard.vue';
 import { API_ROUTES } from '~/config/api';
 
 useSeoMeta({
@@ -112,6 +113,7 @@ const tips = computed(() =>
           <span><Icon name="tabler:message" class="w-3 h-3" /> {{ stats.comments }}</span>
           <span><Icon name="tabler:eye" class="w-3 h-3" /> {{ stats.views }}</span>
         </div>
+        <SponsoredCard v-if="index === Math.min(2, tips.length - 1)" class="mt-6" />
       </li>
     </ol>
   </div>

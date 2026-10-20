@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import type { TipFormData, UserPerks } from '~/types/tip';
 import TipForm from '~/components/TipForm.vue';
+import ChallengesBanner from '~/components/sponsoring/ChallengesBanner.vue';
 import { API_ROUTES } from '~/config/api';
 
 definePageMeta({
@@ -89,6 +90,9 @@ const handleCreateTip = async (data: TipFormData) => {
         Aidez la communauté en partageant vos meilleures astuces de développement.
       </p>
     </div>
+
+    <!-- Défis sponsorisés en cours : bonus d'XP pour un tip validé dans la catégorie -->
+    <ChallengesBanner :show-cta="false" class="mb-6" />
 
     <!-- Formulaire -->
     <div
