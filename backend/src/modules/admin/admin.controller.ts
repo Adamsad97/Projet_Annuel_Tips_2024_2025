@@ -4,6 +4,8 @@ import { adminService } from './admin.service';
 import { appealService } from '../appeals/appeal.service';
 import { trustService } from '../trust/trust.service';
 import { chatbotService } from '../chatbot/chatbot.service';
+import { logService } from '../logs/log.service';
+import { featureService } from '../features/feature.service';
 import {
   chatbotConfigSchema,
   chatbotResponseSchema,
@@ -17,6 +19,9 @@ import {
   badgeUpdateSchema,
   resolveAppealSchema,
   listUsersQuerySchema,
+  listLogsQuerySchema,
+  purgeLogsQuerySchema,
+  featureUpdateSchema,
 } from './admin.validation';
 import { validateSchema } from '../../middlewares/validate.middleware';
 import { parseIdParam } from '../../utils/params.util';
@@ -177,6 +182,36 @@ export class AdminController {
       '/chatbot/queries',
       handle(async (req, res) => {
         ok(res, await chatbotService.listQueries(req.query.unanswered === 'true'));
+      }),
+    );
+
+    // Logs d'erreurs centralisés
+    router.get(
+      '/logs',
+      handle(async (req, res) => {
+        ok(res, await logService.list(listLogsQuerySchema.parse(req.query)));
+      }),
+    );
+    router.delete(
+      '/logs',
+      handle(async (req, res) => {
+        const { olderThanDays } = purgeLogsQuerySchema.parse(req.query);
+        ok(res, { deleted: await logService.purge(olderThanDays) });
+      }),
+    );
+
+    // Fonctionnalités expérimentales (tests A/B)
+    router.get(
+      '/features',
+      handle(async (_req, res) => {
+        ok(res, await featureService.listForAdmin());
+      }),
+    );
+    router.patch(
+      '/features/:key',
+      validateSchema(featureUpdateSchema),
+      handle(async (req, res) => {
+        ok(res, await featureService.update(String(req.params.key), req.body));
       }),
     );
 

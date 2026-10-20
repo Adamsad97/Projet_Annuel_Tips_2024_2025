@@ -43,6 +43,23 @@ export const listUsersQuerySchema = z.object({
   sort: z.enum(['recent', 'trust-asc', 'trust-desc']).optional(),
 });
 
+export const listLogsQuerySchema = z.object({
+  source: z.enum(['server', 'client']).optional(),
+  q: z.string().trim().optional(),
+  skip: z.coerce.number().int().min(0).default(0),
+  take: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+// olderThanDays = 0 : tout supprimer
+export const purgeLogsQuerySchema = z.object({
+  olderThanDays: z.coerce.number().int().min(0).max(3650).default(30),
+});
+
+export const featureUpdateSchema = z.object({
+  enabled: z.boolean().optional(),
+  rolloutPercentage: z.number().int().min(0).max(100).optional(),
+});
+
 export type SanctionInput = z.infer<typeof sanctionSchema>;
 export type TrustIndexInput = z.infer<typeof trustIndexSchema>;
 export type GradeInput = z.infer<typeof gradeSchema>;

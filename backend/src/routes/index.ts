@@ -13,6 +13,7 @@ import appealRoutes from '../modules/appeals/appeal.routes';
 import adminRoutes from '../modules/admin/admin.routes';
 import categoryRoutes from '../modules/categories/category.routes';
 import chatbotRoutes from '../modules/chatbot/chatbot.routes';
+import platformRoutes from '../modules/platform/platform.routes';
 import moderationRoutes from '../modules/moderation/moderation.routes';
 import { ROUTES } from '../config/routes';
 import { requireAuth, requireModerator, requireAdmin } from '../middlewares/auth.middleware';
@@ -40,6 +41,7 @@ apiRouter.use(notificationRoutes);
 apiRouter.use(appealRoutes);
 apiRouter.use(categoryRoutes);
 apiRouter.use(chatbotRoutes);
+apiRouter.use(platformRoutes);
 
 apiRouter.use(ROUTES.moderation.base, requireAuth, requireModerator, moderationRoutes);
 apiRouter.use(ROUTES.admin.base, requireAuth, requireAdmin, adminRoutes);

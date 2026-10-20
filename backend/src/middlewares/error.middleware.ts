@@ -3,6 +3,8 @@ import type { AppErrorDetails } from '../utils/appError.util';
 import { AppError } from '../utils/appError.util';
 import { env } from '../config/env';
 import { ZodError } from 'zod';
+import { logService } from '../modules/logs/log.service';
+import type { RequestWithUser } from '../types/auth.types';
 
 export function errorHandler(
   err: Error | AppError,
@@ -30,6 +32,16 @@ export function errorHandler(
     if (!isProduction) {
       message = err.message || message;
     }
+  }
+
+  // Erreurs serveur (bug, base indisponible...) : enregistrées pour l'admin, avec le vrai message
+  if (statusCode >= 500) {
+    void logService.recordServerError(err, {
+      method: req.method,
+      path: req.originalUrl,
+      statusCode,
+      userId: (req as RequestWithUser).user?.id,
+    });
   }
 
   if (!isTest) {

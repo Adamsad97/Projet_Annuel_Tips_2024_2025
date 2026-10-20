@@ -9,6 +9,7 @@ import {
 import { validateSchema } from '../../middlewares/validate.middleware';
 import { optionalAuth, requireAuth } from '../../middlewares/auth.middleware';
 import { voteService } from '../votes/vote.service';
+import { featureService } from '../features/feature.service';
 import type { RequestWithUser } from '../../types/auth.types';
 
 class TipController {
@@ -169,6 +170,7 @@ class TipController {
     next: NextFunction,
   ): Promise<void> => {
     try {
+      await featureService.assertEnabled('trends_page', req.user?.id);
       const { days } = trendingQuerySchema.parse(req.query);
       const tips = await tipService.getTrending(days);
       res.status(200).json({ success: true, data: req.user ? tips : tips.map(toPreview) });

@@ -1,5 +1,6 @@
 import { trustService } from './trust.service';
 import { TRUST_RULES } from './trust.config';
+import { logService } from '../logs/log.service';
 
 const STARTUP_DELAY_MS = 10_000;
 
@@ -15,6 +16,7 @@ export function startTrustScheduler(): void {
       );
     } catch (error) {
       console.error('[trust] recalcul impossible:', error);
+      await logService.recordServerError(error, { context: { kind: 'trustScheduler' } });
     }
   };
 

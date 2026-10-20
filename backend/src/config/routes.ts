@@ -89,6 +89,10 @@ export const ROUTES = {
     config: '/chatbot/config',
     ask: '/chatbot/ask',
   },
+  platform: {
+    features: '/features',
+    clientLogs: '/logs/client',
+  },
   uploads: {
     base: '/uploads',
     tipImages: '/tips',

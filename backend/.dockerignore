@@ -13,7 +13,7 @@ prisma/*.db-journal
 .env.local
 .env.*.local
 
-logs/
+/logs/
 *.log
 .cache
 .tmp

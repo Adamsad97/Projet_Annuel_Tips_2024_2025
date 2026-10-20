@@ -1,4 +1,10 @@
+// Pas d'écriture en base dans un test unitaire
+jest.mock('../../../modules/logs/log.service', () => ({
+  logService: { recordServerError: jest.fn() },
+}));
+
 import { errorHandler } from '../../../middlewares/error.middleware';
+import { logService } from '../../../modules/logs/log.service';
 import { AppError } from '../../../utils/appError.util';
 import { createMockRequest, createMockResponse } from '../../../types/test.types';
 import type { Request, Response, NextFunction } from 'express';
@@ -16,6 +22,8 @@ describe('errorHandler', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ success: false, message: 'Bad' }),
     );
+    // Erreur du client : pas de log centralisé
+    expect(logService.recordServerError).not.toHaveBeenCalled();
   });
 
   it('defaut 500 sur erreur generique', () => {
@@ -30,7 +38,9 @@ describe('errorHandler', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ status: 500, message: 'oops' }),
     );
+    expect(logService.recordServerError).toHaveBeenCalledWith(
+      err,
+      expect.objectContaining({ method: 'POST', path: '/x', statusCode: 500 }),
+    );
   });
-
-
 });

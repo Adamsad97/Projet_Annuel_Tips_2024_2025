@@ -1,0 +1,26 @@
+// Erreurs centralisées (serveur et navigateur), consultables par l'admin
+model ErrorLog {
+  id         Int      @id @default(autoincrement())
+  // server : erreur de l'API ; client : erreur JavaScript remontée par le frontend
+  source     String
+  message    String
+  stack      String?
+  method     String?
+  path       String?
+  statusCode Int?
+  userId     Int?
+  context    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([source, createdAt])
+}
+
+// Fonctionnalité expérimentale : activée pour un pourcentage stable de membres (test A/B)
+model FeatureFlag {
+  key                String   @id
+  description        String
+  enabled            Boolean  @default(true)
+  rolloutPercentage  Int      @default(100)
+  updatedAt          DateTime @updatedAt
+}
