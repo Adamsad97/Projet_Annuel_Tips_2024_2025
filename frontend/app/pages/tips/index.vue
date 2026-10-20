@@ -8,6 +8,7 @@ const apiBaseUrl = config.public.apiBaseUrl;
 const searchQuery = ref((route.query.q as string) || '');
 const selectedTag = ref<string | null>(null);
 const selectedDifficulty = ref<number | null>(null);
+const selectedKind = ref<'TIP' | 'QUESTION' | null>(null);
 
 const { data: rawTagsResponse } = await useFetch<{ success: boolean; data: string[] }>(
   `${apiBaseUrl}/tips/tags/all`,
@@ -25,8 +26,9 @@ const { data: rawTipsResponse } = await useFetch<{ success: boolean; data: ApiTi
       q: searchQuery.value || undefined,
       category: selectedTag.value ?? undefined,
       difficulty: selectedDifficulty.value ?? undefined,
+      kind: selectedKind.value ?? undefined,
     })),
-    watch: [searchQuery, selectedTag, selectedDifficulty],
+    watch: [searchQuery, selectedTag, selectedDifficulty, selectedKind],
   },
 );
 
@@ -51,6 +53,7 @@ const resetFilters = () => {
   searchQuery.value = '';
   selectedTag.value = null;
   selectedDifficulty.value = null;
+  selectedKind.value = null;
 };
 </script>
 
@@ -85,6 +88,28 @@ const resetFilters = () => {
           class="block w-full pl-10 pr-3 py-3 border-none rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-md shadow-lg ring-1 ring-black/5 dark:ring-white/10 focus:ring-2 focus:ring-purple-500 transition-all placeholder-gray-400 text-slate-800 dark:text-white"
         />
       </div>
+    </div>
+
+    <!-- Type de publication -->
+    <div class="flex gap-2">
+      <button
+        v-for="option in [
+          { value: null, label: 'Tout' },
+          { value: 'TIP' as const, label: 'Tips' },
+          { value: 'QUESTION' as const, label: 'Questions' },
+        ]"
+        :key="option.label"
+        type="button"
+        class="px-4 py-2 rounded-xl text-sm font-bold transition"
+        :class="
+          selectedKind === option.value
+            ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20'
+            : 'bg-white/60 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-white'
+        "
+        @click="selectedKind = option.value"
+      >
+        {{ option.label }}
+      </button>
     </div>
 
     <!-- Filtres Avancés -->

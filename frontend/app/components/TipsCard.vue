@@ -16,6 +16,12 @@ defineProps<Props>();
   >
     <div class="flex-1">
       <h2 class="text-lg md:text-xl font-semibold text-slate-800 dark:text-gray-300 mb-1">
+        <span
+          v-if="tip.kind === 'QUESTION'"
+          class="inline-flex items-center gap-1 align-middle mr-2 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 text-xs font-bold uppercase tracking-wide"
+        >
+          <Icon name="tabler:help-circle" class="w-3 h-3" /> Question
+        </span>
         {{ tip.title }}
       </h2>
 

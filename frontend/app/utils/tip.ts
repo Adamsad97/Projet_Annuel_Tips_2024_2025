@@ -12,6 +12,7 @@ export const getAuthorName = (user: ApiTip['user']): string => {
 
 export const mapApiTip = (apiTip: ApiTip, apiBaseUrl: string): Tip => ({
   id: apiTip.id,
+  kind: apiTip.kind,
   title: apiTip.title,
   description: apiTip.content?.substring(0, 200) || apiTip.title,
   content: apiTip.content || '',

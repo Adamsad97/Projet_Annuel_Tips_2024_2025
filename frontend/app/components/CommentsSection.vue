@@ -4,9 +4,14 @@ import type { ApiComment } from '~/types';
 import CommentItem from '~/components/CommentItem.vue';
 import { API_ROUTES } from '~/config/api';
 
-const props = defineProps<{
-  tipId: number;
-}>();
+const props = withDefaults(
+  defineProps<{
+    tipId: number;
+    // Sur une question, les commentaires sont les réponses de la communauté
+    title?: string;
+  }>(),
+  { title: 'Discussion' },
+);
 
 const MAX_COMMENT_LENGTH = 2000;
 
@@ -59,7 +64,7 @@ onMounted(loadComments);
   <section class="space-y-6">
     <div class="flex items-center justify-between">
       <h2 class="text-lg md:text-xl font-semibold text-slate-800 dark:text-slate-100">
-        Discussion
+        {{ title }}
         <span class="text-gray-400 text-sm font-normal">({{ totalCount }})</span>
       </h2>
     </div>

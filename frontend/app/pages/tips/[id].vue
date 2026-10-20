@@ -263,6 +263,7 @@ useSeoMeta({
           <CommentsSection
             v-if="isPublished && currentUser"
             :tip-id="numericTipId"
+            :title="tip.kind === 'QUESTION' ? 'Réponses' : 'Discussion'"
             class="pt-8 border-t border-slate-200/50 dark:border-white/5"
           />
         </main>

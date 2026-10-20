@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Tip } from '../../../types/index';
+import type { Tip } from '~/types';
 
 defineProps<{
   tip: Tip;
@@ -23,12 +23,18 @@ defineProps<{
         </div>
 
         <div
-          class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/10 backdrop-blur-md border border-yellow-400/20 text-yellow-600 dark:text-yellow-400 text-xs font-bold uppercase tracking-widest"
+          class="flex items-center gap-2 px-4 py-1.5 rounded-full backdrop-blur-md border text-xs font-bold uppercase tracking-widest"
+          :class="
+            tip.kind === 'QUESTION'
+              ? 'bg-sky-400/10 border-sky-400/20 text-sky-600 dark:text-sky-400'
+              : 'bg-yellow-400/10 border-yellow-400/20 text-yellow-600 dark:text-yellow-400'
+          "
         >
-          <span class="flex gap-1">
-            <Icon name="tabler:bolt-filled" class="w-3.5 h-3.5" /> {{ tip.difficulty }}.8
-          </span>
-          <span class="opacity-60 font-medium normal-case ml-1">Popularité</span>
+          <Icon
+            :name="tip.kind === 'QUESTION' ? 'tabler:help-circle' : 'tabler:bulb'"
+            class="w-3.5 h-3.5"
+          />
+          {{ tip.kind === 'QUESTION' ? 'Question' : 'Tip' }}
         </div>
       </div>
 

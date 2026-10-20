@@ -11,6 +11,7 @@ export const API_ROUTES = {
     LOGIN: '/users/login',
     LOGIN_2FA: '/users/login/2fa',
     PROFILE: '/users/profile',
+    PERKS: '/users/me/perks',
     PASSWORD: '/users/profile/password',
     AVATAR: '/users/profile/avatar',
     PUBLIC_PROFILE: (id: number) => `/users/${id}`,

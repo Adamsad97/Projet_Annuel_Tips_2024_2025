@@ -2,6 +2,7 @@
 import ProfilPicture from '@/components/ProfilPicture.vue';
 import XpProgressBar from '@/components/gamification/XpProgressBar.vue';
 import BadgeDisplay from '@/components/gamification/BadgeDisplay.vue';
+import GradePerksCard from '@/components/gamification/GradePerksCard.vue';
 
 definePageMeta({
   middleware: 'auth',
@@ -272,6 +273,9 @@ const xpSteps = [
         </div>
       </div>
     </section>
+
+    <!-- Avantages débloqués par le grade -->
+    <GradePerksCard />
 
     <!-- Roadmap XP & règles -->
     <section

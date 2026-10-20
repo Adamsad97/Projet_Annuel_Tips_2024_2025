@@ -8,6 +8,7 @@ export interface Author {
 
 export interface Tip {
   id: number | string;
+  kind?: 'TIP' | 'QUESTION';
   title: string;
   description: string;
   content?: string;

@@ -1,4 +1,7 @@
+export type TipKind = 'TIP' | 'QUESTION';
+
 export interface TipFormData {
+  kind: TipKind;
   title: string;
   description: string;
   content: string;
@@ -14,6 +17,7 @@ export interface TipFormData {
 // Forme d'un tip renvoyé par l'API (GET /tips, GET /tips/:id)
 export interface ApiTip {
   id: number;
+  kind: TipKind;
   title: string;
   content: string | null;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -85,4 +89,25 @@ export interface ApiComment {
   score: number;
   userVote: VoteValue;
   replies: ApiComment[];
+}
+
+export interface GradePerks {
+  tipsPerDay: number;
+  maxContentLength: number;
+  maxImages: number;
+  canAddLocation: boolean;
+}
+
+// Avantages débloqués par le grade (GET /users/me/perks)
+export interface UserPerks {
+  xp: number;
+  isStaff: boolean;
+  grade: { name: string; rank: number } | null;
+  perks: GradePerks;
+  publishedToday: number;
+  remainingToday: number;
+  canPublishTip: boolean;
+  minXpToPublishTip: number;
+  nextGrade: { name: string; xpRequired: number; xpMissing: number; perks: GradePerks } | null;
+  enforced: boolean;
 }

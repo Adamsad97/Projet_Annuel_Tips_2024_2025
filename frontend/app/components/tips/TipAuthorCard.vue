@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ProfilPicture from '~/components/ProfilPicture.vue';
-import type { Author } from '../../../types/index';
+import type { Author } from '~/types';
 import { ROUTES } from '~/config/routes';
 
 defineProps<{
