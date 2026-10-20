@@ -217,6 +217,15 @@ Le Dockerfile est multi-stage :
 
 Au demarrage, l'image de production lance `npm run start:prod` : les migrations en attente sont appliquees (`prisma migrate deploy`), puis le serveur demarre. Prisma pose un verrou, donc plusieurs instances peuvent demarrer en meme temps sans risque. Un redemarrage sans nouvelle migration n'applique rien.
 
+La migration `20261020190000_reference_data` insere les donnees de reference (grades, badges, categories, reglages du chatbot) : une base de production neuve est donc utilisable sans le seed, qui ne sert qu'aux comptes et tips de demonstration. Les lignes deja presentes ne sont pas modifiees.
+
+Premier administrateur d'une nouvelle installation : creer le compte par l'inscription, puis
+
+```bash
+docker exec backend-prod npm run admin:promote -- email@du-compte.fr
+# hors Docker : npm run admin:promote -- email@du-compte.fr (apres npm run build)
+```
+
 ### Production sans Docker
 
 ```bash

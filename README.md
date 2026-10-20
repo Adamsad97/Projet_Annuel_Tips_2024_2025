@@ -10,34 +10,82 @@ Repository : https://github.com/Froggys974/projet-annuel-4IWJ-tips
 - **Backend** : Node.js 24, Express 5, TypeScript, Prisma 7, PostgreSQL 16, JWT, Zod, Socket.io, Jest + Supertest
 - **Infra** : Docker Compose (PostgreSQL, backend, Adminer), GitHub Actions (tests, lint, format)
 
-## Lancer le projet
+## Lancer et tester le projet
 
-Prérequis : Node.js 20+, npm 10+, Docker Desktop lancé.
+Prérequis : Node.js 20+, npm 10+, Docker Desktop **lancé**. Les commandes fonctionnent dans un terminal Bash comme dans PowerShell.
+
+**Étape 1 : récupérer le projet**
 
 ```bash
-# 1. Cloner
 git clone https://github.com/Froggys974/projet-annuel-4IWJ-tips.git
 cd projet-annuel-4IWJ-tips
+```
 
-# 2. Variables d'environnement
+**Étape 2 : créer les fichiers de configuration**
+
+```bash
 cp backend/.env.sample backend/.env
 cp frontend/.env.example frontend/.env
+```
 
-# 3. Dépendances (frontend + backend, utile aussi pour l'auto-complétion Prisma dans l'IDE)
+Les valeurs par défaut conviennent pour le développement, rien à modifier.
+
+**Étape 3 : installer les dépendances**
+
+```bash
 npm run install:all
 npm run backend:fix-IDE
+```
 
-# 4. Backend + base de données dans Docker (build, démarrage, migrations, données de test)
+**Étape 4 : démarrer la base de données et l'API (Docker)**
+
+```bash
 npm run docker:dev
+```
 
-# 5. Frontend en local (dans un second terminal)
+Construit l'image, démarre PostgreSQL, l'API et Adminer, applique les migrations et crée les données de test. Attendre le message `seeding complete`.
+
+**Étape 5 : démarrer le site (dans un second terminal, depuis la racine du projet)**
+
+```bash
 cd frontend
 npm run dev
 ```
 
-Le premier démarrage du frontend peut prendre 1 à 2 minutes.
+Le premier démarrage peut prendre 1 à 2 minutes. Attendre la ligne `Local: http://localhost:3000/`.
 
-Les fois suivantes : `npm run docker:up` puis `cd frontend && npm run dev`.
+**Étape 6 : ouvrir le site**
+
+Ouvrir http://localhost:3000 et se connecter avec un des [comptes de test](#comptes-de-test).
+
+**Étape 7 : parcours de test conseillé**
+
+1. **Visiteur** (sans connexion) : accueil, liste des tips (seul le début du contenu est visible), carte, page « À propos » (statistiques réelles).
+2. **alice@example.com** : publier un tip (« Partager un Tip »), il apparaît « En attente » dans « Mes tips ».
+3. **moderator@tipstop.com** (autre navigateur ou navigation privée) : page « Modération », valider le tip. Alice reçoit une notification en temps réel.
+4. **Interactions** (alice ou bob) : commenter, voter, signaler, suivre un membre depuis son profil, envoyer un message privé.
+5. **charlie@example.com** (15 XP) : publier un tip est bloqué tant qu'il n'a pas 20 XP, il peut seulement poser une question.
+6. **Profil et paramètres** : XP, grade et badges ; modifier son profil, activer la double authentification (2FA).
+7. **admin@tipstop.com** : page « Administration » (utilisateurs et sanctions, indice de confiance, contestations, messages de contact, badges et grades, chatbot, publicité, fonctionnalités A/B, logs).
+
+**Étape 8 : lancer les tests automatisés (Docker toujours démarré)**
+
+```bash
+npm run backend:test
+npm run lint
+```
+
+`backend:test` utilise une base dédiée (`postgres-test`) et ne touche pas aux données de l'étape 4.
+
+**Étape 9 : arrêter le projet**
+
+`Ctrl + C` dans le terminal du site, puis :
+
+```bash
+npm run docker:down
+```
+
+Pour relancer plus tard : `npm run docker:up`, puis `cd frontend` et `npm run dev`.
 
 ### Après un `git pull`
 
@@ -72,6 +120,56 @@ Créés par les seeds (`npm run db:seed`) :
 
 Le compte admin donne accès à l'espace d'administration (`/admin`) : utilisateurs, indice de confiance, messages de contact, chatbot, publicité (tips et défis sponsorisés), fonctionnalités expérimentales (A/B) et logs d'erreurs. Le compte modérateur donne accès à la file de modération (`/moderation`).
 Charlie (15 XP) ne peut encore que poser des questions : publier un tip demande 20 XP. Un compte tout juste créé est dans le même cas.
+
+## Lancer la version de production (Docker)
+
+Toute l'application (PostgreSQL, API, site, nginx) tourne dans Docker, derrière nginx sur le port **80** (qui doit être libre). Elle démarre sans données de démonstration, comme une vraie installation.
+
+**Étape 1 : créer le fichier de configuration de production (non versionné)**
+
+```bash
+cp backend/.env.sample backend/.env.production
+```
+
+**Étape 2 : générer deux secrets aléatoires**
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+**Étape 3 : modifier `backend/.env.production`**
+
+- `NODE_ENV=production`
+- `JWT_SECRET=` le premier secret, `REFRESH_SECRET=` le second.
+
+Garder les autres lignes. L'API refuse de démarrer en production avec les secrets d'exemple (`change_me…`).
+
+**Étape 4 : construire et démarrer**
+
+```bash
+docker compose -f docker-compose.prod.yaml up -d --build
+```
+
+Au démarrage, l'API applique les migrations, données de référence comprises (grades, badges, catégories, chatbot).
+
+**Étape 5 : créer le premier administrateur**
+
+S'inscrire sur http://localhost, puis donner le rôle administrateur à ce compte :
+
+```bash
+docker exec backend-prod npm run admin:promote -- email@du-compte.fr
+```
+
+Se déconnecter puis se reconnecter : le menu « Administration » apparaît.
+
+**Étape 6 : arrêter**
+
+```bash
+docker compose -f docker-compose.prod.yaml down
+```
+
+Sur un vrai serveur, indiquer l'adresse publique du site (liens canoniques, sitemap) avant l'étape 4 : `SITE_URL=https://mon-domaine.fr` dans le terminal (PowerShell : `$env:SITE_URL="https://mon-domaine.fr"`).
 
 ## Scripts utiles
 
