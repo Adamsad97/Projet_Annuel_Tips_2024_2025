@@ -83,6 +83,16 @@ All routes prefixed with `/api`.
 **GET /api/admin/features**, **PATCH /api/admin/features/:key** - Feature flags / A/B tests (admin)
 **GET /api/admin/logs**, **DELETE /api/admin/logs** - Centralized error logs (admin)
 
+## Sponsoring
+
+**GET /api/ads/placement** - Sponsored tip to display (?categoryId=&exclude=)
+**GET /api/ads/:id/click** - Count click and redirect to the partner
+**GET /api/challenges** - Active sponsored challenges
+**GET|POST /api/admin/ads**, **PATCH|DELETE /api/admin/ads/:id** - Campaigns (admin)
+**POST /api/admin/ads/image** - Upload campaign image (admin)
+**GET /api/admin/ads/:id/stats**, **GET /api/admin/ads/:id/stats.csv** - Campaign statistics (admin)
+**GET|POST /api/admin/challenges**, **PATCH|DELETE /api/admin/challenges/:id** - Sponsored challenges (admin)
+
 ## Uploads
 
 **POST /api/uploads/tips** - Upload tip images (multipart)
@@ -432,6 +442,52 @@ Table `ErrorLog`, consultee dans l'onglet Logs de l'admin.
 - **Navigateur :** `POST /api/logs/client` (auth optionnelle, 10 par minute). **Body:** `message`, `stack`, `path` et `context`, tous optionnels sauf `message`. Le frontend y envoie les erreurs Vue, les erreurs `window` et les promesses rejetees, au plus 10 par session et sans doublon.
 - **`GET /api/admin/logs`** : **Query params:** `source` (`server` ou `client`), `q` (recherche dans le message ou la route), `skip`, `take`. Reponse `{ items, total, last24h }`.
 - **`DELETE /api/admin/logs?olderThanDays=30`** : purge (0 = tout supprimer).
+
+---
+
+## Publicite : tips sponsorises et defis sponsorises
+
+Code : `backend/src/modules/sponsoring/`.
+
+Principes :
+
+- publicite native, toujours marquee « Sponsorise » ;
+- aucune pub dans la messagerie, la moderation ou l'administration ;
+- statistiques agregees par jour (affichages, clics), sans suivi individuel ni donnee transmise au partenaire ;
+- coupure globale ou test A/B via le flag `ads`.
+
+### Tips sponsorises
+
+**`GET /api/ads/placement`** (auth optionnelle)
+
+- **Query params:** `categoryId` (categorie consultee), `exclude` (ids deja affiches, separes par des virgules).
+- **Reponse:** `{ id, sponsorName, title, body, imageUrl }`, ou `null` s'il n'y a rien a afficher ou si le flag `ads` est coupe. Le ciblage, le budget et l'URL du partenaire ne sont jamais exposes.
+- **Campagnes eligibles :** statut `ACTIVE`, periode en cours, budget d'affichages non atteint, audience compatible (`ALL`, `MEMBERS` ou `GUESTS`).
+- **Ciblage par categorie** (liste vide = toutes) : on compare avec la categorie consultee ou, a defaut, avec les categories suivies par le membre.
+- **Ciblage par grade** (liste vide = tous) : on compare avec le grade du membre.
+- **Choix :** la priorite la plus haute d'abord, avec une rotation aleatoire entre campagnes de meme priorite.
+- **Comptage :** un affichage est compte quand la pub est servie.
+
+**`GET /api/ads/:id/click`** : compte le clic puis redirige (302) vers l'URL du partenaire, en `https` uniquement. Les cartes utilisent `rel="sponsored noopener noreferrer"`.
+
+**Administration**
+
+- `POST /api/admin/ads` : `name`, `sponsorName`, `title`, `body`, `targetUrl` (https), `imageUrl` (renvoye par `POST /api/admin/ads/image`), `status`, `audience`, `targetCategoryIds`, `targetGradeIds`, `startsAt`, `endsAt` (optionnel), `maxImpressions` (budget, optionnel), `priority`.
+- `GET /api/admin/ads/:id/stats` : `{ campaign, totals: { impressions, clicks, ctr }, days }`.
+- `GET /api/admin/ads/:id/stats.csv` : rapport pour le partenaire (separateur `;`, encodage UTF-8 avec BOM pour Excel).
+
+### Defis sponsorises
+
+**`GET /api/challenges`** (auth optionnelle) : defis en cours, avec `rewardsGiven`, `remainingRewards` et `completedByMe`.
+
+**Recompense**
+
+- Elle est versee automatiquement quand un moderateur publie un **tip** (pas une question) de la categorie du defi.
+- Le tip doit avoir ete cree pendant le defi.
+- Le bonus `xpBonus` est verse une seule fois par membre et par defi (contrainte unique), dans la limite de `maxRewards`.
+- Le membre recoit une notification `CHALLENGE`.
+
+**Administration :** `sponsorName`, `title`, `description`, `categoryId`, `xpBonus` (1-1000), `startsAt`, `endsAt`, `maxRewards` (optionnel), `isActive`, `campaignId` (campagne associee, optionnel).
 
 ---
 
