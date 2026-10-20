@@ -138,7 +138,6 @@ describe('Trust index Integration', () => {
   it('should block grade promotion for untrusted accounts', async () => {
     const troll = await createUser('troll');
     const member = await createUser('member');
-    const novice = await prisma.grade.findUniqueOrThrow({ where: { name: 'Novice' } });
 
     await prisma.user.update({
       where: { id: troll.id },
@@ -148,12 +147,11 @@ describe('Trust index Integration', () => {
     await xpService.addXp(troll.id, XpAction.TIP_APPROVED, 60);
     await xpService.addXp(member.id, XpAction.TIP_APPROVED, 60);
 
-    expect((await prisma.user.findUniqueOrThrow({ where: { id: troll.id } })).gradeId).not.toBe(
-      novice.id,
-    );
-    expect((await prisma.user.findUniqueOrThrow({ where: { id: member.id } })).gradeId).toBe(
-      novice.id,
-    );
+    // Plusieurs grades peuvent partager le seuil de 50 XP (données de référence + grades de test)
+    const gradeOf = async (id: number) =>
+      (await prisma.user.findUniqueOrThrow({ where: { id }, include: { grade: true } })).grade;
+    expect((await gradeOf(troll.id))?.xpRequired ?? 0).toBe(0);
+    expect((await gradeOf(member.id))?.xpRequired).toBe(50);
   });
 
   it('should automatically promote a trusted and active member to moderator', async () => {

@@ -23,7 +23,6 @@ describe('SocketService', () => {
       const tipData = {
         tipId: 123,
         title: 'Test Tip',
-        content: 'Test content',
         author: { id: 1, username: 'testuser' },
         category: { id: 2, name: 'Tech' },
         createdAt: new Date(),

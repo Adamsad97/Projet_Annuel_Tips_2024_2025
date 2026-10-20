@@ -19,6 +19,7 @@ prisma/*.db-journal
 .env.docker.test
 .env.*.local
 .env.docker
+.env.production
 
 # Logs
 /logs/

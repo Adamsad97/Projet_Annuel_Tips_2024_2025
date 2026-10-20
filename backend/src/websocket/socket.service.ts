@@ -6,10 +6,10 @@ import { verifyAccessTokenOrThrow } from '../utils/jwt.util';
 // Room privée d'un utilisateur : seuls ses sockets authentifiés la rejoignent
 export const userRoom = (userId: number): string => `user:${userId}`;
 
+// Diffusé à tous (visiteurs compris) : jamais le contenu du tip, réservé aux membres
 export interface TipApprovedEvent {
   tipId: number;
   title: string;
-  content: string;
   author: {
     id: number;
     username: string;

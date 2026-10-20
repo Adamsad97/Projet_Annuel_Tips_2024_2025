@@ -14,11 +14,24 @@ function getRequiredEnv(key: string, fallback?: string): string {
   return value;
 }
 
+const MIN_SECRET_LENGTH = 32;
+
+// En production, un secret d'exemple (« change_me ») ou trop court permettrait de forger des jetons
+function getSecret(key: string, testFallback: string): string {
+  const value = getRequiredEnv(key, isTest ? testFallback : undefined);
+  if (isProduction && (value.includes('change_me') || value.length < MIN_SECRET_LENGTH)) {
+    throw new Error(
+      `${key} must be a random value of at least ${MIN_SECRET_LENGTH} characters in production`,
+    );
+  }
+  return value;
+}
+
 export const env = {
   PORT: process.env.PORT || 4000,
   DATABASE_URL: getRequiredEnv('DATABASE_URL'),
-  JWT_SECRET: getRequiredEnv('JWT_SECRET', isTest ? 'test-secret' : undefined),
-  REFRESH_SECRET: getRequiredEnv('REFRESH_SECRET', isTest ? 'test-refresh-secret' : undefined),
+  JWT_SECRET: getSecret('JWT_SECRET', 'test-secret'),
+  REFRESH_SECRET: getSecret('REFRESH_SECRET', 'test-refresh-secret'),
   HOST: process.env.HOST || 'localhost',
   NODE_ENV: process.env.NODE_ENV || 'development',
   CORS_ORIGIN: process.env.CORS_ORIGIN,

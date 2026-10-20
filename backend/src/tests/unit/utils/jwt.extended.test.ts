@@ -1,6 +1,5 @@
 import { createAccessToken, createRefreshToken } from '../../../utils/jwt.util';
 
-
 describe('JWT Utils - Token Creation', () => {
   describe('createAccessToken', () => {
     it('cree token access valide', () => {

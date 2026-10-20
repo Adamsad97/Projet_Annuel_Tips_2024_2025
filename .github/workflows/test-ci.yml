@@ -114,7 +114,6 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-        continue-on-error: true
 
   type-check:
     name: TypeScript Type Check

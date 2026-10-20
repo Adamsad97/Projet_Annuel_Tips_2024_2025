@@ -10,6 +10,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "start:prod": "prisma migrate deploy && node dist/server.js",
+    "admin:promote": "node dist/scripts/promoteAdmin.js",
+    "admin:promote:dev": "ts-node src/scripts/promoteAdmin.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:prod": "prisma migrate deploy",

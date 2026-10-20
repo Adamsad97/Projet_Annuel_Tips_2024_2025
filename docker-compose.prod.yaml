@@ -1,3 +1,6 @@
+# Projet Docker distinct du développement : la prod ne remplace pas les conteneurs de dev
+name: projet-tips-prod
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -60,6 +63,9 @@ services:
       NUXT_PUBLIC_API_BASE_URL: /api
       NUXT_PUBLIC_BACKEND_URL: ""
       NUXT_PUBLIC_ADMINER_URL: ""
+      # Adresse publique du site (liens canoniques, sitemap, robots.txt)
+      NUXT_PUBLIC_SITE_URL: ${SITE_URL:-http://localhost}
+      NUXT_SITE_URL: ${SITE_URL:-http://localhost}
       # Rendu serveur : appels /api relayés vers le backend interne
       NUXT_API_PROXY_TARGET: http://backend:3001
 

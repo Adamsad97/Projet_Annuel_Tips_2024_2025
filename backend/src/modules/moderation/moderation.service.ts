@@ -2,7 +2,7 @@ import { moderationRepository } from './moderation.repository';
 import { AppError } from '../../utils/appError.util';
 import { prisma } from '../../db/prisma';
 import { xpService } from '../xp/xp.service';
-import { XpAction } from '../../types/xp.types';
+import { XP_REWARDS, XpAction } from '../../types/xp.types';
 import { socketService } from '../../websocket/socket.service';
 import { notificationService } from '../notifications/notification.service';
 import { trustService } from '../trust/trust.service';
@@ -154,11 +154,16 @@ export class ModerationService {
       metadata: { tipId },
     });
     await this.rewardModerator(moderatorId);
+    await notificationService.notify(tip.userId, {
+      type: 'MODERATION',
+      title: `Votre tip « ${tip.title} » a été publié`,
+      body: `+${XP_REWARDS[XpAction.TIP_APPROVED]} XP`,
+      link: `/tips/${tip.id}`,
+    });
 
     socketService.emitTipApproved({
       tipId: tip.id,
       title: tip.title,
-      content: tip.content || '',
       author: {
         id: tip.user.id,
         username: tip.user.username,

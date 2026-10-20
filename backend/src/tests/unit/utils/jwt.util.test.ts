@@ -7,7 +7,7 @@ describe('jwt.util', () => {
     expect(typeof token).toBe('string');
     const decoded = verifyToken(token);
     expect(decoded).toBeDefined();
-    
+
     if (decoded && typeof decoded === 'object') {
       expect('sub' in decoded && decoded.sub).toBe(payload.sub);
     }

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  // ESLint analyse aussi les tests, le seed et les fichiers de configuration
+  "include": ["src/**/*", "*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

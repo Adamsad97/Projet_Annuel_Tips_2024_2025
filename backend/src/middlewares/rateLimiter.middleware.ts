@@ -1,16 +1,14 @@
 import rateLimit from 'express-rate-limit';
 import type { Request, Response } from 'express';
 
-const getClientIp = (req: Request): string => {
+// IP du visiteur. Derrière nginx, X-Forwarded-For vaut « valeurs envoyées par le client, IP vue
+// par nginx » : seule la dernière entrée est fiable (les précédentes peuvent être falsifiées pour
+// contourner la limite). Le rendu serveur de Nuxt retransmet cet en-tête tel quel.
+export const getClientIp = (req: Request): string => {
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded && typeof forwarded === 'string') {
-    const firstIp = forwarded.split(',')[0];
-    return firstIp ? firstIp.trim() : 'unknown';
-  }
-
-  const realIp = req.headers['x-real-ip'];
-  if (realIp && typeof realIp === 'string') {
-    return realIp;
+    const lastIp = forwarded.split(',').pop()?.trim();
+    if (lastIp) return lastIp;
   }
 
   return req.ip || req.socket.remoteAddress || 'unknown';
