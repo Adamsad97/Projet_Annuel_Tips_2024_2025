@@ -25,8 +25,13 @@ All routes prefixed with `/api`.
 **GET /api/tips** - List tips
 **POST /api/tips** - Create tip
 **GET /api/tips/:id** - Tip details
-**PUT /api/tips/:id** - Update tip
+**PATCH /api/tips/:id** - Update tip
 **DELETE /api/tips/:id** - Delete tip
+**GET /api/tips/tags/all** - List category names
+
+## Uploads
+
+**POST /api/uploads/tips** - Upload tip images (multipart)
 
 ## Moderation
 
@@ -50,9 +55,16 @@ Base: `/api/tips`
 
 Lister les tips.
 
-**Query params:** `status`, `categoryId`, `limit`, `skip`
+Seuls les tips `APPROVED` sont renvoyes.
 
-**Reponse (200):** Liste des tips avec auteur, categories, votes
+**Query params:**
+
+- `q` : recherche dans le titre et le contenu
+- `category` : nom de categorie (insensible a la casse)
+- `located=true` : uniquement les tips geolocalises (utilise par la carte)
+- `skip`, `take` (max 100)
+
+**Reponse (200):** Liste des tips avec auteur, categories, compteurs
 
 ### GET /api/tips/:id
 
@@ -66,15 +78,21 @@ Creer un nouveau tip (statut PENDING).
 
 **Authentification:** Requise
 
-**Body:** `title`, `content`, `categoryIds`, `latitude`, `longitude`, `resources`, `images`
+**Body:**
+
+- `title` (5-200 caracteres), `content` (min 10)
+- `categories` : noms de categories existantes (max 5), sinon 400
+- `address` (max 255)
+- `latitude` / `longitude` : a fournir ensemble
+- `images` : chemins renvoyes par `POST /api/uploads/tips` (max 5)
 
 **Reponse (201):** Tip cree
 
-### PUT /api/tips/:id
+### PATCH /api/tips/:id
 
 Modifier un tip (auteur uniquement).
 
-**Body:** Champs a modifier
+**Body:** Memes champs que la creation, tous optionnels. `categories` remplace la liste existante.
 
 **Reponse (200):** Tip modifie
 
@@ -83,6 +101,26 @@ Modifier un tip (auteur uniquement).
 Supprimer un tip (auteur ou moderateur).
 
 **Reponse (200):** Confirmation
+
+### GET /api/tips/tags/all
+
+Liste des noms de categories (table `Category`).
+
+---
+
+## Routes uploads
+
+### POST /api/uploads/tips
+
+Uploader des images de tip avant de creer le tip.
+
+**Authentification:** Requise
+
+**Body (multipart/form-data):** champ `images`, 5 fichiers max, 5 Mo max chacun, jpeg/png/webp/gif
+
+**Reponse (201):** `data: ["/uploads/tips/<uuid>.jpg", ...]`
+
+Les fichiers sont stockes dans `backend/uploads/` et servis en lecture sur `GET /api/uploads/...`.
 
 ---
 
