@@ -130,9 +130,9 @@ NUXT_PUBLIC_SITE_ENV=development
 Le projet inclut un Dockerfile multi-stage pour production:
 
 1. Build stage: compilation Nuxt
-2. Production stage: serveur Nginx + Node
+2. Production stage: serveur Nuxt (Node) seul
 
-Configuration Nginx fournie à la racine `/nginx/default.conf`.
+Le routage (API, WebSocket, frontend) est assuré par le nginx principal (`nginx.conf` à la racine du projet). Voir [doc/run-project.md](./doc/run-project.md).
 
 ## Liens utiles
 

@@ -207,12 +207,18 @@ docker run -p 3000:3000 \
 
 ### Nginx
 
-Le projet inclut une config Nginx dans `/nginx/default.conf`:
+En production, un seul nginx (`nginx.conf` à la racine du projet) sert de point d'entrée :
 
-- Reverse proxy vers Node.js
-- Gestion des assets statiques
-- Compression gzip
-- Cache headers
+- `/api` et `/socket.io` vers le backend ;
+- `/api/_nuxt_icon` (icônes servies par Nuxt) et tout le reste vers le serveur Nuxt.
+
+Variables de production du frontend (voir `docker-compose.prod.yaml`) :
+
+| Variable | Valeur | Rôle |
+|---|---|---|
+| `NUXT_PUBLIC_API_BASE_URL` | `/api` | appels API du navigateur sur le même domaine |
+| `NUXT_PUBLIC_BACKEND_URL` | vide | Socket.io sur le même domaine |
+| `NUXT_API_PROXY_TARGET` | `http://backend:3001` | le rendu serveur relaie `/api` vers le backend interne |
 
 ## Environnements
 

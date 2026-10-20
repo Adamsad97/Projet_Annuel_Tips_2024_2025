@@ -27,7 +27,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
+      // Dev : URL absolue du backend ; production : /api (même domaine, routé par nginx)
       apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL,
+      // Serveur Socket.io ; vide = même domaine que la page (production derrière nginx)
+      backendUrl: process.env.NUXT_PUBLIC_BACKEND_URL || '',
       // Interface d'administration de la base (Adminer), à ne renseigner qu'en développement
       adminerUrl: process.env.NUXT_PUBLIC_ADMINER_URL || '',
     },

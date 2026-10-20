@@ -56,7 +56,12 @@ services:
       - projet-tips-prod
     environment:
       NODE_ENV: production
-      NUXT_PUBLIC_API_BASE: http://backend:3001/api
+      # Navigateur : API et temps réel sur le même domaine (routés par nginx)
+      NUXT_PUBLIC_API_BASE_URL: /api
+      NUXT_PUBLIC_BACKEND_URL: ""
+      NUXT_PUBLIC_ADMINER_URL: ""
+      # Rendu serveur : appels /api relayés vers le backend interne
+      NUXT_API_PROXY_TARGET: http://backend:3001
 
   nginx:
     image: nginx:1.27-alpine
@@ -66,7 +71,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # nginx.conf ne contient qu'un bloc server : c'est une config de site (conf.d)
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
     depends_on:
       - backend

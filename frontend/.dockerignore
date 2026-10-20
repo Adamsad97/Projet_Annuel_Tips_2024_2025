@@ -1,0 +1,17 @@
+# Dépendances et builds locaux : réinstallés / reconstruits dans l'image
+node_modules
+.nuxt
+.output
+.data
+.cache
+dist
+
+# Configuration locale (les variables de production sont passées au conteneur)
+.env
+.env.*
+!.env.example
+
+# Divers
+.git
+*.log
+coverage

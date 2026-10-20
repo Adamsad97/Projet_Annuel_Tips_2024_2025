@@ -11,7 +11,8 @@ function getSocket(): Socket | null {
 
   if (!socket) {
     const config = useRuntimeConfig();
-    const backendUrl = (config.public.backendUrl as string) || 'http://localhost:3001';
+    // Vide en production : connexion au même domaine (nginx relaie /socket.io)
+    const backendUrl = (config.public.backendUrl as string) || undefined;
 
     socket = io(backendUrl, {
       transports: ['websocket', 'polling'],
