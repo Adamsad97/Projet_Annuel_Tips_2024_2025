@@ -7,6 +7,8 @@ import { prisma } from '../../db/prisma';
 import { isBanned, formatSanctionEnd } from '../../utils/accountStatus.util';
 import { removeUploadedFile } from '../../utils/imageUpload.util';
 import type { ChangePasswordInput, UpdateProfileInput } from './user.validation';
+import { notificationService } from '../notifications/notification.service';
+import { badgeService } from '../badges/badge.service';
 
 // Champs jamais renvoyés au client : indice de confiance (réservé à l'admin) et secrets 2FA
 type PrivateUserFields = 'password' | 'trustIndex' | 'twoFactorSecret' | 'twoFactorBackupCodes';
@@ -147,15 +149,19 @@ export const userService = {
   },
 
   // Profil visible par les autres membres : pas d'email ni d'indice de confiance
-  async getPublicProfile(id: number) {
+  async getPublicProfile(id: number, viewerId: number) {
     const profile = await userRepository.findPublicProfile(id, RECENT_TIPS_ON_PROFILE);
     if (!profile) {
       throw new AppError('user not found', 404);
     }
 
-    const [publishedTips, upvotesReceived] = await Promise.all([
+    const [publishedTips, upvotesReceived, followers, following] = await Promise.all([
       prisma.tip.count({ where: { userId: id, status: 'APPROVED' } }),
       prisma.vote.count({ where: { value: 1, tip: { userId: id } } }),
+      prisma.userSubscription.count({ where: { followedId: id } }),
+      prisma.userSubscription.findUnique({
+        where: { followerId_followedId: { followerId: viewerId, followedId: id } },
+      }),
     ]);
 
     const { moderator, admin, userBadges, tips, _count, ...identity } = profile;
@@ -168,8 +174,55 @@ export const userService = {
         publishedTips,
         comments: _count.comments,
         upvotesReceived,
+        followers,
       },
+      isFollowing: Boolean(following),
       recentTips: tips,
     };
+  },
+
+  // Abonnement à un membre : ses nouveaux tips publiés seront notifiés à l'abonné
+  async follow(followerId: number, followedId: number) {
+    if (followerId === followedId) {
+      throw new AppError('you cannot follow yourself', 400);
+    }
+    const followed = await prisma.user.findUnique({ where: { id: followedId } });
+    if (!followed) {
+      throw new AppError('user not found', 404);
+    }
+
+    const existing = await prisma.userSubscription.findUnique({
+      where: { followerId_followedId: { followerId, followedId } },
+    });
+    if (!existing) {
+      const follower = await prisma.user.findUniqueOrThrow({
+        where: { id: followerId },
+        select: { username: true },
+      });
+      await prisma.userSubscription.create({ data: { followerId, followedId } });
+      await notificationService.notify(followedId, {
+        type: 'NEW_FOLLOWER',
+        title: `${follower.username} s'est abonné à vous`,
+        link: `/users/${followerId}`,
+      });
+      await badgeService.checkAndAwardBadges(followedId);
+    }
+
+    return this.followState(followerId, followedId);
+  },
+
+  async unfollow(followerId: number, followedId: number) {
+    await prisma.userSubscription.deleteMany({ where: { followerId, followedId } });
+    return this.followState(followerId, followedId);
+  },
+
+  async followState(followerId: number, followedId: number) {
+    const [followers, following] = await Promise.all([
+      prisma.userSubscription.count({ where: { followedId } }),
+      prisma.userSubscription.findUnique({
+        where: { followerId_followedId: { followerId, followedId } },
+      }),
+    ]);
+    return { isFollowing: Boolean(following), followers };
   },
 };

@@ -43,6 +43,7 @@ export class CategoryService {
   }
 
   // Appelé à la publication d'un tip : prévient (en temps réel) les abonnés de ses catégories
+  // et les abonnés de son auteur
   async notifyFollowersOfNewTip(tip: {
     id: number;
     title: string;
@@ -50,31 +51,42 @@ export class CategoryService {
     categories: Array<{ category: { id: number; name: string } }>;
   }): Promise<number> {
     const categoryIds = tip.categories.map((c) => c.category.id);
-    if (categoryIds.length === 0) return 0;
 
-    const follows = await prisma.categoryFollow.findMany({
-      where: { categoryId: { in: categoryIds }, userId: { not: tip.userId } },
-      include: { category: { select: { name: true } } },
-    });
+    const [follows, authorFollowers, author] = await Promise.all([
+      categoryIds.length > 0
+        ? prisma.categoryFollow.findMany({
+            where: { categoryId: { in: categoryIds }, userId: { not: tip.userId } },
+            include: { category: { select: { name: true } } },
+          })
+        : Promise.resolve([]),
+      prisma.userSubscription.findMany({
+        where: { followedId: tip.userId },
+        select: { followerId: true },
+      }),
+      prisma.user.findUnique({ where: { id: tip.userId }, select: { username: true } }),
+    ]);
 
-    // Un abonné à plusieurs catégories du tip ne reçoit qu'une notification
-    const categoryByUser = new Map<number, string>();
+    // Un abonné à plusieurs catégories (ou à l'auteur) ne reçoit qu'une notification
+    const titleByUser = new Map<number, string>();
+    for (const { followerId } of authorFollowers) {
+      titleByUser.set(followerId, `Nouveau tip de ${author?.username ?? 'un membre suivi'}`);
+    }
     for (const follow of follows) {
-      if (!categoryByUser.has(follow.userId)) {
-        categoryByUser.set(follow.userId, follow.category.name);
+      if (!titleByUser.has(follow.userId)) {
+        titleByUser.set(follow.userId, `Nouveau tip dans ${follow.category.name}`);
       }
     }
 
-    for (const [userId, categoryName] of categoryByUser) {
+    for (const [userId, title] of titleByUser) {
       await notificationService.notify(userId, {
         type: 'NEW_TIP',
-        title: `Nouveau tip dans ${categoryName}`,
+        title,
         body: tip.title,
         link: `/tips/${tip.id}`,
       });
     }
 
-    return categoryByUser.size;
+    return titleByUser.size;
   }
 
   private async findCategoryOrThrow(id: number) {

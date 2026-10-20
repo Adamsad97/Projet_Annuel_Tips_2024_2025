@@ -20,6 +20,9 @@ import { gamificationService } from '../gamification/gamification.service';
 import { imageUpload, toUploadPath } from '../../utils/imageUpload.util';
 import { parseIdParam } from '../../utils/params.util';
 
+const LEADERBOARD_SORTS = ['xp', 'tips', 'votes'] as const;
+const LEADERBOARD_PERIODS = ['week', 'month', 'all'] as const;
+
 type RegisterBody = z.infer<typeof registerSchema>;
 type LoginBody = z.infer<typeof loginSchema>;
 
@@ -79,10 +82,12 @@ export class UserController {
 
   getLeaderboard = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const skip = parseInt(req.query.skip as string) || 0;
-      const take = parseInt(req.query.take as string) || 10;
+      const skip = Math.max(0, parseInt(req.query.skip as string) || 0);
+      const take = Math.min(100, Math.max(1, parseInt(req.query.take as string) || 10));
+      const sort = LEADERBOARD_SORTS.find((value) => value === req.query.sort) ?? 'xp';
+      const period = LEADERBOARD_PERIODS.find((value) => value === req.query.period) ?? 'all';
 
-      const leaderboard = await xpService.getLeaderboard(take, skip);
+      const leaderboard = await xpService.getLeaderboard({ sort, period, take, skip });
       res.status(200).json({ success: true, data: leaderboard });
     } catch (e) {
       next(e);
@@ -144,11 +149,31 @@ export class UserController {
     }
   };
 
-  getPublicProfile = async (req: Request, res: Response, next: NextFunction) => {
+  getPublicProfile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       const id = parseIdParam(req.params.id as string | undefined, 'user id');
-      const profile = await userService.getPublicProfile(id);
+      const profile = await userService.getPublicProfile(id, req.user!.id);
       res.status(200).json({ success: true, data: profile });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  follow = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const id = parseIdParam(req.params.id as string | undefined, 'user id');
+      const data = await userService.follow(req.user!.id, id);
+      res.status(200).json({ success: true, data });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  unfollow = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const id = parseIdParam(req.params.id as string | undefined, 'user id');
+      const data = await userService.unfollow(req.user!.id, id);
+      res.status(200).json({ success: true, data });
     } catch (e) {
       next(e);
     }
@@ -197,6 +222,9 @@ export class UserController {
       this.uploadAvatar,
     );
     router.delete(ROUTES.users.avatar, requireAuth, this.removeAvatar);
+
+    router.post(ROUTES.users.follow, requireAuth, this.follow);
+    router.delete(ROUTES.users.follow, requireAuth, this.unfollow);
 
     // En dernier : /:id ne doit pas masquer les routes ci-dessus
     router.get(ROUTES.users.publicProfile, requireAuth, this.getPublicProfile);

@@ -9,6 +9,7 @@ import { XpAction } from '../../types/xp.types';
 import type { CreateTipDto, GetTipsQuery, UpdateTipDto } from './tip.validation';
 import { isStaff } from '../../utils/roles.util';
 import { gamificationService } from '../gamification/gamification.service';
+import { tipAuthorSelect } from './tip.select';
 
 // Longueur du contenu visible par un visiteur non connecté
 export const PREVIEW_LENGTH = 200;
@@ -131,7 +132,7 @@ export const tipService = {
         ],
       },
       include: {
-        user: { select: { id: true, firstname: true, lastname: true, avatarProfile: true } },
+        user: { select: tipAuthorSelect },
         categories: { include: { category: true } },
         _count: {
           select: {

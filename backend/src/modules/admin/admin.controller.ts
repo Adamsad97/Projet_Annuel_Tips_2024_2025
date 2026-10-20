@@ -6,6 +6,7 @@ import { trustService } from '../trust/trust.service';
 import { chatbotService } from '../chatbot/chatbot.service';
 import { logService } from '../logs/log.service';
 import { featureService } from '../features/feature.service';
+import { platformService } from '../platform/platform.service';
 import { adService } from '../sponsoring/ad.service';
 import { challengeService } from '../sponsoring/challenge.service';
 import {
@@ -31,6 +32,8 @@ import {
   listLogsQuerySchema,
   purgeLogsQuerySchema,
   featureUpdateSchema,
+  contactListQuerySchema,
+  contactHandledSchema,
 } from './admin.validation';
 import { validateSchema } from '../../middlewares/validate.middleware';
 import { parseIdParam } from '../../utils/params.util';
@@ -206,6 +209,32 @@ export class AdminController {
       handle(async (req, res) => {
         const { olderThanDays } = purgeLogsQuerySchema.parse(req.query);
         ok(res, { deleted: await logService.purge(olderThanDays) });
+      }),
+    );
+
+    // Messages du formulaire de contact
+    router.get(
+      '/contact-messages',
+      handle(async (req, res) => {
+        const { status } = contactListQuerySchema.parse(req.query);
+        ok(res, await platformService.listContactMessages(status));
+      }),
+    );
+    router.patch(
+      '/contact-messages/:id',
+      validateSchema(contactHandledSchema),
+      handle(async (req, res) => {
+        const id = parseIdParam(req.params.id, 'contact message id');
+        ok(res, await platformService.setContactMessageHandled(id, req.body.handled));
+      }),
+    );
+    router.delete(
+      '/contact-messages/:id',
+      handle(async (req, res) => {
+        await platformService.deleteContactMessage(
+          parseIdParam(req.params.id, 'contact message id'),
+        );
+        ok(res, { deleted: true });
       }),
     );
 

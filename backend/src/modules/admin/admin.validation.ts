@@ -60,6 +60,14 @@ export const featureUpdateSchema = z.object({
   rolloutPercentage: z.number().int().min(0).max(100).optional(),
 });
 
+export const contactListQuerySchema = z.object({
+  status: z.enum(['open', 'handled', 'all']).default('open'),
+});
+
+export const contactHandledSchema = z.object({
+  handled: z.boolean(),
+});
+
 export type SanctionInput = z.infer<typeof sanctionSchema>;
 export type TrustIndexInput = z.infer<typeof trustIndexSchema>;
 export type GradeInput = z.infer<typeof gradeSchema>;

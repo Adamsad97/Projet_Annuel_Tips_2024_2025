@@ -4,6 +4,7 @@ enum NotificationType {
   MODERATION
   NEW_TIP
   CHALLENGE
+  NEW_FOLLOWER
 }
 
 model Notification {

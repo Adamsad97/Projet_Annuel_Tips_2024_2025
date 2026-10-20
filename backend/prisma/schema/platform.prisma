@@ -24,3 +24,17 @@ model FeatureFlag {
   rolloutPercentage  Int      @default(100)
   updatedAt          DateTime @updatedAt
 }
+
+// Message envoyé depuis le formulaire de contact, traité par un admin
+model ContactMessage {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String
+  message   String
+  // Membre connecté au moment de l'envoi (facultatif)
+  userId    Int?
+  handledAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([handledAt, createdAt])
+}

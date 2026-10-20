@@ -25,6 +25,7 @@ All routes prefixed with `/api`.
 **POST /api/users/profile/2fa/enable** - Enable 2FA (code)
 **POST /api/users/profile/2fa/disable** - Disable 2FA (password + code)
 **GET /api/users/:id** - Public profile of a member
+**POST|DELETE /api/users/:id/follow** - Follow / unfollow a member
 **GET /api/users/me/progress** - Gamification progress
 **GET /api/users/me/badges** - User badges
 **GET /api/users/me/perks** - Perks unlocked by my grade
@@ -79,6 +80,11 @@ All routes prefixed with `/api`.
 ## Plateforme
 
 **GET /api/features** - Experimental features enabled for the current user
+**GET /api/stats** - Public platform counters (About page)
+**GET /api/grades** - Grade thresholds
+**GET /api/xp-rules** - XP awarded per action
+**POST /api/contact** - Contact form (name, email, message)
+**GET /api/admin/contact-messages**, **PATCH|DELETE /api/admin/contact-messages/:id** - Contact messages (admin)
 **POST /api/logs/client** - Report a frontend JavaScript error
 **GET /api/admin/features**, **PATCH /api/admin/features/:key** - Feature flags / A/B tests (admin)
 **GET /api/admin/logs**, **DELETE /api/admin/logs** - Centralized error logs (admin)
@@ -162,13 +168,25 @@ Supprime l'avatar (`avatarProfile` = null).
 
 ### GET /api/users/:id
 
-Profil public d'un membre : identite (sans email), bio, localisation, XP, grade, role (`USER`, `MODERATOR`, `ADMIN`), badges, statistiques (`publishedTips`, `comments`, `upvotesReceived`) et 10 derniers tips publies.
+Profil public d'un membre : identite (sans email), bio, localisation, XP, grade, role (`USER`, `MODERATOR`, `ADMIN`), badges, statistiques (`publishedTips`, `comments`, `upvotesReceived`, `followers`), `isFollowing` et 10 derniers tips publies.
+
+### POST|DELETE /api/users/:id/follow
+
+Abonnement a un membre (impossible sur soi-meme). Le membre suivi recoit une notification `NEW_FOLLOWER` ; les abonnes recoivent une notification `NEW_TIP` a chaque tip publie de ce membre.
+
+**Reponse (200):** `{ isFollowing, followers }`
 
 ### GET /api/users/leaderboard
 
-**Query params:** `skip`, `take`
+**Query params:** `sort` (`xp` par defaut, `tips` ou `votes`), `period` (`week`, `month`, `all` par defaut ; ignoree pour `xp`, car l'XP est un total), `skip`, `take` (100 max)
 
-**Reponse (200):** `[{ rank, userId, username, firstname, lastname, avatarProfile, xp, grade, role, tips, badges }]` (sans email)
+- `tips` : tips publies sur la periode ; `votes` : votes positifs recus sur ses tips publies pendant la periode.
+
+**Reponse (200):** `[{ rank, userId, username, firstname, lastname, avatarProfile, xp, grade, role, tips, votes, badges }]` (sans email)
+
+### Contact
+
+`POST /api/contact` (auth optionnelle, limite de debit) enregistre le message (`name`, `email`, `message` de 10 a 5000 caracteres). L'admin le consulte dans l'onglet « Contact » (`GET /api/admin/contact-messages?status=open|handled|all`), le marque traite (`PATCH` avec `{ handled }`) ou le supprime.
 
 ---
 

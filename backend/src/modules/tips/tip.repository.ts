@@ -1,5 +1,6 @@
 import { prisma } from '../../db/prisma';
 import type { Tip, Prisma } from '@prisma/client';
+import { tipAuthorSelect } from './tip.select';
 
 export const tipRepository = {
   findAll: async (options?: {
@@ -13,15 +14,7 @@ export const tipRepository = {
       take: options?.take,
       where: options?.where,
       include: options?.include || {
-        user: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true,
-            email: true,
-            avatarProfile: true,
-          },
-        },
+        user: { select: tipAuthorSelect },
         categories: {
           include: {
             category: true,
@@ -45,15 +38,7 @@ export const tipRepository = {
     return prisma.tip.findUnique({
       where: { id },
       include: {
-        user: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true,
-            email: true,
-            avatarProfile: true,
-          },
-        },
+        user: { select: tipAuthorSelect },
         categories: {
           include: {
             category: true,
@@ -89,14 +74,7 @@ export const tipRepository = {
     return prisma.tip.create({
       data,
       include: {
-        user: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true,
-            avatarProfile: true,
-          },
-        },
+        user: { select: tipAuthorSelect },
         categories: {
           include: {
             category: true,

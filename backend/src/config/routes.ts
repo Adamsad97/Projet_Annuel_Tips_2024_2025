@@ -9,6 +9,7 @@ export const ROUTES = {
     password: '/profile/password',
     avatar: '/profile/avatar',
     publicProfile: '/:id',
+    follow: '/:id/follow',
     progress: '/me/progress',
     badges: '/me/badges',
     perks: '/me/perks',
@@ -92,6 +93,10 @@ export const ROUTES = {
   platform: {
     features: '/features',
     clientLogs: '/logs/client',
+    stats: '/stats',
+    grades: '/grades',
+    xpRules: '/xp-rules',
+    contact: '/contact',
   },
   sponsoring: {
     placement: '/ads/placement',

@@ -153,7 +153,7 @@ describe('XP Service Integration', () => {
       const user2 = await createUser(250);
       const user3 = await createUser(50);
 
-      const result = await xpService.getLeaderboard(10, 0);
+      const result = await xpService.getLeaderboard({ take: 10, skip: 0 });
 
       expect(result).toHaveLength(3);
       expect(result[0].rank).toBe(1);
@@ -172,7 +172,7 @@ describe('XP Service Integration', () => {
         await createUser(i * 10);
       }
 
-      const result = await xpService.getLeaderboard(2, 2);
+      const result = await xpService.getLeaderboard({ take: 2, skip: 2 });
 
       expect(result).toHaveLength(2);
       expect(result[0].rank).toBe(3);
