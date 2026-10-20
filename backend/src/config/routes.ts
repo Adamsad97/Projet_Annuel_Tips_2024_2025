@@ -36,6 +36,18 @@ export const ROUTES = {
     promote: '/users/promote',
     demote: '/users/demote',
   },
+  comments: {
+    byTip: '/tips/:tipId/comments',
+    detail: '/comments/:id',
+  },
+  votes: {
+    tip: '/tips/:tipId/votes',
+    comment: '/comments/:id/votes',
+  },
+  reports: {
+    tip: '/tips/:tipId/reports',
+    comment: '/comments/:id/reports',
+  },
   uploads: {
     base: '/uploads',
     tipImages: '/tips',

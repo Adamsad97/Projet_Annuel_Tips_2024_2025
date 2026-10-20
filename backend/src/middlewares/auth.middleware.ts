@@ -31,6 +31,21 @@ export function requireAuth(req: RequestWithUser, _res: Response, next: NextFunc
   }
 }
 
+// Renseigne req.user si un token valide est fourni, sans bloquer les visiteurs non connectés
+export function optionalAuth(req: RequestWithUser, _res: Response, next: NextFunction): void {
+  const [scheme, token] = req.headers.authorization?.split(' ') ?? [];
+
+  if (scheme === 'Bearer' && token) {
+    try {
+      req.user = verifyAccessTokenOrThrow(token);
+    } catch {
+      req.user = undefined;
+    }
+  }
+
+  return next();
+}
+
 export async function requireModerator(
   req: RequestWithUser,
   _res: Response,

@@ -2,7 +2,8 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { tipService } from './tip.service';
 import { createTipSchema, updateTipSchema, getTipsQuerySchema } from './tip.validation';
 import { validateSchema } from '../../middlewares/validate.middleware';
-import { requireAuth } from '../../middlewares/auth.middleware';
+import { optionalAuth, requireAuth } from '../../middlewares/auth.middleware';
+import { voteService } from '../votes/vote.service';
 import type { RequestWithUser } from '../../types/auth.types';
 
 class TipController {
@@ -16,7 +17,7 @@ class TipController {
   private initializeRoutes(): void {
     this.router.get('/', this.getAllTips);
     this.router.get('/tags/all', this.getAllTags); // Route pour les tags (avant /:id pour éviter les conflits)
-    this.router.get('/:id', this.getTipById);
+    this.router.get('/:id', optionalAuth, this.getTipById);
     this.router.post('/', requireAuth, validateSchema(createTipSchema), this.createTip);
     this.router.patch('/:id', requireAuth, validateSchema(updateTipSchema), this.updateTip);
     this.router.delete('/:id', requireAuth, this.deleteTip);
@@ -40,7 +41,11 @@ class TipController {
     }
   };
 
-  private getTipById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  private getTipById = async (
+    req: RequestWithUser,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const idParam = req.params.id;
       if (!idParam) {
@@ -54,8 +59,11 @@ class TipController {
         return;
       }
 
-      const tip = await tipService.getTipById(id);
-      res.status(200).json({ success: true, data: tip });
+      const [tip, votes] = await Promise.all([
+        tipService.getTipById(id),
+        voteService.getSummary({ tipId: id }, req.user?.id),
+      ]);
+      res.status(200).json({ success: true, data: { ...tip, votes } });
     } catch (error) {
       next(error);
     }

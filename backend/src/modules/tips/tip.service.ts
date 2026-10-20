@@ -58,6 +58,21 @@ export const tipService = {
     return tip;
   },
 
+  // Les interactions (commentaires, votes, signalements) ne sont possibles que sur un tip publié
+  getPublishedTipOrThrow: async (id: number): Promise<Tip> => {
+    const tip = await prisma.tip.findUnique({ where: { id } });
+
+    if (!tip) {
+      throw new AppError('tip not found', 404);
+    }
+
+    if (tip.status !== 'APPROVED') {
+      throw new AppError('tip is not published', 400);
+    }
+
+    return tip;
+  },
+
   createTip: async (data: CreateTipDto & { userId: number }): Promise<Tip> => {
     const existingTips = await tipRepository.findAll({
       where: {

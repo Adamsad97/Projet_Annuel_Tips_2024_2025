@@ -3,6 +3,9 @@ import userRoutes from '../modules/user/user.routes';
 import authRoutes from '../modules/auth/auth.routes';
 import tipRoutes from '../modules/tips/tip.routes';
 import uploadRoutes from '../modules/uploads/upload.routes';
+import commentRoutes from '../modules/comments/comment.routes';
+import voteRoutes from '../modules/votes/vote.routes';
+import reportRoutes from '../modules/reports/report.routes';
 import moderationRoutes from '../modules/moderation/moderation.routes';
 import { ROUTES } from '../config/routes';
 import { requireAuth, requireModerator } from '../middlewares/auth.middleware';
@@ -21,6 +24,9 @@ apiRouter.use(ROUTES.users.base, userRoutes);
 apiRouter.use(ROUTES.auth.base, authRoutes);
 apiRouter.use(ROUTES.tips.base, tipRoutes);
 apiRouter.use(ROUTES.uploads.base, uploadRoutes);
+apiRouter.use(commentRoutes);
+apiRouter.use(voteRoutes);
+apiRouter.use(reportRoutes);
 
 apiRouter.use(ROUTES.moderation.base, requireAuth, requireModerator, moderationRoutes);
 
