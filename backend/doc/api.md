@@ -29,6 +29,17 @@ All routes prefixed with `/api`.
 **DELETE /api/tips/:id** - Delete tip
 **GET /api/tips/tags/all** - List category names
 
+## Comments, votes, reports
+
+**GET /api/tips/:tipId/comments** - List comments (with replies)
+**POST /api/tips/:tipId/comments** - Create comment / reply
+**PATCH /api/comments/:id** - Update own comment
+**DELETE /api/comments/:id** - Delete own comment
+**POST /api/tips/:tipId/votes** - Vote on tip
+**POST /api/comments/:id/votes** - Vote on comment
+**POST /api/tips/:tipId/reports** - Report tip
+**POST /api/comments/:id/reports** - Report comment
+
 ## Uploads
 
 **POST /api/uploads/tips** - Upload tip images (multipart)
@@ -105,6 +116,49 @@ Supprimer un tip (auteur ou moderateur).
 ### GET /api/tips/tags/all
 
 Liste des noms de categories (table `Category`).
+
+---
+
+## Routes commentaires, votes et signalements
+
+Ces actions ne sont possibles que sur un tip `APPROVED` (sinon 400).
+
+### GET /api/tips/:tipId/comments
+
+Liste des commentaires racines (du plus recent au plus ancien), chacun avec ses `replies` (un seul niveau).
+Chaque commentaire contient `score` et `userVote` (vote de l'utilisateur connecte, 0 sinon).
+
+**Authentification:** Optionnelle (necessaire pour `userVote`)
+
+### POST /api/tips/:tipId/comments
+
+**Authentification:** Requise
+
+**Body:** `content` (2-2000 caracteres), `parentId` optionnel. Repondre a une reponse rattache au commentaire racine.
+
+Donne +5 XP a l'auteur du commentaire.
+
+### PATCH /api/comments/:id et DELETE /api/comments/:id
+
+Auteur du commentaire uniquement (sinon 403). Supprimer un commentaire supprime ses reponses.
+
+### POST /api/tips/:tipId/votes et POST /api/comments/:id/votes
+
+**Authentification:** Requise
+
+**Body:** `value` : `1` (utile), `-1` (pas utile) ou `0` (retirer son vote). Un seul vote par utilisateur et par contenu.
+
+Impossible de voter pour son propre contenu (403). L'XP de l'auteur suit le vote : +2 / -1 pour un tip, +1 pour un upvote de commentaire. Retirer ou inverser son vote reprend l'XP donnee.
+
+**Reponse (200):** `{ upvotes, downvotes, score, userVote }`. Le meme objet est renvoye dans `votes` sur `GET /api/tips/:id`.
+
+### POST /api/tips/:tipId/reports et POST /api/comments/:id/reports
+
+**Authentification:** Requise
+
+**Body:** `reason` (5-500 caracteres)
+
+Impossible de signaler son propre contenu (403) ou de signaler deux fois le meme contenu tant que le premier signalement est ouvert (409). Les signalements arrivent dans `GET /api/moderation/reports`.
 
 ---
 
