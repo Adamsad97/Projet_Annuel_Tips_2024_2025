@@ -168,3 +168,7 @@ Les tests d'integration utilisent la vraie DB et les vraies routes HTTP.
 
 ## Mocks intelligents
 Les dependances lentes (bcrypt) sont mockees, mais la logique metier reste testee.
+
+## Regles de gamification dans les tests
+
+`src/tests/jest.setup.ts` definit `GAMIFICATION_ENFORCE=false` : les tests existants peuvent publier des tips avec des comptes neufs (0 XP, plusieurs tips d'affilee, localisation). Les regles (seuil d'XP, quotas, limites par grade) sont testees dans `gamification.integration.test.ts`, qui les reactive avec `process.env.GAMIFICATION_ENFORCE = 'true'`.

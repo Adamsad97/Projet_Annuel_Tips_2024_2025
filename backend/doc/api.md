@@ -27,6 +27,7 @@ All routes prefixed with `/api`.
 **GET /api/users/:id** - Public profile of a member
 **GET /api/users/me/progress** - Gamification progress
 **GET /api/users/me/badges** - User badges
+**GET /api/users/me/perks** - Perks unlocked by my grade
 **GET /api/users/leaderboard** - User rankings
 
 ## Tips
@@ -317,6 +318,50 @@ Une sanction annulee apres contestation ne compte plus. Non mesures faute de don
 - Au demarrage du serveur, puis toutes les heures (`trust.scheduler.ts`, desactive en test).
 - Immediatement pour les utilisateurs concernes apres une sanction, un signalement traite ou une contestation tranchee.
 - A la demande via `POST /api/admin/trust/recompute`.
+
+---
+
+## Gamification : avantages par grade
+
+Regles dans `backend/src/modules/gamification/gamification.config.ts`, verifiees a la creation et a la modification d'un tip.
+
+### Questions et tips
+
+`POST /api/tips` accepte `kind` : `TIP` (defaut) ou `QUESTION`. `GET /api/tips?kind=QUESTION` filtre la liste.
+
+- Les **questions** sont ouvertes a tous les membres ; les reponses passent par les commentaires.
+- **Proposer un tip** demande au moins **20 XP** (403 sinon). L'XP se gagne en posant des questions, en commentant, en recevant des votes...
+
+### Limites selon le rang du grade
+
+Le rang est la position du grade du membre (le plus bas = 0), tries par XP requise.
+
+| Rang | Publications / 24 h | Longueur max | Images | Localisation |
+|---|---|---|---|---|
+| 0 | 2 | 1 500 | 1 | non |
+| 1 | 3 | 3 000 | 3 | oui |
+| 2 | 5 | 5 000 | 5 | oui |
+| 3 et + | 10 | 10 000 | 5 | oui |
+
+Les moderateurs et admins ont les limites du dernier rang.
+
+En cas de depassement :
+
+- quota atteint : 403 ;
+- contenu trop long ou trop d'images : 400 ;
+- localisation non debloquee : 403.
+
+### Permissions des moderateurs
+
+Retrograder un membre (`POST /api/moderation/users/:id/downgrade`) demande **100 XP** au moderateur (403 sinon). Chaque action de moderation rapporte 3 XP. Les admins en sont dispenses.
+
+### GET /api/users/me/perks
+
+`{ xp, isStaff, grade, perks, publishedToday, remainingToday, canPublishTip, minXpToPublishTip, nextGrade: { name, xpRequired, xpMissing, perks }, enforced }`
+
+### Tests
+
+`GAMIFICATION_ENFORCE=false` desactive ces regles. `jest.setup.ts` le fait pour les tests qui ne portent pas sur la gamification ; `gamification.integration.test.ts` les reactive.
 
 ---
 
