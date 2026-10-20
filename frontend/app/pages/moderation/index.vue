@@ -65,7 +65,7 @@
           <p class="tip-content">{{ tip.content }}</p>
           <div class="tip-meta">
             <span>Par {{ tip.user.firstname }} {{ tip.user.lastname }}</span>
-            <span v-if="tip.categories.length > 0"> • {{ tip.categories[0].category.name }} </span>
+            <span v-if="tip.categories[0]"> • {{ tip.categories[0].category.name }} </span>
           </div>
           <div class="tip-actions">
             <button class="btn btn-approve" @click="approveTip(tip.id)" :disabled="actionLoading">
@@ -239,7 +239,7 @@ const resolveReport = async (reportId: number, action: ReportAction) => {
   }
 };
 
-const formatDate = (date: Date) => {
+const formatDate = (date: Date | string) => {
   return new Date(date).toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',

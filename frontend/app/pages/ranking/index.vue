@@ -108,14 +108,14 @@ const currentUser = computed<CurrentUser>(() => {
     };
   }
 
-  const userRank = users.value.findIndex((u) => u.id === user.value.id) + 1 || 0;
+  const userRank = users.value.findIndex((u) => u.id === user.value?.id) + 1 || 0;
 
   return {
     id: user.value.id,
     rank: userRank,
     name: `${user.value.firstname || user.value.username}`,
     xp: user.value.xp || 0,
-    avatar: user.value.avatar || user.value.avatarProfile || '',
+    avatar: user.value.avatarProfile || '',
     role: userProgress.value.currentGrade?.name || 'Débutant',
     trend: `+${userProgress.value.weeklyXp || 0}`,
   };

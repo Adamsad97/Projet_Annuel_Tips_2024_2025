@@ -1,6 +1,3 @@
-import type { Tip } from './user';
-import type { CurrentUser } from './user';
-
 export interface ModerationStats {
   pendingTips: number;
   pendingReports: number;
@@ -8,8 +5,19 @@ export interface ModerationStats {
   totalActions: number;
 }
 
-export interface PendingTip extends Tip {
-  user: CurrentUser;
+// Tip en attente renvoyé par GET /moderation/tips/pending
+export interface PendingTip {
+  id: number;
+  title: string;
+  content: string | null;
+  createdAt: string;
+  user: {
+    id: number;
+    firstname: string | null;
+    lastname: string | null;
+    email: string;
+    avatarProfile: string | null;
+  };
   categories: Array<{
     category: {
       id: number;
