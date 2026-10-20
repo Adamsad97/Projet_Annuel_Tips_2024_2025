@@ -9,10 +9,17 @@ export const API_ROUTES = {
   USERS: {
     REGISTER: '/users/register',
     LOGIN: '/users/login',
+    LOGIN_2FA: '/users/login/2fa',
     PROFILE: '/users/profile',
     PASSWORD: '/users/profile/password',
     AVATAR: '/users/profile/avatar',
     PUBLIC_PROFILE: (id: number) => `/users/${id}`,
+  },
+
+  TWO_FACTOR: {
+    SETUP: '/users/profile/2fa/setup',
+    ENABLE: '/users/profile/2fa/enable',
+    DISABLE: '/users/profile/2fa/disable',
   },
 
   TIPS: {

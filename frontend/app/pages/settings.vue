@@ -4,6 +4,7 @@ import AppInput from '~/components/ui/AppInput.vue';
 import AppTextarea from '~/components/ui/AppTextarea.vue';
 import AppButton from '~/components/ui/AppButton.vue';
 import ProfilPicture from '~/components/ProfilPicture.vue';
+import TwoFactorSettings from '~/components/settings/TwoFactorSettings.vue';
 import type { User } from '~/types';
 import { API_ROUTES } from '~/config/api';
 
@@ -371,30 +372,7 @@ const tabs = [
                 </div>
               </div>
 
-              <div
-                class="flex items-center justify-between p-6 bg-white/50 dark:bg-slate-800/50 rounded-3xl border border-white/20"
-              >
-                <div>
-                  <div
-                    class="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2"
-                  >
-                    Double Authentification (2FA)
-                    <span
-                      class="px-2 py-0.5 rounded text-[10px] font-black bg-slate-500/10 text-slate-500 uppercase"
-                      >Bientôt disponible</span
-                    >
-                  </div>
-                  <p class="text-sm text-slate-500 mt-1">
-                    Sécurisez votre compte avec une étape supplémentaire.
-                  </p>
-                </div>
-                <label class="relative inline-flex items-center cursor-not-allowed opacity-50">
-                  <input type="checkbox" class="sr-only peer" disabled />
-                  <div
-                    class="w-14 h-7 bg-gray-200 peer-focus:outline-none ring-0 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"
-                  ></div>
-                </label>
-              </div>
+              <TwoFactorSettings />
             </div>
           </div>
 

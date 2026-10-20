@@ -32,3 +32,17 @@ export interface LoginResponse {
   refreshToken: string;
   user: User;
 }
+
+// Réponse du login quand la 2FA est active : le code doit être envoyé à POST /users/login/2fa
+export interface TwoFactorChallenge {
+  twoFactorRequired: true;
+  twoFactorToken: string;
+}
+
+export type LoginResult = 'success' | 'two-factor' | 'error';
+
+export interface TwoFactorSetup {
+  secret: string;
+  otpauthUrl: string;
+  qrCode: string;
+}
