@@ -74,6 +74,25 @@ All routes prefixed with `/api`.
 **POST /api/moderation/tips/:id/reject** - Reject tip
 **GET /api/moderation/reports** - List reports
 **POST /api/moderation/reports/:id/resolve** - Resolve report
+**POST /api/moderation/users/:id/warn** - Formal warning
+**POST /api/moderation/users/:id/downgrade** - Downgrade one grade
+**GET /api/moderation/users/:id/actions** - Moderation history of a user
+**GET /api/moderation-actions/mine** - My sanctions
+**POST /api/moderation-actions/:id/appeal** - Contest a sanction
+
+## Admin
+
+**GET /api/admin/analytics** - Dashboard
+**GET /api/admin/users** - Users (search, roles, sanctions, trust index)
+**POST|DELETE /api/admin/users/:id/ban** - Ban / unban
+**POST|DELETE /api/admin/users/:id/mute** - Mute / unmute
+**PATCH /api/admin/users/:id/trust-index** - Adjust trust index
+**POST /api/admin/users/:id/reset** - Reset progression
+**DELETE /api/admin/users/:id** - Delete account
+**GET /api/admin/appeals** - Appeals
+**POST /api/admin/appeals/:id/resolve** - Accept / reject appeal
+**GET|POST /api/admin/grades**, **PATCH|DELETE /api/admin/grades/:id** - Grades
+**GET /api/admin/badges**, **PATCH /api/admin/badges/:id** - Badges
 
 **Body:** `refreshToken`
 
@@ -193,6 +212,56 @@ Stockees en base et poussees en temps reel. Types : `NEW_MESSAGE` (une seule not
 **GET /api/notifications** : `{ items, unreadCount }` (50 dernieres). Chaque notification a `title`, `body`, `link` (page du frontend a ouvrir) et `readAt`.
 
 Ouvrir une conversation marque ses notifications comme lues.
+
+---
+
+## Moderation avancee
+
+Routes `/api/moderation/*` : moderateur actif ou admin.
+
+### POST /api/moderation/users/:id/warn et /downgrade
+
+**Body:** `reason` (5-500 caracteres).
+
+- `warn` : avertissement formel, notifie a l'utilisateur.
+- `downgrade` : l'XP redescend au seuil du grade inferieur (400 si deja au plus bas). L'XP precedente est gardee dans `metadata` pour pouvoir l'annuler.
+
+Un moderateur ne peut sanctionner ni lui-meme (400), ni un moderateur ou un admin (403).
+
+Chaque action de moderation (validation/refus de tip, signalement traite, avertissement, retrogradation) rapporte **+3 XP** au moderateur.
+
+### Contestations
+
+- `GET /api/moderation-actions/mine` : sanctions recues (`WARN`, `DOWNGRADE`, `BAN`, `MUTE`, `REJECT_TIP`, `RESOLVE_REPORT_REJECT`) avec `canAppeal` et l'etat de la contestation.
+- `POST /api/moderation-actions/:id/appeal` : **Body:** `reason` (10-1000). Une seule contestation par action (409).
+- `POST /api/admin/appeals/:id/resolve` : **Body:** `decision` (`ACCEPTED` ou `REJECTED`), `response` optionnelle. Accepter annule l'action : ban/mute leves, XP restauree, tip remis en validation (refus) ou republie (signalement). L'action est marquee `overturnedAt`.
+
+---
+
+## Administration
+
+Routes `/api/admin/*` : admin uniquement. Un admin ne peut pas agir sur lui-meme (400) ni sur un autre admin (403).
+
+### Sanctions
+
+- `POST /api/admin/users/:id/ban` : **Body:** `reason`, `days` optionnel (absent = definitif). Un compte banni ne peut plus se connecter ni renouveler son token (403) ; l'acces est coupe au plus tard 15 min apres (expiration du token d'acces).
+- `POST /api/admin/users/:id/mute` : **Body:** `reason`, `days` (obligatoire). Le compte peut se connecter mais ne peut plus publier de tip, commentaire ou message (403).
+- `DELETE` sur ces routes leve la sanction.
+
+### Comptes
+
+- `PATCH /api/admin/users/:id/trust-index` : **Body:** `trustIndex` (0-100), `reason`. L'ancienne valeur est tracee dans l'historique de moderation.
+- `POST /api/admin/users/:id/reset` : remet XP, grade, badges et indice de confiance a zero (le contenu est conserve).
+- `DELETE /api/admin/users/:id` : supprime le compte et son contenu.
+
+### Grades et badges
+
+- Grades : creation, modification (nom, seuil d'XP), suppression. Chaque changement reaffecte le bon grade a tous les membres.
+- Badges : nom, description, icone et XP gagnee sont modifiables. L'XP du badge en base est celle reellement attribuee. Les conditions d'obtention restent dans le code.
+
+### GET /api/admin/analytics
+
+Utilisateurs (total, nouveaux et actifs sur 30 jours), tips par statut et par jour, categories populaires, file de moderation (signalements, contestations, bannis) et meilleurs contributeurs.
 
 ---
 
