@@ -57,6 +57,7 @@ describe('userService', () => {
       const res = await userService.register('a@x', 'pass', 'u');
       expect(res).toMatchObject({ id: 1, email: 'a@x', username: 'u' });
       expect(res).not.toHaveProperty('password');
+      expect(res).not.toHaveProperty('trustIndex');
       expect(hashPassword).toHaveBeenCalledWith('pass');
     });
 

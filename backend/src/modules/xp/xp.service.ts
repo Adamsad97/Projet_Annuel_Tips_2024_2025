@@ -128,18 +128,19 @@ export class XpService {
     return Math.min(100, Math.max(0, (xpInCurrentGrade / xpNeededForNextGrade) * 100));
   }
 
+  // Classement public : pas d'email ni de donnée privée
   async getLeaderboard(limit: number = 10, skip: number = 0) {
     const users = await prisma.user.findMany({
       select: {
         id: true,
+        username: true,
         firstname: true,
         lastname: true,
-        email: true,
         avatarProfile: true,
         xp: true,
         grade: true,
         _count: {
-          select: { tips: true, userBadges: true },
+          select: { tips: { where: { status: 'APPROVED' } }, userBadges: true },
         },
       },
       orderBy: { xp: 'desc' },
@@ -149,17 +150,16 @@ export class XpService {
 
     return users.map((user, index) => ({
       rank: skip + index + 1,
-      user: {
-        id: user.id,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        email: user.email,
-        avatarProfile: user.avatarProfile,
-      },
+      userId: user.id,
+      username: user.username,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      avatarProfile: user.avatarProfile,
       xp: user.xp,
       grade: user.grade,
-      tipsCount: user._count.tips,
-      badgesCount: user._count.userBadges,
+      role: user.grade?.name ?? null,
+      tips: user._count.tips,
+      badges: user._count.userBadges,
     }));
   }
 }

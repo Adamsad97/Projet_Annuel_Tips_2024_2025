@@ -158,7 +158,7 @@ describe('XP Service Integration', () => {
       expect(result).toHaveLength(3);
       expect(result[0].rank).toBe(1);
       expect(result[0].xp).toBe(250);
-      expect(result[0].user.id).toBe(user2.id);
+      expect(result[0].userId).toBe(user2.id);
 
       expect(result[1].rank).toBe(2);
       expect(result[1].xp).toBe(100);

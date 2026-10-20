@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+const passwordSchema = z
+  .string('Password is required')
+  .min(8, 'Password must be at least 8 characters')
+  .max(100, 'Password must not exceed 100 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number')
+  .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character');
+
 export const registerSchema = z.object({
   email: z
     .string('Email is required')
@@ -7,14 +16,7 @@ export const registerSchema = z.object({
     .max(255, 'Email must not exceed 255 characters')
     .transform((val) => val.toLowerCase().trim()),
 
-  password: z
-    .string('Password is required')
-    .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password must not exceed 100 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  password: passwordSchema,
 
   username: z
     .string('Username is required')
@@ -50,5 +52,35 @@ export const loginSchema = z.object({
   password: z.string('Password is required').min(1, 'Password is required'),
 });
 
+// Champs vides ("") => valeur effacée (null)
+const optionalText = (max: number, label: string) =>
+  z
+    .string()
+    .trim()
+    .max(max, `${label} must not exceed ${max} characters`)
+    .transform((val) => (val.length > 0 ? val : null))
+    .optional();
+
+export const updateProfileSchema = z.object({
+  firstname: optionalText(100, 'Firstname'),
+  lastname: optionalText(100, 'Lastname'),
+  bio: optionalText(500, 'Bio'),
+  address: optionalText(255, 'Address'),
+});
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string('Current password is required')
+      .min(1, 'Current password is required'),
+    newPassword: passwordSchema,
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: 'New password must be different from the current one',
+    path: ['newPassword'],
+  });
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
