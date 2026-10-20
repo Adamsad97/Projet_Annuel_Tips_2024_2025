@@ -58,8 +58,8 @@ describe('Feature flags and centralized logs Integration', () => {
       const guest = await request(app).get(`${api}/features`);
       const member = await request(app).get(`${api}/features`).set(user.auth);
 
-      expect(guest.body.data).toEqual({ chatbot: true, trends_page: true });
-      expect(member.body.data).toEqual({ chatbot: true, trends_page: true });
+      expect(guest.body.data).toEqual({ chatbot: true, trends_page: true, ads: true });
+      expect(member.body.data).toEqual({ chatbot: true, trends_page: true, ads: true });
     });
 
     it('should turn a feature off for everyone, frontend and API', async () => {
@@ -77,7 +77,7 @@ describe('Feature flags and centralized logs Integration', () => {
       expect(ask.status).toBe(404);
 
       const features = await request(app).get(`${api}/features`).set(user.auth);
-      expect(features.body.data).toEqual({ chatbot: false, trends_page: false });
+      expect(features.body.data).toMatchObject({ chatbot: false, trends_page: false });
     });
 
     it('should expose a partial rollout to a stable group of members only', async () => {

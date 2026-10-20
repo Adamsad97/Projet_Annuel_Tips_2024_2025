@@ -3,6 +3,7 @@ enum NotificationType {
   BADGE_UNLOCKED
   MODERATION
   NEW_TIP
+  CHALLENGE
 }
 
 model Notification {

@@ -8,6 +8,7 @@ export enum XpAction {
   DAILY_LOGIN = 'DAILY_LOGIN',
   BADGE_EARNED = 'BADGE_EARNED',
   MODERATION_ACTION = 'MODERATION_ACTION',
+  CHALLENGE_REWARD = 'CHALLENGE_REWARD',
 }
 
 export const XP_REWARDS: Record<XpAction, number> = {
@@ -20,6 +21,7 @@ export const XP_REWARDS: Record<XpAction, number> = {
   [XpAction.DAILY_LOGIN]: 1,
   [XpAction.BADGE_EARNED]: 0, // Dynamic based on badge
   [XpAction.MODERATION_ACTION]: 3,
+  [XpAction.CHALLENGE_REWARD]: 0, // Dynamique : bonus défini par le défi
 };
 
 export interface XpGainedEvent {

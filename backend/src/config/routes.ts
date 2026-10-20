@@ -93,6 +93,11 @@ export const ROUTES = {
     features: '/features',
     clientLogs: '/logs/client',
   },
+  sponsoring: {
+    placement: '/ads/placement',
+    click: '/ads/:id/click',
+    challenges: '/challenges',
+  },
   uploads: {
     base: '/uploads',
     tipImages: '/tips',

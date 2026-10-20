@@ -12,6 +12,9 @@ export const FEATURE_DEFINITIONS = {
   trends_page: {
     description: 'Page Tendances (tips les plus populaires de la période)',
   },
+  ads: {
+    description: 'Tips sponsorisés (publicité native) dans les listes',
+  },
 } as const;
 
 export type FeatureKey = keyof typeof FEATURE_DEFINITIONS;

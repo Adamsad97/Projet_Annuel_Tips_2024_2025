@@ -1,0 +1,96 @@
+enum AdStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+// Qui peut voir la campagne
+enum AdAudience {
+  ALL
+  MEMBERS
+  GUESTS
+}
+
+// Tip sponsorisé (publicité native) affiché dans les listes, toujours marqué "Sponsorisé"
+model AdCampaign {
+  id          Int        @id @default(autoincrement())
+  // Nom interne de la campagne (visible uniquement par l'admin)
+  name        String
+  sponsorName String
+  title       String
+  body        String
+  // Image uploadée (/uploads/ads/...)
+  imageUrl    String?
+  // Page du partenaire (https uniquement), atteinte via /api/ads/:id/click
+  targetUrl   String
+  status      AdStatus   @default(DRAFT)
+  audience    AdAudience @default(ALL)
+  // Ciblage : liste vide = toutes les catégories / tous les grades
+  targetCategoryIds Int[] @default([])
+  targetGradeIds    Int[] @default([])
+  startsAt       DateTime
+  endsAt         DateTime?
+  // Budget : la campagne n'est plus servie une fois ce nombre d'affichages atteint
+  maxImpressions Int?
+  priority       Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  stats      AdDailyStat[]
+  challenges SponsoredChallenge[]
+
+  @@index([status, startsAt])
+}
+
+// Statistiques agrégées par jour (aucune donnée individuelle)
+model AdDailyStat {
+  campaignId  Int
+  day         DateTime @db.Date
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+
+  campaign AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, day])
+}
+
+// Défi sponsorisé : bonus d'XP pour un tip publié dans une catégorie pendant la période
+model SponsoredChallenge {
+  id          Int      @id @default(autoincrement())
+  sponsorName String
+  title       String
+  description String
+  categoryId  Int
+  xpBonus     Int
+  startsAt    DateTime
+  endsAt      DateTime
+  // Nombre maximum de membres récompensés (budget du sponsor) ; null = illimité
+  maxRewards  Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  // Campagne publicitaire associée (optionnelle)
+  campaignId Int?
+  campaign   AdCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  category   Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  rewards    ChallengeReward[]
+
+  @@index([isActive, startsAt, endsAt])
+}
+
+// Une seule récompense par membre et par défi
+model ChallengeReward {
+  id          Int      @id @default(autoincrement())
+  xp          Int
+  createdAt   DateTime @default(now())
+  challengeId Int
+  userId      Int
+  tipId       Int
+
+  challenge SponsoredChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tip       Tip                @relation(fields: [tipId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+}

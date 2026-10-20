@@ -6,6 +6,15 @@ import { trustService } from '../trust/trust.service';
 import { chatbotService } from '../chatbot/chatbot.service';
 import { logService } from '../logs/log.service';
 import { featureService } from '../features/feature.service';
+import { adService } from '../sponsoring/ad.service';
+import { challengeService } from '../sponsoring/challenge.service';
+import {
+  adCampaignSchema,
+  updateAdCampaignSchema,
+  challengeSchema,
+  updateChallengeSchema,
+} from '../sponsoring/sponsoring.validation';
+import { imageUpload, toUploadPath } from '../../utils/imageUpload.util';
 import {
   chatbotConfigSchema,
   chatbotResponseSchema,
@@ -212,6 +221,95 @@ export class AdminController {
       validateSchema(featureUpdateSchema),
       handle(async (req, res) => {
         ok(res, await featureService.update(String(req.params.key), req.body));
+      }),
+    );
+
+    // Publicité : tips sponsorisés
+    router.get(
+      '/ads',
+      handle(async (_req, res) => {
+        ok(res, await adService.list());
+      }),
+    );
+    router.post(
+      '/ads/image',
+      imageUpload('ads', 'image', 1),
+      handle(async (req, res) => {
+        const [file] = req.files as Express.Multer.File[];
+        ok(res, { imageUrl: toUploadPath('ads', file!.filename) }, 201);
+      }),
+    );
+    router.post(
+      '/ads',
+      validateSchema(adCampaignSchema),
+      handle(async (req, res) => {
+        ok(res, await adService.create(req.body), 201);
+      }),
+    );
+    router.patch(
+      '/ads/:id',
+      validateSchema(updateAdCampaignSchema),
+      handle(async (req, res) => {
+        ok(res, await adService.update(parseIdParam(req.params.id, 'campaign id'), req.body));
+      }),
+    );
+    router.delete(
+      '/ads/:id',
+      handle(async (req, res) => {
+        await adService.remove(parseIdParam(req.params.id, 'campaign id'));
+        ok(res, { deleted: true });
+      }),
+    );
+    router.get(
+      '/ads/:id/stats',
+      handle(async (req, res) => {
+        ok(res, await adService.getStats(parseIdParam(req.params.id, 'campaign id')));
+      }),
+    );
+    router.get(
+      '/ads/:id/stats.csv',
+      handle(async (req, res) => {
+        const { filename, content } = await adService.getStatsCsv(
+          parseIdParam(req.params.id, 'campaign id'),
+        );
+        res
+          .status(200)
+          .type('text/csv; charset=utf-8')
+          .attachment(filename)
+          // BOM : accents corrects à l'ouverture dans Excel
+          .send(`\uFEFF${content}`);
+      }),
+    );
+
+    // Défis sponsorisés
+    router.get(
+      '/challenges',
+      handle(async (_req, res) => {
+        ok(res, await challengeService.list());
+      }),
+    );
+    router.post(
+      '/challenges',
+      validateSchema(challengeSchema),
+      handle(async (req, res) => {
+        ok(res, await challengeService.create(req.body), 201);
+      }),
+    );
+    router.patch(
+      '/challenges/:id',
+      validateSchema(updateChallengeSchema),
+      handle(async (req, res) => {
+        ok(
+          res,
+          await challengeService.update(parseIdParam(req.params.id, 'challenge id'), req.body),
+        );
+      }),
+    );
+    router.delete(
+      '/challenges/:id',
+      handle(async (req, res) => {
+        await challengeService.remove(parseIdParam(req.params.id, 'challenge id'));
+        ok(res, { deleted: true });
       }),
     );
 

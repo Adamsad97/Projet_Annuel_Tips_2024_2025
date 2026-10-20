@@ -57,4 +57,5 @@ model User {
   notifications  Notification[]
   categoryFollows CategoryFollow[]
   chatbotQueries  ChatbotQuery[]
+  challengeRewards ChallengeReward[]
 }

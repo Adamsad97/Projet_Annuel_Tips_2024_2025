@@ -31,6 +31,7 @@ model Tip {
   views      TipsView[]
   categories TipCategory[]
   reports    Report[]      @relation("reports_on_tips")
+  challengeRewards ChallengeReward[]
 
   @@index([userId])
   @@index([userId, createdAt])

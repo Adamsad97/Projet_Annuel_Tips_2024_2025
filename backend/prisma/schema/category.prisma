@@ -5,6 +5,7 @@ model Category {
 
   tips      TipCategory[]
   followers CategoryFollow[]
+  challenges SponsoredChallenge[]
 }
 
 model TipCategory {

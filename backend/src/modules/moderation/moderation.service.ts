@@ -7,6 +7,7 @@ import { socketService } from '../../websocket/socket.service';
 import { notificationService } from '../notifications/notification.service';
 import { trustService } from '../trust/trust.service';
 import { categoryService } from '../categories/category.service';
+import { challengeService } from '../sponsoring/challenge.service';
 import { gamificationService } from '../gamification/gamification.service';
 
 // Page où l'utilisateur consulte ses sanctions et peut les contester
@@ -171,6 +172,8 @@ export class ModerationService {
 
     // Abonnés aux catégories du tip : notification en temps réel
     await categoryService.notifyFollowersOfNewTip(tip);
+    // Défis sponsorisés remplis par ce tip : bonus d'XP pour l'auteur
+    await challengeService.rewardApprovedTip(tip);
 
     return updatedTip;
   }
@@ -402,11 +405,7 @@ export class ModerationService {
 
   // Recalcul de l'indice de confiance en tâche de fond, sans ralentir la réponse
   private recomputeTrust(...userIds: number[]) {
-    setImmediate(() => {
-      for (const userId of userIds) {
-        if (userId) trustService.recomputeUser(userId).catch(() => undefined);
-      }
-    });
+    trustService.recomputeInBackground(...userIds);
   }
 
   async getModerationStats() {
