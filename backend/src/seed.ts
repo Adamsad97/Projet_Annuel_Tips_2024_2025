@@ -174,6 +174,47 @@ async function main() {
   ]);
   console.info(`${categories.length} categories created`);
 
+  // chatbot : réglages et réponses types (modifiables dans l'admin)
+  console.info('creating chatbot settings...');
+  await prisma.chatbotConfig.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      greeting:
+        'Bonjour ! Décrivez votre problème en quelques mots et je vous propose les tips les plus utiles.',
+      fallbackMessage:
+        "Je n'ai pas trouvé de tip qui corresponde vraiment. Posez la question à la communauté : les membres vous répondront.",
+      contextNote: 'Pensez à voter « utile » sur les tips qui vous ont aidé !',
+    },
+  });
+  const chatbotResponses = [
+    {
+      keywords: ['mot de passe', 'password'],
+      answer:
+        'Vous pouvez changer votre mot de passe dans Paramètres > Sécurité. Pensez aussi à activer la double authentification.',
+      link: '/settings',
+      priority: 10,
+    },
+    {
+      keywords: ['signaler', 'contenu inapproprie', 'spam'],
+      answer:
+        'Utilisez le bouton « Signaler » sous un tip ou un commentaire : un modérateur examinera le contenu.',
+      priority: 5,
+    },
+    {
+      keywords: ['gagner xp', 'grade', 'badge'],
+      answer:
+        "Vous gagnez de l'XP en publiant, en commentant et en recevant des votes « utile ». Votre profil détaille vos avantages et le grade suivant.",
+      link: '/profile',
+      priority: 5,
+    },
+  ];
+  if ((await prisma.chatbotResponse.count()) === 0) {
+    await prisma.chatbotResponse.createMany({ data: chatbotResponses });
+  }
+  console.info(`${chatbotResponses.length} chatbot responses ready`);
+
   // utilisateurs test
   console.info('creating test users...');
 

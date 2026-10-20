@@ -1,0 +1,36 @@
+// Réglages du chatbot (une seule ligne, id = 1), modifiables par l'admin
+model ChatbotConfig {
+  id              Int      @id @default(1)
+  greeting        String
+  fallbackMessage String
+  // Contexte ajouté aux réponses (ex: rappel des règles, conseil général)
+  contextNote     String?
+  updatedAt       DateTime @updatedAt
+}
+
+// Réponse type déclenchée par des mots-clés présents dans la question
+model ChatbotResponse {
+  id        Int      @id @default(autoincrement())
+  keywords  String[]
+  answer    String
+  // Page du frontend proposée avec la réponse (ex: /settings)
+  link      String?
+  priority  Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Historique des questions posées, pour repérer celles qui restent sans réponse
+model ChatbotQuery {
+  id                Int      @id @default(autoincrement())
+  question          String
+  tipsFound         Int
+  cannedResponseId  Int?
+  createdAt         DateTime @default(now())
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}

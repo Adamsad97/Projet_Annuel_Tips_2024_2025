@@ -85,6 +85,10 @@ export const ROUTES = {
     followed: '/categories/followed',
     follow: '/categories/:id/follow',
   },
+  chatbot: {
+    config: '/chatbot/config',
+    ask: '/chatbot/ask',
+  },
   uploads: {
     base: '/uploads',
     tipImages: '/tips',

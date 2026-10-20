@@ -3,6 +3,12 @@ import express from 'express';
 import { adminService } from './admin.service';
 import { appealService } from '../appeals/appeal.service';
 import { trustService } from '../trust/trust.service';
+import { chatbotService } from '../chatbot/chatbot.service';
+import {
+  chatbotConfigSchema,
+  chatbotResponseSchema,
+  updateChatbotResponseSchema,
+} from '../chatbot/chatbot.validation';
 import {
   sanctionSchema,
   trustIndexSchema,
@@ -122,6 +128,55 @@ export class AdminController {
       '/trust/recompute',
       handle(async (_req, res) => {
         ok(res, await trustService.runCycle());
+      }),
+    );
+
+    // Chatbot : réglages, réponses types et questions posées
+    router.get(
+      '/chatbot/config',
+      handle(async (_req, res) => {
+        ok(res, await chatbotService.getConfig());
+      }),
+    );
+    router.patch(
+      '/chatbot/config',
+      validateSchema(chatbotConfigSchema),
+      handle(async (req, res) => {
+        ok(res, await chatbotService.updateConfig(req.body));
+      }),
+    );
+    router.get(
+      '/chatbot/responses',
+      handle(async (_req, res) => {
+        ok(res, await chatbotService.listResponses());
+      }),
+    );
+    router.post(
+      '/chatbot/responses',
+      validateSchema(chatbotResponseSchema),
+      handle(async (req, res) => {
+        ok(res, await chatbotService.createResponse(req.body), 201);
+      }),
+    );
+    router.patch(
+      '/chatbot/responses/:id',
+      validateSchema(updateChatbotResponseSchema),
+      handle(async (req, res) => {
+        const id = parseIdParam(req.params.id, 'response id');
+        ok(res, await chatbotService.updateResponse(id, req.body));
+      }),
+    );
+    router.delete(
+      '/chatbot/responses/:id',
+      handle(async (req, res) => {
+        await chatbotService.deleteResponse(parseIdParam(req.params.id, 'response id'));
+        ok(res, { deleted: true });
+      }),
+    );
+    router.get(
+      '/chatbot/queries',
+      handle(async (req, res) => {
+        ok(res, await chatbotService.listQueries(req.query.unanswered === 'true'));
       }),
     );
 
