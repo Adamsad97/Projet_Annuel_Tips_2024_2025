@@ -55,4 +55,5 @@ model User {
   blocksMade     UserBlock[]    @relation("blocks_made")
   blocksReceived UserBlock[]    @relation("blocks_received")
   notifications  Notification[]
+  categoryFollows CategoryFollow[]
 }

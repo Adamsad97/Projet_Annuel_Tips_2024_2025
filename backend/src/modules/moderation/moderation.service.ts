@@ -6,6 +6,7 @@ import { XpAction } from '../../types/xp.types';
 import { socketService } from '../../websocket/socket.service';
 import { notificationService } from '../notifications/notification.service';
 import { trustService } from '../trust/trust.service';
+import { categoryService } from '../categories/category.service';
 
 // Page où l'utilisateur consulte ses sanctions et peut les contester
 const MY_MODERATION_LINK = '/my-moderation';
@@ -166,6 +167,9 @@ export class ModerationService {
       },
       createdAt: tip.createdAt,
     });
+
+    // Abonnés aux catégories du tip : notification en temps réel
+    await categoryService.notifyFollowersOfNewTip(tip);
 
     return updatedTip;
   }

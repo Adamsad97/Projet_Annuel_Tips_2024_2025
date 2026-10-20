@@ -83,7 +83,9 @@ describe('Comments, votes and reports Integration', () => {
         .send({ content: 'Nested reply', parentId: reply.body.data.id });
       expect(nested.body.data.parentId).toBe(commentId);
 
-      const list = await request(app).get(`${api}/tips/${tipId}/comments`);
+      const list = await request(app)
+        .get(`${api}/tips/${tipId}/comments`)
+        .set('Authorization', `Bearer ${reader.token}`);
       expect(list.status).toBe(200);
       expect(list.body.data).toHaveLength(1);
       expect(list.body.data[0].replies).toHaveLength(2);
@@ -106,7 +108,9 @@ describe('Comments, votes and reports Integration', () => {
         .set('Authorization', `Bearer ${reader.token}`);
       expect(deleted.status).toBe(200);
 
-      const afterDelete = await request(app).get(`${api}/tips/${tipId}/comments`);
+      const afterDelete = await request(app)
+        .get(`${api}/tips/${tipId}/comments`)
+        .set('Authorization', `Bearer ${reader.token}`);
       expect(afterDelete.body.data).toHaveLength(0);
     });
 

@@ -3,7 +3,8 @@ model Category {
   name        String  @unique
   description String?
 
-  tips TipCategory[]
+  tips      TipCategory[]
+  followers CategoryFollow[]
 }
 
 model TipCategory {
@@ -16,5 +17,18 @@ model TipCategory {
 
   @@unique([tipId, categoryId])
   @@index([tipId])
+  @@index([categoryId])
+}
+
+// Catégorie suivie : notification en temps réel à chaque nouveau tip publié dedans
+model CategoryFollow {
+  userId     Int
+  categoryId Int
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([userId, categoryId])
   @@index([categoryId])
 }

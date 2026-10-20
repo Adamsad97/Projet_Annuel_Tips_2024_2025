@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import type { AppErrorDetails } from '../utils/appError.util';
 import { AppError } from '../utils/appError.util';
 import { env } from '../config/env';
+import { ZodError } from 'zod';
 
 export function errorHandler(
   err: Error | AppError,
@@ -20,6 +21,11 @@ export function errorHandler(
     statusCode = err.statusCode;
     message = err.message;
     details = err.details;
+  } else if (err instanceof ZodError) {
+    // Paramètres de requête invalides (ex: ?take=abc) : erreur du client, pas du serveur
+    statusCode = 400;
+    message = 'Validation error';
+    details = err.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message }));
   } else {
     if (!isProduction) {
       message = err.message || message;

@@ -79,6 +79,11 @@ export const ROUTES = {
   admin: {
     base: '/admin',
   },
+  categories: {
+    list: '/categories',
+    followed: '/categories/followed',
+    follow: '/categories/:id/follow',
+  },
   uploads: {
     base: '/uploads',
     tipImages: '/tips',

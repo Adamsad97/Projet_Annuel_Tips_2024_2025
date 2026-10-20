@@ -95,7 +95,10 @@ describe('Tips Integration', () => {
 
     const tipId = createRes.body.data.id;
 
-    const res = await request(app).get(`${baseTips}/${tipId}`);
+    // Tip encore en attente : visible par son auteur connecté
+    const res = await request(app)
+      .get(`${baseTips}/${tipId}`)
+      .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);

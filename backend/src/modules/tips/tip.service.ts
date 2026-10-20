@@ -7,6 +7,28 @@ import { xpService } from '../xp/xp.service';
 import { badgeService } from '../badges/badge.service';
 import { XpAction } from '../../types/xp.types';
 import type { CreateTipDto, GetTipsQuery, UpdateTipDto } from './tip.validation';
+import { isStaff } from '../../utils/roles.util';
+
+// Longueur du contenu visible par un visiteur non connecté
+export const PREVIEW_LENGTH = 200;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Score de tendance : votes, commentaires et vues sur la période, bonus pour les tips récents
+const TRENDING_WEIGHTS = { upvote: 3, downvote: -2, comment: 2, view: 0.5, newTipBonus: 5 };
+
+type TipWithContent = Tip & { comments?: unknown };
+
+// Version "aperçu" d'un tip pour les visiteurs : début du contenu, sans images ni commentaires
+export const toPreview = <T extends TipWithContent>(tip: T) => {
+  const { comments: _comments, ...rest } = tip;
+  const content = tip.content ?? '';
+  return {
+    ...rest,
+    content: content.length > PREVIEW_LENGTH ? `${content.slice(0, PREVIEW_LENGTH)}…` : content,
+    images: [],
+    isPreview: true,
+  };
+};
 
 const resolveCategoryIds = async (names: string[]): Promise<number[]> => {
   const categories = await prisma.category.findMany({ select: { id: true, name: true } });
@@ -57,6 +79,106 @@ export const tipService = {
     }
 
     return tip;
+  },
+
+  // Détail selon le lecteur : aperçu pour un visiteur, complet pour un membre connecté.
+  // Un tip non publié n'est visible que par son auteur, les modérateurs et les admins.
+  getTipForViewer: async (id: number, viewerId?: number) => {
+    const tip = await tipRepository.findById(id);
+    if (!tip) {
+      throw new AppError('Tip not found', 404);
+    }
+
+    if (tip.status !== 'APPROVED') {
+      const allowed = !!viewerId && (viewerId === tip.userId || (await isStaff(viewerId)));
+      if (!allowed) {
+        throw new AppError('Tip not found', 404);
+      }
+      return tip;
+    }
+
+    await tipService.recordView(id, viewerId);
+    return viewerId ? tip : toPreview(tip);
+  },
+
+  // Une vue par membre (les visiteurs anonymes sont comptés à chaque visite)
+  recordView: async (tipId: number, userId?: number): Promise<void> => {
+    if (userId) {
+      const alreadyViewed = await prisma.tipsView.findFirst({ where: { tipId, userId } });
+      if (alreadyViewed) return;
+    }
+    await prisma.tipsView.create({ data: { tipId, userId } });
+  },
+
+  // Tips les plus populaires sur la période (activité récente, pas seulement les plus anciens)
+  getTrending: async (days: number, take = 20) => {
+    const since = new Date(Date.now() - days * DAY_MS);
+    const recentActivity = { createdAt: { gte: since } };
+
+    const tips = await prisma.tip.findMany({
+      where: {
+        status: 'APPROVED',
+        OR: [
+          recentActivity,
+          { votes: { some: recentActivity } },
+          { comments: { some: recentActivity } },
+          { views: { some: { viewedAt: { gte: since } } } },
+        ],
+      },
+      include: {
+        user: { select: { id: true, firstname: true, lastname: true, avatarProfile: true } },
+        categories: { include: { category: true } },
+        _count: {
+          select: {
+            comments: { where: recentActivity },
+            views: { where: { viewedAt: { gte: since } } },
+            votes: true,
+          },
+        },
+      },
+    });
+
+    const votes = await prisma.vote.groupBy({
+      by: ['tipId', 'value'],
+      where: { tipId: { in: tips.map((tip) => tip.id) }, ...recentActivity },
+      _count: { _all: true },
+    });
+    const voteCount = (tipId: number, positive: boolean) =>
+      votes
+        .filter((v) => v.tipId === tipId && (positive ? v.value > 0 : v.value < 0))
+        .reduce((total, v) => total + v._count._all, 0);
+
+    const w = TRENDING_WEIGHTS;
+    return (
+      tips
+        .map((tip) => {
+          const upvotes = voteCount(tip.id, true);
+          const downvotes = voteCount(tip.id, false);
+          const score =
+            upvotes * w.upvote +
+            downvotes * w.downvote +
+            tip._count.comments * w.comment +
+            tip._count.views * w.view +
+            (tip.createdAt >= since ? w.newTipBonus : 0);
+          return {
+            ...tip,
+            trending: {
+              score: Math.round(score * 10) / 10,
+              upvotes,
+              downvotes,
+              comments: tip._count.comments,
+              views: tip._count.views,
+            },
+          };
+        })
+        .filter((tip) => tip.trending.score > 0)
+        // À score égal, le plus récent d'abord
+        .sort(
+          (a, b) =>
+            b.trending.score - a.trending.score || b.createdAt.getTime() - a.createdAt.getTime(),
+        )
+        .slice(0, take)
+    );
   },
 
   // Les interactions (commentaires, votes, signalements) ne sont possibles que sur un tip publié

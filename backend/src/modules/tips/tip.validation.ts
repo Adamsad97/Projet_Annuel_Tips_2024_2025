@@ -40,6 +40,16 @@ export const getTipsQuerySchema = z.object({
   take: z.coerce.number().min(1).max(100).optional().or(z.literal(undefined)),
 });
 
+export const trendingQuerySchema = z.object({
+  days: z.coerce
+    .number()
+    .int()
+    .refine((value) => [1, 7, 30].includes(value), {
+      message: 'days must be 1, 7 or 30',
+    })
+    .default(7),
+});
+
 export type CreateTipDto = z.infer<typeof createTipSchema>;
 export type UpdateTipDto = z.infer<typeof updateTipSchema>;
 export type GetTipsQuery = z.infer<typeof getTipsQuerySchema>;

@@ -1,6 +1,11 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
-import { tipService } from './tip.service';
-import { createTipSchema, updateTipSchema, getTipsQuerySchema } from './tip.validation';
+import { tipService, toPreview } from './tip.service';
+import {
+  createTipSchema,
+  updateTipSchema,
+  getTipsQuerySchema,
+  trendingQuerySchema,
+} from './tip.validation';
 import { validateSchema } from '../../middlewares/validate.middleware';
 import { optionalAuth, requireAuth } from '../../middlewares/auth.middleware';
 import { voteService } from '../votes/vote.service';
@@ -15,15 +20,20 @@ class TipController {
   }
 
   private initializeRoutes(): void {
-    this.router.get('/', this.getAllTips);
+    this.router.get('/', optionalAuth, this.getAllTips);
     this.router.get('/tags/all', this.getAllTags); // Route pour les tags (avant /:id pour éviter les conflits)
+    this.router.get('/trending', optionalAuth, this.getTrending);
     this.router.get('/:id', optionalAuth, this.getTipById);
     this.router.post('/', requireAuth, validateSchema(createTipSchema), this.createTip);
     this.router.patch('/:id', requireAuth, validateSchema(updateTipSchema), this.updateTip);
     this.router.delete('/:id', requireAuth, this.deleteTip);
   }
 
-  private getAllTips = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  private getAllTips = async (
+    req: RequestWithUser,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const parsed = getTipsQuerySchema.parse(req.query);
       const query = {
@@ -35,7 +45,8 @@ class TipController {
       };
       const tips = await tipService.getAllTips(query);
 
-      res.status(200).json({ success: true, data: tips });
+      // Les visiteurs ne voient que le début du contenu
+      res.status(200).json({ success: true, data: req.user ? tips : tips.map(toPreview) });
     } catch (error) {
       next(error);
     }
@@ -60,7 +71,7 @@ class TipController {
       }
 
       const [tip, votes] = await Promise.all([
-        tipService.getTipById(id),
+        tipService.getTipForViewer(id, req.user?.id),
         voteService.getSummary({ tipId: id }, req.user?.id),
       ]);
       res.status(200).json({ success: true, data: { ...tip, votes } });
@@ -146,6 +157,20 @@ class TipController {
 
       await tipService.deleteTip(id, req.user.id);
       res.status(200).json({ success: true, message: 'Tip deleted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  private getTrending = async (
+    req: RequestWithUser,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { days } = trendingQuerySchema.parse(req.query);
+      const tips = await tipService.getTrending(days);
+      res.status(200).json({ success: true, data: req.user ? tips : tips.map(toPreview) });
     } catch (error) {
       next(error);
     }

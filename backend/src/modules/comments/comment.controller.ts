@@ -3,7 +3,7 @@ import express from 'express';
 import { commentService } from './comment.service';
 import { createCommentSchema, updateCommentSchema } from './comment.validation';
 import { validateSchema } from '../../middlewares/validate.middleware';
-import { optionalAuth, requireAuth } from '../../middlewares/auth.middleware';
+import { requireAuth } from '../../middlewares/auth.middleware';
 import { parseIdParam } from '../../utils/params.util';
 import { ROUTES } from '../../config/routes';
 import type { RequestWithUser } from '../../types/auth.types';
@@ -51,7 +51,7 @@ export class CommentController {
 
   build(): Router {
     const router = express.Router();
-    router.get(ROUTES.comments.byTip, optionalAuth, this.getTipComments);
+    router.get(ROUTES.comments.byTip, requireAuth, this.getTipComments);
     router.post(
       ROUTES.comments.byTip,
       requireAuth,
