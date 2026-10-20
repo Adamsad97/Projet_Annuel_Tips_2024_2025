@@ -45,6 +45,18 @@ export interface ApiTip {
   }>;
   _count?: { comments: number; votes: number; views: number };
   votes?: VoteSummary;
+  // Visiteur non connecté : contenu tronqué, sans images ni commentaires
+  isPreview?: boolean;
+  // Présent sur GET /tips/trending
+  trending?: { score: number; upvotes: number; downvotes: number; comments: number; views: number };
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  description: string | null;
+  tipsCount: number;
+  isFollowed: boolean;
 }
 
 export type VoteValue = 1 | -1 | 0;

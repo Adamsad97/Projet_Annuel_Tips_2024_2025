@@ -42,6 +42,11 @@ watch(
   },
 );
 
+// Suivi de la catégorie sélectionnée (notification à chaque nouveau tip publié)
+const { loadCategories, findByName, toggleFollow } = useCategoryFollow();
+const selectedCategory = computed(() => (selectedTag.value ? findByName(selectedTag.value) : null));
+onMounted(loadCategories);
+
 const resetFilters = () => {
   searchQuery.value = '';
   selectedTag.value = null;
@@ -108,6 +113,25 @@ const resetFilters = () => {
           #{{ tag }}
         </button>
       </div>
+
+      <button
+        v-if="selectedCategory"
+        type="button"
+        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition"
+        :class="
+          selectedCategory.isFollowed
+            ? 'border-purple-300 text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+            : 'border-transparent bg-purple-600 text-white hover:bg-purple-700'
+        "
+        :title="`Recevoir une notification à chaque nouveau tip dans ${selectedCategory.name}`"
+        @click="toggleFollow(selectedCategory)"
+      >
+        <Icon
+          :name="selectedCategory.isFollowed ? 'tabler:bell-off' : 'tabler:bell-plus'"
+          class="w-4 h-4"
+        />
+        {{ selectedCategory.isFollowed ? 'Ne plus suivre' : 'Suivre' }} #{{ selectedCategory.name }}
+      </button>
 
       <div class="w-px h-6 bg-gray-300 dark:bg-slate-700 mx-2 hidden md:block" />
 

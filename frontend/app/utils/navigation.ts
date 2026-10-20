@@ -10,6 +10,7 @@ export const mainLinks: NavigationLink[] = [
   { to: '/', text: 'Accueil', icon: 'tabler:home' },
   { to: '/map', text: 'Carte', icon: 'tabler:map-pin' },
   { to: '/tips', text: 'Tips', icon: 'tabler:bulb' },
+  { to: '/trends', text: 'Tendances', icon: 'tabler:flame' },
   { to: '/ranking', text: 'Classement', icon: 'tabler:trophy' },
 ];
 

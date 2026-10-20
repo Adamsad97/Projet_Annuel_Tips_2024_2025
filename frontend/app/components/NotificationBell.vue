@@ -10,6 +10,8 @@ const root = ref<HTMLElement | null>(null);
 const ICONS: Record<AppNotification['type'], string> = {
   NEW_MESSAGE: 'tabler:message',
   BADGE_UNLOCKED: 'tabler:award',
+  MODERATION: 'tabler:gavel',
+  NEW_TIP: 'tabler:bulb',
 };
 
 const formatDate = (date: string) =>

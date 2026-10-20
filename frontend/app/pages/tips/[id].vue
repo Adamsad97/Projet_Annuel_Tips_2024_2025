@@ -3,16 +3,13 @@ import type { ApiTip, VoteSummary } from '~/types';
 import VoteButtons from '~/components/interactions/VoteButtons.vue';
 import ReportButton from '~/components/interactions/ReportButton.vue';
 import { API_ROUTES } from '~/config/api';
+import { ROUTES } from '~/config/routes';
 import CommentsSection from '~/components/CommentsSection.vue';
 import TipHero from '~/components/tips/TipHero.vue';
 import TipGallery from '~/components/tips/TipGallery.vue';
 import TipMap from '~/components/tips/TipMap.vue';
 import TipResources from '~/components/tips/TipResources.vue';
 import TipAuthorCard from '~/components/tips/TipAuthorCard.vue';
-
-definePageMeta({
-  middleware: 'auth',
-});
 
 const route = useRoute();
 const config = useRuntimeConfig();
@@ -25,13 +22,13 @@ if (!tipId || Array.isArray(tipId)) {
   throw createError({ statusCode: 400, statusMessage: 'ID de tip invalide', fatal: true });
 }
 
-const { data: rawResponse, error } = await useFetch<{ success: boolean; data: ApiTip }>(
+// Rendu serveur sans token : un visiteur reçoit l'aperçu d'un tip publié.
+// Un membre connecté recharge ensuite le tip complet côté client (voir onMounted),
+// ce qui permet aussi à l'auteur d'ouvrir son tip encore en attente.
+const { data: rawResponse } = await useFetch<{ success: boolean; data: ApiTip }>(
   `${apiBaseUrl}/tips/${tipId}`,
 );
-
-if (error.value || !rawResponse.value?.data) {
-  throw createError({ statusCode: 404, statusMessage: 'Tip introuvable', fatal: true });
-}
+const notFound = ref(false);
 
 const backendTip = computed(() => rawResponse.value?.data);
 
@@ -57,29 +54,30 @@ const tip = computed(() => {
   };
 });
 
-if (!tip.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Tip introuvable', fatal: true });
-}
-
 const isOwner = computed(() => currentUser.value?.id === tip.value?.userId);
 const numericTipId = Number(tipId);
 const isPublished = computed(() => tip.value?.status === 'APPROVED');
+const isPreview = computed(() => !!backendTip.value?.isPreview);
 
 const votes = ref<VoteSummary>(
   backendTip.value?.votes ?? { upvotes: 0, downvotes: 0, score: 0, userVote: 0 },
 );
 
-// Le rendu serveur n'a pas le token : on récupère le vote de l'utilisateur côté client
+// Membre connecté : contenu complet et vote de l'utilisateur, avec son token
 const api = useApi();
 onMounted(async () => {
-  if (!currentUser.value) return;
+  if (!currentUser.value) {
+    notFound.value = !rawResponse.value?.data;
+    return;
+  }
   try {
     const freshTip = await api.get<ApiTip>(API_ROUTES.TIPS.DETAIL(numericTipId), {
       showErrorToast: false,
     });
+    rawResponse.value = { success: true, data: freshTip };
     if (freshTip.votes) votes.value = freshTip.votes;
   } catch {
-    // on garde le résumé public
+    notFound.value = !rawResponse.value?.data;
   }
 });
 
@@ -118,8 +116,20 @@ useSeoMeta({
 </script>
 
 <template>
+  <div v-if="notFound" class="min-h-[60vh] flex flex-col items-center justify-center gap-3 px-4">
+    <Icon name="tabler:file-off" class="w-14 h-14 text-slate-300" />
+    <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Tip introuvable</h1>
+    <NuxtLink :to="ROUTES.TIPS" class="text-purple-600 font-bold hover:underline">
+      Retour aux tips
+    </NuxtLink>
+  </div>
+
+  <div v-else-if="!tip" class="min-h-[60vh] flex items-center justify-center text-slate-400">
+    Chargement du tip…
+  </div>
+
   <!-- FOND FIXE AVEC GRADIENTS -->
-  <div class="min-h-screen">
+  <div v-else class="min-h-screen">
     <!-- HERO SECTION -->
     <TipHero :tip="tip" />
 
@@ -214,6 +224,30 @@ useSeoMeta({
             >
               <div class="whitespace-pre-line">{{ tip.content }}</div>
             </div>
+
+            <!-- Visiteur : seul le début du tip est affiché -->
+            <div
+              v-if="isPreview"
+              class="relative mt-8 rounded-2xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 p-6 text-center space-y-3"
+            >
+              <p class="font-bold text-slate-800 dark:text-slate-100">
+                Connectez-vous pour lire la suite, voir les photos et la discussion.
+              </p>
+              <div class="flex justify-center gap-3">
+                <NuxtLink
+                  :to="{ path: ROUTES.LOGIN, query: { redirect: route.fullPath } }"
+                  class="px-4 py-2 rounded-xl bg-purple-600 text-white text-sm font-bold hover:bg-purple-700"
+                >
+                  Se connecter
+                </NuxtLink>
+                <NuxtLink
+                  :to="ROUTES.REGISTER"
+                  class="px-4 py-2 rounded-xl border border-purple-300 text-purple-700 dark:text-purple-300 text-sm font-bold hover:bg-white/60"
+                >
+                  Créer un compte
+                </NuxtLink>
+              </div>
+            </div>
           </article>
 
           <!-- 2. PHOTOS -->
@@ -227,7 +261,7 @@ useSeoMeta({
 
           <!-- Commentaires -->
           <CommentsSection
-            v-if="isPublished"
+            v-if="isPublished && currentUser"
             :tip-id="numericTipId"
             class="pt-8 border-t border-slate-200/50 dark:border-white/5"
           />

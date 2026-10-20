@@ -29,6 +29,7 @@ export const API_ROUTES = {
     UPDATE: (id: number) => `/tips/${id}`,
     DELETE: (id: number) => `/tips/${id}`,
     CATEGORIES: '/tips/tags/all',
+    TRENDING: '/tips/trending',
   },
 
   COMMENTS: {
@@ -93,6 +94,12 @@ export const API_ROUTES = {
     GRADE: (gradeId: number) => `/admin/grades/${gradeId}`,
     BADGES: '/admin/badges',
     BADGE: (badgeId: number) => `/admin/badges/${badgeId}`,
+  },
+
+  CATEGORIES: {
+    LIST: '/categories',
+    FOLLOWED: '/categories/followed',
+    FOLLOW: (id: number) => `/categories/${id}/follow`,
   },
 
   UPLOADS: {

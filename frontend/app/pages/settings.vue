@@ -35,11 +35,9 @@ const passwordForm = reactive({
   confirmPassword: '',
 });
 
-const notifications = reactive<Record<string, boolean>>({
-  email: true,
-  push: false,
-  newsletter: true,
-});
+// Catégories suivies : notification en temps réel à chaque nouveau tip publié
+const { categories, loadCategories, toggleFollow } = useCategoryFollow();
+onMounted(loadCategories);
 
 const savingProfile = ref(false);
 const savingPassword = ref(false);
@@ -146,7 +144,7 @@ const updatePassword = async () => {
 const tabs = [
   { id: 'general', label: 'Général', icon: 'tabler:user' },
   { id: 'security', label: 'Sécurité', icon: 'tabler:lock' },
-  { id: 'notifications', label: 'Notifications', icon: 'tabler:bell' },
+  { id: 'notifications', label: 'Catégories suivies', icon: 'tabler:bell' },
 ];
 </script>
 
@@ -380,21 +378,35 @@ const tabs = [
           <div v-if="activeTab === 'notifications'" class="space-y-8 animate-fade-in">
             <h2 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
               <Icon name="tabler:bell-ringing" class="text-purple-600" />
-              Préférences de Notifications
+              Catégories suivies
             </h2>
 
-            <div class="space-y-4">
+            <p class="text-sm text-slate-500">
+              Suivez des catégories pour être notifié en temps réel dès qu'un nouveau tip y est
+              publié. Les messages privés, badges et décisions de modération sont toujours notifiés.
+            </p>
+
+            <p v-if="categories.length === 0" class="text-sm text-slate-400">Chargement…</p>
+            <div v-else class="space-y-3">
               <div
-                v-for="(val, key) in notifications"
-                :key="key"
+                v-for="category in categories"
+                :key="category.id"
                 class="flex items-center justify-between p-5 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-white/20 hover:bg-white/80 transition-colors"
               >
                 <div>
-                  <div class="font-bold text-slate-900 dark:text-white capitalize">{{ key }}</div>
-                  <div class="text-xs text-slate-500">Recevoir des notifications par {{ key }}</div>
+                  <div class="font-bold text-slate-900 dark:text-white">{{ category.name }}</div>
+                  <div class="text-xs text-slate-500">
+                    {{ category.description || `${category.tipsCount} tip(s) publié(s)` }}
+                  </div>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input v-model="notifications[key]" type="checkbox" class="sr-only peer" />
+                  <input
+                    :checked="category.isFollowed"
+                    type="checkbox"
+                    class="sr-only peer"
+                    :aria-label="`Suivre ${category.name}`"
+                    @change="toggleFollow(category)"
+                  />
                   <div
                     class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"
                   ></div>

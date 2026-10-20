@@ -44,7 +44,7 @@ export interface ConversationWith {
 
 export interface AppNotification {
   id: number;
-  type: 'NEW_MESSAGE' | 'BADGE_UNLOCKED';
+  type: 'NEW_MESSAGE' | 'BADGE_UNLOCKED' | 'MODERATION' | 'NEW_TIP';
   title: string;
   body: string | null;
   link: string | null;
