@@ -68,6 +68,14 @@ All routes prefixed with `/api`.
 **PATCH /api/notifications/:id/read** - Mark one as read
 **POST /api/notifications/read-all** - Mark all as read
 
+## Chatbot
+
+**GET /api/chatbot/config** - Greeting message
+**POST /api/chatbot/ask** - Ask the chatbot
+**GET|PATCH /api/admin/chatbot/config** - Chatbot settings (admin)
+**GET|POST /api/admin/chatbot/responses**, **PATCH|DELETE /api/admin/chatbot/responses/:id** - Canned responses (admin)
+**GET /api/admin/chatbot/queries** - Asked questions (?unanswered=true)
+
 ## Uploads
 
 **POST /api/uploads/tips** - Upload tip images (multipart)
@@ -362,6 +370,34 @@ Retrograder un membre (`POST /api/moderation/users/:id/downgrade`) demande **100
 ### Tests
 
 `GAMIFICATION_ENFORCE=false` desactive ces regles. `jest.setup.ts` le fait pour les tests qui ne portent pas sur la gamification ; `gamification.integration.test.ts` les reactive.
+
+---
+
+## Chatbot
+
+Assistant sans service externe : il cherche dans les tips publies et dans les reponses types gerees par l'admin. Code : `backend/src/modules/chatbot/`.
+
+### POST /api/chatbot/ask
+
+**Authentification:** Requise (limite a 10 questions par minute)
+
+**Body:** `question` (3-500 caracteres)
+
+**Reponse (200):** `{ answer, context, link, tips, suggestAskingCommunity }`
+
+1. La question est normalisee : minuscules, accents retires, mots vides ignores, pluriels simplifies, mots rapproches par racine commune ("reparation" / "reparer").
+2. **Reponse type :** la premiere reponse active (par priorite) dont un mot-cle a tous ses mots dans la question fournit `answer` et `link`.
+3. **Tips :** chaque tip publie est note. Un mot trouve dans le titre vaut 3, dans une categorie 2, dans le contenu 1, et les votes « utile » ajoutent un petit bonus. Les tips qui retrouvent moins d'un tiers des mots de la question sont ecartes. Les 3 meilleurs sont renvoyes, chacun avec un extrait (`snippet`).
+4. **Ni reponse type ni tip :** le message de repli est renvoye avec `suggestAskingCommunity: true`. Le frontend propose alors de poser la question a la communaute, avec le formulaire pre-rempli.
+5. `context` est le texte de contexte configure par l'admin, ajoute a chaque reponse.
+
+Chaque question est enregistree, avec le nombre de tips trouves et la reponse type utilisee.
+
+### Administration
+
+- `PATCH /api/admin/chatbot/config` : `greeting`, `fallbackMessage`, `contextNote` (chaine vide = aucun contexte).
+- Reponses types : `keywords` (1 a 20 expressions), `answer`, `link` (chemin interne uniquement, ex. `/settings`), `priority` (0-100), `isActive`.
+- `GET /api/admin/chatbot/queries?unanswered=true` : questions sans tip ni reponse type, pour creer de nouvelles reponses.
 
 ---
 
