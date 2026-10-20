@@ -74,7 +74,7 @@ jobs:
           done
 
       - name: Setup database schema
-        run: npx prisma db push --accept-data-loss
+        run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://tips_user:tips_password@localhost:5432/tips_db
 

@@ -10,8 +10,10 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:push": "prisma db push",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:prod": "prisma migrate deploy",
+    "prisma:migrate:status": "prisma migrate status",
+    "prisma:migrate:reset": "prisma migrate reset",
     "prisma:studio": "prisma studio",
     "seed": "ts-node src/seed.ts",
     "lint": "eslint .",
@@ -29,11 +31,11 @@
     "docker:restart": "cd .. && docker compose restart backend",
     "docker:logs": "cd .. && docker compose logs -f backend",
     "docker:shell": "cd .. && docker compose exec backend sh",
-    "docker:prisma:push": "cd .. && docker compose exec backend npx prisma db push",
+    "docker:prisma:migrate": "cd .. && docker compose exec backend npx prisma migrate deploy",
     "docker:prisma:generate": "cd .. && docker compose exec backend npx prisma generate",
     "docker:prisma:studio": "cd .. && docker compose exec backend npx prisma studio",
     "docker:seed": "cd .. && docker compose exec backend npm run seed",
-    "docker:dev": "npm run docker:build && npm run docker:up && npm run docker:prisma:push && npm run docker:seed"
+    "docker:dev": "npm run docker:build && npm run docker:up && npm run docker:prisma:migrate && npm run docker:seed"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
