@@ -30,6 +30,45 @@ const ROLE_LABELS: Record<PublicProfile['role'], string> = {
 };
 
 const isMe = computed(() => currentUser.value?.id === userId);
+const isBlocked = ref(false);
+
+const loadBlockStatus = async () => {
+  if (isMe.value) return;
+  try {
+    const blocked = await api.get<Array<{ id: number }>>(API_ROUTES.MESSAGING.BLOCKS, {
+      showErrorToast: false,
+    });
+    isBlocked.value = blocked.some((user) => user.id === userId);
+  } catch {
+    isBlocked.value = false;
+  }
+};
+
+const toggleBlock = async () => {
+  if (
+    !isBlocked.value &&
+    !confirm(`Bloquer ${displayName.value} ? Vous ne pourrez plus échanger de messages privés.`)
+  ) {
+    return;
+  }
+
+  try {
+    if (isBlocked.value) {
+      await api.delete(API_ROUTES.MESSAGING.BLOCK(userId), {
+        showSuccessToast: true,
+        successMessage: 'Membre débloqué',
+      });
+    } else {
+      await api.post(API_ROUTES.MESSAGING.BLOCK(userId), undefined, {
+        showSuccessToast: true,
+        successMessage: 'Membre bloqué',
+      });
+    }
+    isBlocked.value = !isBlocked.value;
+  } catch {
+    // l'erreur est déjà affichée par useApi
+  }
+};
 
 const displayName = computed(() => {
   if (!profile.value) return '';
@@ -70,6 +109,7 @@ const recentTips = computed<Tip[]>(() => {
 });
 
 onMounted(async () => {
+  loadBlockStatus();
   try {
     profile.value = await api.get<PublicProfile>(API_ROUTES.USERS.PUBLIC_PROFILE(userId), {
       showErrorToast: false,
@@ -141,6 +181,28 @@ useSeoMeta({
           >
             <Icon name="tabler:pencil" class="w-4 h-4" /> Modifier mon profil
           </NuxtLink>
+          <div v-else class="self-start flex flex-wrap gap-2">
+            <NuxtLink
+              v-if="!isBlocked"
+              :to="{ path: '/messages', query: { to: profile.id } }"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 transition"
+            >
+              <Icon name="tabler:message" class="w-4 h-4" /> Envoyer un message
+            </NuxtLink>
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-bold transition"
+              :class="
+                isBlocked
+                  ? 'border-slate-300 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                  : 'border-red-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
+              "
+              @click="toggleBlock"
+            >
+              <Icon :name="isBlocked ? 'tabler:lock-open' : 'tabler:ban'" class="w-4 h-4" />
+              {{ isBlocked ? 'Débloquer' : 'Bloquer' }}
+            </button>
+          </div>
         </div>
 
         <p

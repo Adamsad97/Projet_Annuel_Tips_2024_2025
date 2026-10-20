@@ -12,6 +12,9 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   gradeId?: number | null;
+  xp?: number;
+  moderator?: { isActive: boolean } | null;
+  admin?: { userId: number } | null;
 }
 
 export interface LoginCredentials {

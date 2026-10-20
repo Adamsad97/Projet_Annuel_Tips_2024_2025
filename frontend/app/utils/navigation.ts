@@ -15,6 +15,7 @@ export const mainLinks: NavigationLink[] = [
 
 export const userLinks: NavigationLink[] = [
   { to: '/my-tips', text: 'Mes Tips', icon: 'tabler:notebook', requiresAuth: true },
+  { to: '/messages', text: 'Messages', icon: 'tabler:messages', requiresAuth: true },
 ];
 
 export const moderatorLinks: NavigationLink[] = [

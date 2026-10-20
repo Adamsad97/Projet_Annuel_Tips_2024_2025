@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from 'vue';
 import BadgeUnlockModal from '@/components/gamification/BadgeUnlockModal.vue';
+import type { AppNotification } from '~/types';
 
 const showSearch = ref<boolean>(false);
 const inputRef = ref<ComponentPublicInstance | null>(null);
@@ -23,30 +24,46 @@ const unlockedBadge = ref<{
   xpReward: number;
 } | null>(null);
 
-const ws = useWebSocket();
 const { user } = useAuth();
+const realtime = useRealtime();
+const notifications = useNotifications();
+const toast = useToastMessage();
+const route = useRoute();
+
+let unsubscribers: Array<() => void> = [];
 
 onMounted(() => {
-  if (user.value) {
-    console.log('[Layout] User authenticated, connecting WebSocket for user:', user.value.id);
-    ws.connect();
-
-    ws.onBadgeUnlocked((data) => {
-      console.log('[Layout] Badge unlock event received for user:', data.userId);
-      console.log('[Layout] Current user ID:', user.value?.id);
-
-      if (data.userId === user.value?.id) {
-        console.log('[Layout] Showing badge modal for:', data.badge.name);
-        unlockedBadge.value = data.badge;
-        showBadgeModal.value = true;
-      } else {
-        console.log('[Layout] Badge not for current user, ignoring');
+  unsubscribers = [
+    realtime.on<{ badge: NonNullable<typeof unlockedBadge.value> }>('badge:unlocked', (data) => {
+      unlockedBadge.value = { ...data.badge, description: data.badge.description ?? '' };
+      showBadgeModal.value = true;
+    }),
+    realtime.on<AppNotification>('notification:new', (notification) => {
+      notifications.addNotification(notification);
+      // Sur la messagerie, la conversation s'affiche déjà en direct
+      if (notification.type === 'NEW_MESSAGE' && route.path !== '/messages') {
+        toast.info(notification.body ?? '', notification.title);
       }
-    });
-  } else {
-    console.log('[Layout] No user authenticated, WebSocket not connected');
-  }
+    }),
+  ];
 });
+
+onUnmounted(() => unsubscribers.forEach((unsubscribe) => unsubscribe()));
+
+// Connexion / déconnexion : le socket change d'identité et la cloche est rechargée
+watch(
+  () => user.value?.id,
+  (userId, previousUserId) => {
+    if (import.meta.server || userId === previousUserId) return;
+    realtime.reconnect();
+    if (userId) {
+      notifications.fetchNotifications();
+    } else {
+      notifications.reset();
+    }
+  },
+  { immediate: true },
+);
 
 const closeBadgeModal = () => {
   showBadgeModal.value = false;

@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import ProfilPicture from './ProfilPicture.vue';
 import SearchInput from './SearchInput.vue';
+import NotificationBell from './NotificationBell.vue';
 import { mainLinks, secondaryLinks, userLinks, moderatorLinks } from '@/utils/navigation';
 
 const openSidebar = ref(false);
@@ -70,25 +71,28 @@ const toggleTheme = () => {
           />
         </button>
 
+        <!-- Notifications (Si connecté) -->
+        <NotificationBell v-if="isAuthenticated" />
+
         <!-- Profil (Si connecté) -->
         <NuxtLink
           v-if="isAuthenticated && user"
           to="/profile"
           class="flex items-center gap-2 group"
         >
-          <ProfilPicture :src="user.avatar" :alt="user.name" />
+          <ProfilPicture :src="user.avatarProfile || undefined" :alt="user.username" />
           <div class="hidden sm:flex flex-col items-start">
             <span
               class="text-xs font-bold text-gray-700 dark:text-slate-200 group-hover:text-purple-600 transition"
-              >{{ user.xp }} xp</span
+              >{{ user.xp ?? 0 }} xp</span
             >
             <div
               class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mt-0.5 overflow-hidden"
             >
               <div
                 class="h-full rounded-full"
-                :class="user.xp >= 5000 ? 'bg-emerald-500' : 'bg-purple-300'"
-                :style="{ width: Math.min(100, (user.xp / 5000) * 100) + '%' }"
+                :class="(user.xp ?? 0) >= 5000 ? 'bg-emerald-500' : 'bg-purple-300'"
+                :style="{ width: Math.min(100, ((user.xp ?? 0) / 5000) * 100) + '%' }"
               />
             </div>
           </div>
@@ -150,10 +154,14 @@ const toggleTheme = () => {
             class="mb-6 p-4 rounded-xl bg-purple-50/50 dark:bg-slate-800/50 border border-purple-100 dark:border-slate-700"
           >
             <div class="flex items-center gap-3 mb-3">
-              <ProfilPicture :src="user.avatar" :alt="user.name" class="w-12 h-12" />
+              <ProfilPicture
+                :src="user.avatarProfile || undefined"
+                :alt="user.username"
+                class="w-12 h-12"
+              />
               <div>
-                <p class="font-bold text-gray-900 dark:text-white">{{ user.name }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ user.xp }} XP</p>
+                <p class="font-bold text-gray-900 dark:text-white">{{ user.username }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ user.xp ?? 0 }} XP</p>
               </div>
             </div>
             <NuxtLink

@@ -46,6 +46,22 @@ export const API_ROUTES = {
     COMMENT: (id: number) => `/comments/${id}/reports`,
   },
 
+  MESSAGING: {
+    CONVERSATIONS: '/conversations',
+    CONVERSATION: (id: number) => `/conversations/${id}`,
+    CONVERSATION_WITH: (userId: number) => `/conversations/with/${userId}`,
+    MESSAGES: '/messages',
+    MESSAGE: (id: number) => `/messages/${id}`,
+    BLOCKS: '/blocks',
+    BLOCK: (userId: number) => `/users/${userId}/block`,
+  },
+
+  NOTIFICATIONS: {
+    LIST: '/notifications',
+    READ_ALL: '/notifications/read-all',
+    READ: (id: number) => `/notifications/${id}/read`,
+  },
+
   UPLOADS: {
     TIP_IMAGES: '/uploads/tips',
   },
