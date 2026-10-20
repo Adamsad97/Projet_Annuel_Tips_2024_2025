@@ -8,6 +8,9 @@ const inputRef = ref<ComponentPublicInstance | null>(null);
 const toastRef = ref<InstanceType<typeof AppToast> | null>(null);
 const toast = useState('toast-instance');
 const authStore = useAuthStore();
+// Le rendu serveur ne connaît pas la session (stockée dans le navigateur) : il affiche
+// directement la page, et le client attend l'initialisation de l'authentification.
+const ready = computed(() => import.meta.server || authStore.isInitialized);
 
 watch(showSearch, (open) => {
   if (open && inputRef.value) {
@@ -18,9 +21,10 @@ watch(showSearch, (open) => {
   }
 });
 
-onMounted(() => {
-  toast.value = toastRef.value;
-  console.log('[app] Toast initialisé:', toast.value);
+// Le composant de notifications vit dans la mise en page, montée après app.vue :
+// on l'enregistre dès que sa référence est disponible
+watch(toastRef, (instance) => {
+  if (instance) toast.value = instance;
 });
 
 useSiteMeta();
@@ -29,7 +33,7 @@ useSiteMeta();
 <template>
   <NuxtLayout>
     <div
-      v-if="!authStore.isInitialized"
+      v-if="!ready"
       class="fixed inset-0 z-50 flex items-center justify-center dark:bg-slate-950"
     >
       <div class="text-center">
@@ -55,7 +59,7 @@ useSiteMeta();
       </div>
     </div>
 
-    <div v-show="authStore.isInitialized">
+    <div v-show="ready">
       <NuxtPage />
     </div>
 

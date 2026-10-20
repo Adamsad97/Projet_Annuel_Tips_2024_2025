@@ -36,33 +36,38 @@ const visibleModeratorLinks = computed(() =>
       />
     </nav>
 
-    <!-- Séparateur + Liens Utilisateur (si connecté) -->
-    <div v-if="isAuthenticated && userLinks.length > 0" class="flex flex-col gap-2 w-full">
-      <div class="w-full h-px bg-blue-100 dark:bg-blue-900/30 my-2" />
-      <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1 pl-2">Mon Espace</p>
-      <SidebarButton
-        v-for="link in userLinks"
-        :key="link.to"
-        :to="link.to"
-        :text="link.text"
-        :icon-name="link.icon"
-      />
-    </div>
+    <!-- Liens liés à la session : rendus dans le navigateur, où la session est connue -->
+    <ClientOnly>
+      <!-- Séparateur + Liens Utilisateur (si connecté) -->
+      <div v-if="isAuthenticated && userLinks.length > 0" class="flex flex-col gap-2 w-full">
+        <div class="w-full h-px bg-blue-100 dark:bg-blue-900/30 my-2" />
+        <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1 pl-2">
+          Mon Espace
+        </p>
+        <SidebarButton
+          v-for="link in userLinks"
+          :key="link.to"
+          :to="link.to"
+          :text="link.text"
+          :icon-name="link.icon"
+        />
+      </div>
 
-    <!-- Séparateur + Liens Modération (si modérateur/admin) -->
-    <div v-if="isModerator && moderatorLinks.length > 0" class="flex flex-col gap-2 w-full">
-      <div class="w-full h-px bg-purple-100 dark:bg-purple-900/30 my-2" />
-      <p class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-1 pl-2">
-        Modération
-      </p>
-      <SidebarButton
-        v-for="link in visibleModeratorLinks"
-        :key="link.to"
-        :to="link.to"
-        :text="link.text"
-        :icon-name="link.icon"
-      />
-    </div>
+      <!-- Séparateur + Liens Modération (si modérateur/admin) -->
+      <div v-if="isModerator && moderatorLinks.length > 0" class="flex flex-col gap-2 w-full">
+        <div class="w-full h-px bg-purple-100 dark:bg-purple-900/30 my-2" />
+        <p class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-1 pl-2">
+          Modération
+        </p>
+        <SidebarButton
+          v-for="link in visibleModeratorLinks"
+          :key="link.to"
+          :to="link.to"
+          :text="link.text"
+          :icon-name="link.icon"
+        />
+      </div>
+    </ClientOnly>
 
     <!-- Bas de Sidebar (Paramètres, Version...) -->
     <div

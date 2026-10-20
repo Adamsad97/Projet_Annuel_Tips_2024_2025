@@ -4,7 +4,6 @@ import { storage } from '~/utils/storage';
 interface TipApprovedEvent {
   tipId: number;
   title: string;
-  content: string;
   author: {
     id: number;
     username: string;

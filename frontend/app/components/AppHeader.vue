@@ -80,61 +80,68 @@ const toggleTheme = () => {
           class="inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-200 bg-white/80 text-gray-700 shadow-sm hover:bg-gray-100 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-700 transition"
           @click="toggleTheme"
         >
-          <Icon
-            :name="colorMode.value === 'dark' ? 'tabler:moon' : 'tabler:sun-high'"
-            class="w-5 h-5"
-          />
+          <!-- Le thème du visiteur n'est connu que dans le navigateur -->
+          <ClientOnly>
+            <Icon
+              :name="colorMode.value === 'dark' ? 'tabler:moon' : 'tabler:sun-high'"
+              class="w-5 h-5"
+            />
+            <template #fallback><span class="w-5 h-5" /></template>
+          </ClientOnly>
         </button>
 
-        <!-- Notifications (Si connecté) -->
-        <NotificationBell v-if="isAuthenticated" />
+        <!-- Zone liée à la session : rendue dans le navigateur, où la session est connue -->
+        <ClientOnly>
+          <!-- Notifications (Si connecté) -->
+          <NotificationBell v-if="isAuthenticated" />
 
-        <!-- Profil (Si connecté) -->
-        <NuxtLink
-          v-if="isAuthenticated && user"
-          to="/profile"
-          class="flex items-center gap-2 group"
-        >
-          <ProfilPicture :src="user.avatarProfile || undefined" :alt="user.username" online />
-          <div
-            class="hidden sm:flex flex-col items-start"
-            :title="
-              gradeProgress.next
-                ? `${gradeProgress.percent} % vers le grade ${gradeProgress.next.name}`
-                : 'Grade maximal atteint'
-            "
+          <!-- Profil (Si connecté) -->
+          <NuxtLink
+            v-if="isAuthenticated && user"
+            to="/profile"
+            class="flex items-center gap-2 group"
           >
-            <span
-              class="text-xs font-bold text-gray-700 dark:text-slate-200 group-hover:text-purple-600 transition"
-              >{{ user.xp ?? 0 }} xp</span
-            >
+            <ProfilPicture :src="user.avatarProfile || undefined" :alt="user.username" online />
             <div
-              class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mt-0.5 overflow-hidden"
+              class="hidden sm:flex flex-col items-start"
+              :title="
+                gradeProgress.next
+                  ? `${gradeProgress.percent} % vers le grade ${gradeProgress.next.name}`
+                  : 'Grade maximal atteint'
+              "
             >
+              <span
+                class="text-xs font-bold text-gray-700 dark:text-slate-200 group-hover:text-purple-600 transition"
+                >{{ user.xp ?? 0 }} xp</span
+              >
               <div
-                class="h-full rounded-full"
-                :class="gradeProgress.next ? 'bg-purple-300' : 'bg-emerald-500'"
-                :style="{ width: gradeProgress.percent + '%' }"
-              />
+                class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mt-0.5 overflow-hidden"
+              >
+                <div
+                  class="h-full rounded-full"
+                  :class="gradeProgress.next ? 'bg-purple-300' : 'bg-emerald-500'"
+                  :style="{ width: gradeProgress.percent + '%' }"
+                />
+              </div>
             </div>
-          </div>
-        </NuxtLink>
+          </NuxtLink>
 
-        <!-- Auth Buttons (Si déconnecté) -->
-        <div v-else class="flex items-center gap-2">
-          <NuxtLink
-            to="/auth/login"
-            class="hidden sm:inline-flex px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 transition"
-          >
-            Connexion
-          </NuxtLink>
-          <NuxtLink
-            to="/auth/register"
-            class="px-4 py-2 text-sm font-bold text-white bg-linear-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105 active:scale-95 transition-all"
-          >
-            Inscription
-          </NuxtLink>
-        </div>
+          <!-- Auth Buttons (Si déconnecté) -->
+          <div v-else class="flex items-center gap-2">
+            <NuxtLink
+              to="/auth/login"
+              class="hidden sm:inline-flex px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 transition"
+            >
+              Connexion
+            </NuxtLink>
+            <NuxtLink
+              to="/auth/register"
+              class="px-4 py-2 text-sm font-bold text-white bg-linear-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105 active:scale-95 transition-all"
+            >
+              Inscription
+            </NuxtLink>
+          </div>
+        </ClientOnly>
 
         <!-- Burger Mobile -->
         <button

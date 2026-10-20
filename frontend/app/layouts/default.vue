@@ -76,9 +76,6 @@ const closeBadgeModal = () => {
     unlockedBadge.value = null;
   }, 300); // Wait for animation to complete
 };
-
-// SEO Config
-useSiteMeta();
 </script>
 
 <template>
@@ -135,7 +132,8 @@ useSiteMeta();
 
       <main class="flex-1 flex flex-col min-w-0 transition-all duration-300">
         <div class="flex-1 px-4 py-6 md:px-8 md:py-8 w-full max-w-7xl mx-auto">
-          <NuxtPage />
+          <!-- Contenu fourni par app.vue : page, écran de chargement et notifications -->
+          <slot />
         </div>
         <AppFooter class="mt-auto border-t border-purple-50 dark:border-slate-800" />
       </main>

@@ -20,12 +20,15 @@ export function useApi() {
   const authStore = useAuthStore();
   const toast = useToastMessage();
   const { refreshAccessToken } = useTokenRefresh();
+  // Rendu serveur : l'IP du visiteur est relayée à l'API (limite de requêtes par visiteur)
+  const visitorHeaders = import.meta.server ? useRequestHeaders(['x-forwarded-for']) : {};
 
   async function apiCall<T>(endpoint: string, options: ApiCallOptions = {}): Promise<T> {
     const baseURL = config.public.apiBaseUrl;
     // Pour un FormData, le navigateur doit poser lui-même le Content-Type (avec le boundary)
     const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
     const headers: Record<string, string> = {
+      ...visitorHeaders,
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(options.headers || {}),
     };

@@ -1,15 +1,19 @@
 export const useSiteMeta = () => {
+  const config = useRuntimeConfig();
+  const route = useRoute();
+
   const siteTitle = 'AideFlash';
   const siteDescription =
-    "La communauté d'entraide pour développeurs. Partagez vos tips, progressez et gagnez de l'XP !";
-  const siteUrl = 'https://aideflash.fr';
-  const siteImage = 'https://aideflash.fr/og-image-default.jpg';
+    "La plateforme d'entraide pour partager et trouver des astuces du quotidien : bricolage, cuisine, informatique… Progressez et gagnez de l'XP !";
+  const siteUrl = (config.public.siteUrl as string).replace(/\/$/, '');
+  // Adresse canonique de la page courante (sans paramètres)
+  const pageUrl = computed(() => `${siteUrl}${route.path}`);
 
   useHead({
     htmlAttrs: { lang: 'fr' },
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-      { rel: 'canonical', href: siteUrl },
+      { rel: 'canonical', href: pageUrl },
     ],
     titleTemplate: (titleChunk?: string) =>
       titleChunk ? `${titleChunk} - ${siteTitle}` : siteTitle,
@@ -19,11 +23,10 @@ export const useSiteMeta = () => {
     description: siteDescription,
     ogTitle: siteTitle,
     ogDescription: siteDescription,
-    ogImage: siteImage,
-    ogUrl: siteUrl,
-    twitterCard: 'summary_large_image',
+    ogUrl: pageUrl,
+    ogSiteName: siteTitle,
+    twitterCard: 'summary',
     twitterTitle: siteTitle,
     twitterDescription: siteDescription,
-    twitterImage: siteImage,
   });
 };

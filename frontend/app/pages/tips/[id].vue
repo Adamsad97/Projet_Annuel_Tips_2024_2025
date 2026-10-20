@@ -40,6 +40,23 @@ const tip = computed(() => {
   return { ...mapped, id: bt.id, userId: bt.userId, status: bt.status };
 });
 
+// Partage natif du navigateur (mobile), sinon copie du lien
+const toast = useToastMessage();
+const shareTip = async () => {
+  const url = window.location.href;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: tip.value?.title, url });
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    toast.success('Lien copié dans le presse-papiers');
+  } catch (error) {
+    // partage annulé par l'utilisateur : rien à signaler
+    if ((error as Error).name !== 'AbortError') toast.error('Impossible de partager ce lien');
+  }
+};
+
 const isOwner = computed(() => currentUser.value?.id === tip.value?.userId);
 const numericTipId = Number(tipId);
 const isPublished = computed(() => tip.value?.status === 'APPROVED');
@@ -133,75 +150,82 @@ useSeoMeta({
               class="absolute inset-0 bg-linear-to-b from-white/20 to-transparent pointer-events-none"
             />
 
-            <!-- Status Badge (owner only) - Cleaner position at top of content -->
-            <div
-              v-if="statusConfig && isOwner"
-              class="relative mb-6 flex justify-between items-center"
-            >
+            <!-- Actions liées à la session : rendues dans le navigateur, où la session est connue -->
+            <ClientOnly>
+              <!-- Status Badge (owner only) - Cleaner position at top of content -->
               <div
-                :class="[
-                  'inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-medium',
-                  statusConfig.color,
-                ]"
+                v-if="statusConfig && isOwner"
+                class="relative mb-6 flex justify-between items-center"
               >
-                <Icon :name="statusConfig.icon" class="w-5 h-5" />
-                {{ statusConfig.label }}
+                <div
+                  :class="[
+                    'inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-medium',
+                    statusConfig.color,
+                  ]"
+                >
+                  <Icon :name="statusConfig.icon" class="w-5 h-5" />
+                  {{ statusConfig.label }}
+                </div>
+
+                <!-- Actions : vote, signalement, partage -->
+                <div class="flex flex-wrap items-center gap-2">
+                  <NuxtLink
+                    :to="ROUTES.TIP_EDIT(numericTipId)"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                  >
+                    <Icon name="tabler:pencil" class="w-4 h-4" /> Modifier
+                  </NuxtLink>
+                  <VoteButtons
+                    v-if="isPublished"
+                    :endpoint="API_ROUTES.VOTES.TIP(numericTipId)"
+                    :score="votes.score"
+                    :user-vote="votes.userVote"
+                    :disabled="isOwner"
+                    @update="votes = $event"
+                  />
+                  <ReportButton
+                    v-if="isPublished && !isOwner"
+                    :endpoint="API_ROUTES.REPORTS.TIP(numericTipId)"
+                    target="ce tip"
+                  />
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
+                    @click="shareTip"
+                  >
+                    <Icon name="tabler:share" class="w-4 h-4" />
+                    Partager
+                  </button>
+                </div>
               </div>
 
-              <!-- Actions : vote, signalement, partage -->
-              <div class="flex flex-wrap items-center gap-2">
-                <NuxtLink
-                  :to="ROUTES.TIP_EDIT(numericTipId)"
-                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
-                >
-                  <Icon name="tabler:pencil" class="w-4 h-4" /> Modifier
-                </NuxtLink>
-                <VoteButtons
-                  v-if="isPublished"
-                  :endpoint="API_ROUTES.VOTES.TIP(numericTipId)"
-                  :score="votes.score"
-                  :user-vote="votes.userVote"
-                  :disabled="isOwner"
-                  @update="votes = $event"
-                />
-                <ReportButton
-                  v-if="isPublished && !isOwner"
-                  :endpoint="API_ROUTES.REPORTS.TIP(numericTipId)"
-                  target="ce tip"
-                />
-                <button
-                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
-                >
-                  <Icon name="tabler:share" class="w-4 h-4" />
-                  Partager
-                </button>
+              <!-- Actions pour les non-auteurs -->
+              <div v-else-if="!isOwner" class="relative mb-6 flex justify-end">
+                <div class="flex flex-wrap items-center gap-2">
+                  <VoteButtons
+                    v-if="isPublished"
+                    :endpoint="API_ROUTES.VOTES.TIP(numericTipId)"
+                    :score="votes.score"
+                    :user-vote="votes.userVote"
+                    :disabled="isOwner"
+                    @update="votes = $event"
+                  />
+                  <ReportButton
+                    v-if="isPublished && !isOwner"
+                    :endpoint="API_ROUTES.REPORTS.TIP(numericTipId)"
+                    target="ce tip"
+                  />
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
+                    @click="shareTip"
+                  >
+                    <Icon name="tabler:share" class="w-4 h-4" />
+                    Partager
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <!-- Actions pour les non-auteurs -->
-            <div v-else-if="!isOwner" class="relative mb-6 flex justify-end">
-              <div class="flex flex-wrap items-center gap-2">
-                <VoteButtons
-                  v-if="isPublished"
-                  :endpoint="API_ROUTES.VOTES.TIP(numericTipId)"
-                  :score="votes.score"
-                  :user-vote="votes.userVote"
-                  :disabled="isOwner"
-                  @update="votes = $event"
-                />
-                <ReportButton
-                  v-if="isPublished && !isOwner"
-                  :endpoint="API_ROUTES.REPORTS.TIP(numericTipId)"
-                  target="ce tip"
-                />
-                <button
-                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
-                >
-                  <Icon name="tabler:share" class="w-4 h-4" />
-                  Partager
-                </button>
-              </div>
-            </div>
+            </ClientOnly>
 
             <!-- Intro -->
             <p
@@ -248,13 +272,15 @@ useSeoMeta({
           <!-- 3. Carte -->
           <TipMap :lat="tip.lat" :lng="tip.lng" :address="tip.address" />
 
-          <!-- Commentaires -->
-          <CommentsSection
-            v-if="isPublished && currentUser"
-            :tip-id="numericTipId"
-            :title="tip.kind === 'QUESTION' ? 'Réponses' : 'Discussion'"
-            class="pt-8 border-t border-slate-200/50 dark:border-white/5"
-          />
+          <!-- Commentaires (membres) -->
+          <ClientOnly>
+            <CommentsSection
+              v-if="isPublished && currentUser"
+              :tip-id="numericTipId"
+              :title="tip.kind === 'QUESTION' ? 'Réponses' : 'Discussion'"
+              class="pt-8 border-t border-slate-200/50 dark:border-white/5"
+            />
+          </ClientOnly>
         </main>
 
         <!-- RIGHT COLUMN (Sidebar Sticky Glass) -->

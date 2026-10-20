@@ -8,7 +8,7 @@ const TipsCard = defineAsyncComponent(() => import('~/components/TipsCard.vue'))
 const config = useRuntimeConfig();
 const apiBaseUrl = config.public.apiBaseUrl;
 
-const { data: rawResponse } = await useFetch<{ success: boolean; data: ApiTip[] }>(
+const { data: rawResponse, refresh } = await useFetch<{ success: boolean; data: ApiTip[] }>(
   `${apiBaseUrl}/tips`,
   {
     default: () => ({ success: true, data: [] }),
@@ -25,9 +25,8 @@ const ws = useWebSocket();
 onMounted(() => {
   ws.connect();
 
-  ws.onTipApproved((newTip) => {
-    tipsList.value = [newTip as unknown as Tip, ...tipsList.value];
-  });
+  // Un tip vient d'être validé : on recharge la liste depuis l'API (cartes complètes)
+  ws.onTipApproved(() => refresh());
 });
 
 onUnmounted(() => {

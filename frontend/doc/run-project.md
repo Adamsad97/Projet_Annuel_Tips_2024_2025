@@ -219,6 +219,9 @@ Variables de production du frontend (voir `docker-compose.prod.yaml`) :
 | `NUXT_PUBLIC_API_BASE_URL` | `/api` | appels API du navigateur sur le même domaine |
 | `NUXT_PUBLIC_BACKEND_URL` | vide | Socket.io sur le même domaine |
 | `NUXT_API_PROXY_TARGET` | `http://backend:3001` | le rendu serveur relaie `/api` vers le backend interne |
+| `NUXT_PUBLIC_SITE_URL`, `NUXT_SITE_URL` | `${SITE_URL}` | adresse publique : liens canoniques, sitemap, robots.txt |
+
+Les pages réservées aux membres (profil, paramètres, messagerie, admin…) sont rendues côté client uniquement (`routeRules` dans `nuxt.config.ts`) : la session est stockée dans le navigateur. Le rendu serveur relaie l'IP du visiteur à l'API (`X-Forwarded-For`), pour que la limite de requêtes s'applique par visiteur.
 
 ## Environnements
 
