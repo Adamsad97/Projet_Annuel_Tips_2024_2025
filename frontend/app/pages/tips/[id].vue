@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { ApiTip } from '~/types';
+import type { ApiTip, VoteSummary } from '~/types';
+import VoteButtons from '~/components/interactions/VoteButtons.vue';
+import ReportButton from '~/components/interactions/ReportButton.vue';
+import { API_ROUTES } from '~/config/api';
 import CommentsSection from '~/components/CommentsSection.vue';
 import TipHero from '~/components/tips/TipHero.vue';
 import TipGallery from '~/components/tips/TipGallery.vue';
@@ -59,6 +62,26 @@ if (!tip.value) {
 }
 
 const isOwner = computed(() => currentUser.value?.id === tip.value?.userId);
+const numericTipId = Number(tipId);
+const isPublished = computed(() => tip.value?.status === 'APPROVED');
+
+const votes = ref<VoteSummary>(
+  backendTip.value?.votes ?? { upvotes: 0, downvotes: 0, score: 0, userVote: 0 },
+);
+
+// Le rendu serveur n'a pas le token : on récupère le vote de l'utilisateur côté client
+const api = useApi();
+onMounted(async () => {
+  if (!currentUser.value) return;
+  try {
+    const freshTip = await api.get<ApiTip>(API_ROUTES.TIPS.DETAIL(numericTipId), {
+      showErrorToast: false,
+    });
+    if (freshTip.votes) votes.value = freshTip.votes;
+  } catch {
+    // on garde le résumé public
+  }
+});
 
 const statusConfig = computed(() => {
   switch (tip.value?.status) {
@@ -129,23 +152,53 @@ useSeoMeta({
                 {{ statusConfig.label }}
               </div>
 
-              <!-- Share Button -->
-              <button
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
-              >
-                <Icon name="tabler:share" class="w-4 h-4" />
-                Partager
-              </button>
+              <!-- Actions : vote, signalement, partage -->
+              <div class="flex flex-wrap items-center gap-2">
+                <VoteButtons
+                  v-if="isPublished"
+                  :endpoint="API_ROUTES.VOTES.TIP(numericTipId)"
+                  :score="votes.score"
+                  :user-vote="votes.userVote"
+                  :disabled="isOwner"
+                  @update="votes = $event"
+                />
+                <ReportButton
+                  v-if="isPublished && !isOwner"
+                  :endpoint="API_ROUTES.REPORTS.TIP(numericTipId)"
+                  target="ce tip"
+                />
+                <button
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
+                >
+                  <Icon name="tabler:share" class="w-4 h-4" />
+                  Partager
+                </button>
+              </div>
             </div>
 
-            <!-- Share Button for non-owners -->
+            <!-- Actions pour les non-auteurs -->
             <div v-else-if="!isOwner" class="relative mb-6 flex justify-end">
-              <button
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
-              >
-                <Icon name="tabler:share" class="w-4 h-4" />
-                Partager
-              </button>
+              <div class="flex flex-wrap items-center gap-2">
+                <VoteButtons
+                  v-if="isPublished"
+                  :endpoint="API_ROUTES.VOTES.TIP(numericTipId)"
+                  :score="votes.score"
+                  :user-vote="votes.userVote"
+                  :disabled="isOwner"
+                  @update="votes = $event"
+                />
+                <ReportButton
+                  v-if="isPublished && !isOwner"
+                  :endpoint="API_ROUTES.REPORTS.TIP(numericTipId)"
+                  target="ce tip"
+                />
+                <button
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-colors font-medium text-sm"
+                >
+                  <Icon name="tabler:share" class="w-4 h-4" />
+                  Partager
+                </button>
+              </div>
             </div>
 
             <!-- Intro -->
@@ -173,7 +226,11 @@ useSeoMeta({
           </section>
 
           <!-- Commentaires -->
-          <CommentsSection class="pt-8 border-t border-slate-200/50 dark:border-white/5" />
+          <CommentsSection
+            v-if="isPublished"
+            :tip-id="numericTipId"
+            class="pt-8 border-t border-slate-200/50 dark:border-white/5"
+          />
         </main>
 
         <!-- RIGHT COLUMN (Sidebar Sticky Glass) -->

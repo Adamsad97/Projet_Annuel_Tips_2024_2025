@@ -21,6 +21,21 @@ export const API_ROUTES = {
     CATEGORIES: '/tips/tags/all',
   },
 
+  COMMENTS: {
+    BY_TIP: (tipId: number) => `/tips/${tipId}/comments`,
+    DETAIL: (id: number) => `/comments/${id}`,
+  },
+
+  VOTES: {
+    TIP: (tipId: number) => `/tips/${tipId}/votes`,
+    COMMENT: (id: number) => `/comments/${id}/votes`,
+  },
+
+  REPORTS: {
+    TIP: (tipId: number) => `/tips/${tipId}/reports`,
+    COMMENT: (id: number) => `/comments/${id}/reports`,
+  },
+
   UPLOADS: {
     TIP_IMAGES: '/uploads/tips',
   },
