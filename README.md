@@ -8,7 +8,7 @@ Repository : https://github.com/Froggys974/projet-annuel-4IWJ-tips
 
 - **Frontend** : Nuxt 4, Vue 3, TypeScript, Pinia, Tailwind CSS 4, Leaflet (carte), Socket.io client
 - **Backend** : Node.js 24, Express 5, TypeScript, Prisma 7, PostgreSQL 16, JWT, Zod, Socket.io, Jest + Supertest
-- **Infra** : Docker Compose (PostgreSQL, backend, Adminer), GitHub Actions (tests, lint, format)
+- **Infra** : Docker Compose (PostgreSQL, backend, Adminer), GitHub Actions (tests, lint, types, build et démarrage des images de production, à chaque push sur `develop` et `main`)
 
 ## Lancer et tester le projet
 

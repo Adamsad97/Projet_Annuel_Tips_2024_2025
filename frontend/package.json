@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"app/**/*.{vue,ts,js,json}\"",
-    "format:check": "prettier --check \"app/**/*.{vue,ts,js,json}\""
+    "format:check": "prettier --check \"app/**/*.{vue,ts,js,json}\"",
+    "typecheck": "vue-tsc --noEmit -p .nuxt/tsconfig.app.json"
   },
   "dependencies": {
     "@nuxt/eslint": "^1.9.0",
@@ -42,6 +43,7 @@
     "baseline-browser-mapping": "^2.8.32",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "vue-tsc": "^3.1.1"
   }
 }

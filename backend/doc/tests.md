@@ -106,16 +106,11 @@ Le rapport HTML interactif permet de :
 
 ## CI/CD
 
-Comme mentionne dans le README, une **pipeline CI** a ete mise en place qui :
+Le workflow `.github/workflows/ci.yml` se lance à chaque push et pull request sur `develop` et `main` (et à la demande depuis l'onglet Actions). Trois jobs :
 
-1. **Lance les tests automatiquement** sur chaque push/PR
-2. **Verifie le linter** (ESLint)
-3. **Verifie la compilation TypeScript** (tsc)
-
-La CI garantit que le code mergé :
-- Passe tous les tests
-- Respecte les conventions de code
-- Compile sans erreurs
+1. **Backend** : migrations sur une base PostgreSQL neuve, compilation TypeScript, ESLint, tests.
+2. **Frontend** : ESLint, typecheck (`vue-tsc`), build Nuxt.
+3. **Production** (après les deux premiers) : build des images Docker de production, démarrage de la stack derrière nginx, vérification que l'API et le site répondent.
 
 ## Technologies utilisees
 
