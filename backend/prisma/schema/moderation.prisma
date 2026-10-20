@@ -1,14 +1,26 @@
-model ModerationAction {
-  id         Int      @id @default(autoincrement())
-  actionType String
-  reason     String?
-  createdAt  DateTime @default(now())
+enum AppealStatus {
+  OPEN
+  ACCEPTED
+  REJECTED
+}
 
+model ModerationAction {
+  id           Int       @id @default(autoincrement())
+  actionType   String
+  reason       String?
+  // Données utiles pour annuler l'action (ex: XP avant rétrogradation, durée d'un ban)
+  metadata     Json?
+  // Renseigné quand un admin annule l'action après contestation
+  overturnedAt DateTime?
+  createdAt    DateTime  @default(now())
+
+  // Auteur de l'action : modérateur ou admin
   moderatorId Int
   userId      Int
 
-  moderator Moderator @relation("moderator_actions", fields: [moderatorId], references: [userId], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moderator User    @relation("moderator_actions", fields: [moderatorId], references: [id], onDelete: Cascade)
+  user      User    @relation("moderation_targets", fields: [userId], references: [id], onDelete: Cascade)
+  appeal    Appeal?
 
   @@index([moderatorId])
   @@index([userId])
@@ -18,11 +30,30 @@ model Moderator {
   userId   Int     @id
   isActive Boolean @default(true)
 
-  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  actions ModerationAction[] @relation("moderator_actions")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Admin {
   userId Int  @id
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Contestation d'une action de modération par l'utilisateur sanctionné, tranchée par un admin
+model Appeal {
+  id         Int          @id @default(autoincrement())
+  reason     String
+  status     AppealStatus @default(OPEN)
+  response   String?
+  createdAt  DateTime     @default(now())
+  resolvedAt DateTime?
+
+  actionId     Int  @unique
+  userId       Int
+  resolvedById Int?
+
+  action     ModerationAction @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  user       User             @relation("appeals", fields: [userId], references: [id], onDelete: Cascade)
+  resolvedBy User?            @relation("appeals_resolved", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
 }

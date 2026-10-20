@@ -140,7 +140,7 @@ export class BadgeService {
       link: '/profile',
     });
 
-    const xpReward = this.BADGE_CONDITIONS[badgeCode].xpReward;
+    const xpReward = badge.xpReward;
     if (xpReward > 0) {
       await xpService.addXp(userId, XpAction.BADGE_EARNED, xpReward);
     }

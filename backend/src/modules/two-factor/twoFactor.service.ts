@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 import { AppError } from '../../utils/appError.util';
+import { isBanned } from '../../utils/accountStatus.util';
 import { comparePassword, hashPassword } from '../../utils/hash.util';
 import { verifyTwoFactorTokenOrThrow } from '../../utils/jwt.util';
 import { userRepository } from '../user/user.repository';
@@ -112,6 +113,11 @@ export class TwoFactorService {
       throw new AppError('invalid two-factor code', 401);
     }
 
+    if (isBanned(user)) {
+      throw new AppError('account banned', 403);
+    }
+
+    await userRepository.update(user.id, { lastLoginAt: new Date() });
     return createSession(user);
   }
 

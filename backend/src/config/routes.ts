@@ -72,6 +72,13 @@ export const ROUTES = {
     readAll: '/notifications/read-all',
     read: '/notifications/:id/read',
   },
+  appeals: {
+    mine: '/moderation-actions/mine',
+    create: '/moderation-actions/:id/appeal',
+  },
+  admin: {
+    base: '/admin',
+  },
   uploads: {
     base: '/uploads',
     tipImages: '/tips',

@@ -1,6 +1,7 @@
 enum NotificationType {
   NEW_MESSAGE
   BADGE_UNLOCKED
+  MODERATION
 }
 
 model Notification {

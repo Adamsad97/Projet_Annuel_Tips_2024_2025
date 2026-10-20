@@ -11,6 +11,7 @@ import { requireAuth } from '../../middlewares/auth.middleware';
 import { authLimiter } from '../../middlewares/rateLimiter.middleware';
 import { ROUTES } from '../../config/routes';
 import { userRepository } from '../user/user.repository';
+import { isBanned } from '../../utils/accountStatus.util';
 
 export class AuthController {
   refresh = async (req: Request, res: Response, next: NextFunction) => {
@@ -25,6 +26,10 @@ export class AuthController {
       const user = await userRepository.findById(payload.id);
       if (!user) {
         throw new AppError('invalid refresh token', 401);
+      }
+
+      if (isBanned(user)) {
+        throw new AppError('account banned', 403);
       }
 
       const newPayload = {

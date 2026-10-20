@@ -61,7 +61,10 @@ export async function requireModerator(
     });
 
     if (!moderator || !moderator.isActive) {
-      return next(new AppError('Moderator access required', 403));
+      const admin = await prisma.admin.findUnique({ where: { userId: req.user.id } });
+      if (!admin) {
+        return next(new AppError('Moderator access required', 403));
+      }
     }
 
     return next();

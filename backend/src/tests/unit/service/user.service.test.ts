@@ -2,6 +2,7 @@ jest.mock('@prisma/client', () => {
   const mUser = {
     findUnique: jest.fn(),
     create: jest.fn(),
+    update: jest.fn(),
   };
   class PrismaClient {
     user = mUser;

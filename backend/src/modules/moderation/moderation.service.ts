@@ -4,6 +4,10 @@ import { prisma } from '../../db/prisma';
 import { xpService } from '../xp/xp.service';
 import { XpAction } from '../../types/xp.types';
 import { socketService } from '../../websocket/socket.service';
+import { notificationService } from '../notifications/notification.service';
+
+// Page où l'utilisateur consulte ses sanctions et peut les contester
+const MY_MODERATION_LINK = '/my-moderation';
 
 export class ModerationService {
   async getPendingReports(skip: number = 0, take: number = 20) {
@@ -37,8 +41,10 @@ export class ModerationService {
       throw new AppError('report has already been processed', 400);
     }
 
-    const isModerator = await moderationRepository.isModerator(moderatorId);
-    if (!isModerator) {
+    const canModerate =
+      (await moderationRepository.isModerator(moderatorId)) ||
+      (await moderationRepository.isAdmin(moderatorId));
+    if (!canModerate) {
       throw new AppError('moderator access required', 403);
     }
 
@@ -80,7 +86,20 @@ export class ModerationService {
       userId: targetUserId,
       actionType: `RESOLVE_REPORT_${action}`,
       reason,
+      metadata: { reportId, tipId: report.tipId, commentId: report.commentId },
     });
+    await this.rewardModerator(moderatorId);
+
+    if (action === 'REJECT' && targetUserId) {
+      await notificationService.notify(targetUserId, {
+        type: 'MODERATION',
+        title: report.tipId
+          ? 'Un de vos tips a été retiré suite à un signalement'
+          : 'Un de vos commentaires a été supprimé suite à un signalement',
+        body: reason,
+        link: MY_MODERATION_LINK,
+      });
+    }
 
     return { success: true, action };
   }
@@ -126,7 +145,9 @@ export class ModerationService {
       moderatorId,
       userId: tip.userId,
       actionType: 'APPROVE_TIP',
+      metadata: { tipId },
     });
+    await this.rewardModerator(moderatorId);
 
     socketService.emitTipApproved({
       tipId: tip.id,
@@ -163,6 +184,14 @@ export class ModerationService {
       userId: tip.userId,
       actionType: 'REJECT_TIP',
       reason,
+      metadata: { tipId },
+    });
+    await this.rewardModerator(moderatorId);
+    await notificationService.notify(tip.userId, {
+      type: 'MODERATION',
+      title: `Votre tip « ${tip.title} » a été refusé`,
+      body: reason,
+      link: MY_MODERATION_LINK,
     });
 
     socketService.emitTipRejected(tipId);
@@ -257,6 +286,107 @@ export class ModerationService {
     });
 
     return { success: true };
+  }
+
+  // Avertissement formel, visible et contestable par l'utilisateur
+  async warnUser(targetId: number, moderatorId: number, reason: string) {
+    await this.assertCanSanction(targetId, moderatorId);
+
+    const action = await moderationRepository.createModerationAction({
+      moderatorId,
+      userId: targetId,
+      actionType: 'WARN',
+      reason,
+    });
+    await this.rewardModerator(moderatorId);
+    await notificationService.notify(targetId, {
+      type: 'MODERATION',
+      title: 'Vous avez reçu un avertissement',
+      body: reason,
+      link: MY_MODERATION_LINK,
+    });
+
+    return action;
+  }
+
+  // Rétrograde d'un grade : l'XP redescend au seuil du grade inférieur
+  async downgradeUser(targetId: number, moderatorId: number, reason: string) {
+    await this.assertCanSanction(targetId, moderatorId);
+
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: targetId } });
+    // Grade réel d'après l'XP (gradeId peut être en retard si les grades ont changé)
+    const currentGrade = await prisma.grade.findFirst({
+      where: { xpRequired: { lte: user.xp } },
+      orderBy: { xpRequired: 'desc' },
+    });
+    const currentThreshold = currentGrade?.xpRequired ?? 0;
+    const previousGrade = await prisma.grade.findFirst({
+      where: { xpRequired: { lt: currentThreshold } },
+      orderBy: { xpRequired: 'desc' },
+    });
+
+    if (!previousGrade) {
+      throw new AppError('user is already at the lowest grade', 400);
+    }
+
+    await prisma.user.update({
+      where: { id: targetId },
+      data: { xp: previousGrade.xpRequired, gradeId: previousGrade.id },
+    });
+
+    const action = await moderationRepository.createModerationAction({
+      moderatorId,
+      userId: targetId,
+      actionType: 'DOWNGRADE',
+      reason,
+      metadata: { previousXp: user.xp, previousGradeId: user.gradeId },
+    });
+    await this.rewardModerator(moderatorId);
+    await notificationService.notify(targetId, {
+      type: 'MODERATION',
+      title: `Vous avez été rétrogradé au grade ${previousGrade.name}`,
+      body: reason,
+      link: MY_MODERATION_LINK,
+    });
+
+    return action;
+  }
+
+  async getUserActions(userId: number) {
+    return prisma.moderationAction.findMany({
+      where: { userId },
+      include: {
+        moderator: { select: { id: true, username: true } },
+        appeal: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  // Un modérateur ne sanctionne ni lui-même, ni un autre modérateur, ni un admin
+  private async assertCanSanction(targetId: number, moderatorId: number) {
+    if (targetId === moderatorId) {
+      throw new AppError('you cannot sanction yourself', 400);
+    }
+
+    const target = await prisma.user.findUnique({
+      where: { id: targetId },
+      include: { moderator: true, admin: true },
+    });
+
+    if (!target) {
+      throw new AppError('user not found', 404);
+    }
+
+    if (target.admin || target.moderator?.isActive) {
+      throw new AppError('moderators and admins can only be demoted by an admin', 403);
+    }
+  }
+
+  // Les modérateurs gagnent de l'XP (et donc des grades / badges) avec leur activité
+  private async rewardModerator(moderatorId: number) {
+    await xpService.addXp(moderatorId, XpAction.MODERATION_ACTION);
   }
 
   async getModerationStats() {

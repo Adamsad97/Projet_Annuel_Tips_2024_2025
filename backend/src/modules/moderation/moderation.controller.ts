@@ -6,7 +6,9 @@ import {
   demoteUserSchema,
   rejectTipSchema,
   updateTipStatusSchema,
+  sanctionReasonSchema,
 } from './moderation.validation';
+import { parseIdParam } from '../../utils/params.util';
 import { validateSchema } from '../../middlewares/validate.middleware';
 import type { RequestWithUser } from '../../types/auth.types';
 
@@ -35,6 +37,14 @@ export class ModerationController {
 
     this.router.post('/users/promote', validateSchema(promoteUserSchema), this.promoteUser);
     this.router.post('/users/demote', validateSchema(demoteUserSchema), this.demoteModerator);
+
+    this.router.get('/users/:id/actions', this.getUserActions);
+    this.router.post('/users/:id/warn', validateSchema(sanctionReasonSchema), this.warnUser);
+    this.router.post(
+      '/users/:id/downgrade',
+      validateSchema(sanctionReasonSchema),
+      this.downgradeUser,
+    );
   }
 
   private getPendingReports = async (
@@ -253,6 +263,36 @@ export class ModerationController {
         success: true,
         data: result,
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  private warnUser = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const targetId = parseIdParam(req.params.id, 'user id');
+      const action = await moderationService.warnUser(targetId, req.user!.id, req.body.reason);
+      res.status(201).json({ success: true, data: action });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  private downgradeUser = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+      const targetId = parseIdParam(req.params.id, 'user id');
+      const action = await moderationService.downgradeUser(targetId, req.user!.id, req.body.reason);
+      res.status(201).json({ success: true, data: action });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  private getUserActions = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = parseIdParam(req.params.id as string | undefined, 'user id');
+      const actions = await moderationService.getUserActions(userId);
+      res.status(200).json({ success: true, data: actions });
     } catch (error) {
       next(error);
     }

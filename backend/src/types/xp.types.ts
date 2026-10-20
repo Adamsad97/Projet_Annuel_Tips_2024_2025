@@ -7,6 +7,7 @@ export enum XpAction {
   COMMENT_UPVOTED = 'COMMENT_UPVOTED',
   DAILY_LOGIN = 'DAILY_LOGIN',
   BADGE_EARNED = 'BADGE_EARNED',
+  MODERATION_ACTION = 'MODERATION_ACTION',
 }
 
 export const XP_REWARDS: Record<XpAction, number> = {
@@ -18,6 +19,7 @@ export const XP_REWARDS: Record<XpAction, number> = {
   [XpAction.COMMENT_UPVOTED]: 1,
   [XpAction.DAILY_LOGIN]: 1,
   [XpAction.BADGE_EARNED]: 0, // Dynamic based on badge
+  [XpAction.MODERATION_ACTION]: 3,
 };
 
 export interface XpGainedEvent {

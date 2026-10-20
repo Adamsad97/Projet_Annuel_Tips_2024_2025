@@ -4,6 +4,7 @@ import { AppError } from '../../utils/appError.util';
 import { createAccessToken, createRefreshToken, createTwoFactorToken } from '../../utils/jwt.util';
 import { userRepository } from './user.repository';
 import { prisma } from '../../db/prisma';
+import { isBanned, formatSanctionEnd } from '../../utils/accountStatus.util';
 import { removeUploadedFile } from '../../utils/imageUpload.util';
 import type { ChangePasswordInput, UpdateProfileInput } from './user.validation';
 
@@ -75,6 +76,13 @@ export const userService = {
       throw new AppError('invalid credentials', 401);
     }
 
+    if (isBanned(user)) {
+      throw new AppError(
+        `account banned ${formatSanctionEnd(user.bannedUntil)}${user.banReason ? ` : ${user.banReason}` : ''}`,
+        403,
+      );
+    }
+
     // Avec la 2FA, le mot de passe seul ne suffit pas : on renvoie un jeton temporaire
     // à échanger contre une session via POST /users/login/2fa
     if (user.isTwoFactorEnabled) {
@@ -84,6 +92,7 @@ export const userService = {
       };
     }
 
+    await userRepository.update(user.id, { lastLoginAt: new Date() });
     return createSession(user);
   },
 

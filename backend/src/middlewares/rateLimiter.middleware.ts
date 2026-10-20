@@ -16,6 +16,9 @@ const getClientIp = (req: Request): string => {
   return req.ip || req.socket.remoteAddress || 'unknown';
 };
 
+// Les tests d'intégration enchaînent des dizaines de connexions depuis la même IP
+const skipInTests = () => process.env.NODE_ENV === 'test';
+
 const rateLimitHandler = (req: Request, res: Response) => {
   const clientIp = getClientIp(req);
   console.warn(`Rate limit atteinte pour l'IP: ${clientIp} sur ${req.path}`);
@@ -37,6 +40,7 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
+  skip: skipInTests,
 });
 
 export const apiLimiter = rateLimit({
@@ -48,6 +52,7 @@ export const apiLimiter = rateLimit({
   legacyHeaders: false,
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
+  skip: skipInTests,
 });
 
 export const strictLimiter = rateLimit({
@@ -59,4 +64,5 @@ export const strictLimiter = rateLimit({
   legacyHeaders: false,
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
+  skip: skipInTests,
 });

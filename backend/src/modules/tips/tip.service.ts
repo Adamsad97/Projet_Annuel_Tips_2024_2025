@@ -1,6 +1,7 @@
 import { tipRepository } from './tip.repository';
 import type { Prisma, Tip } from '@prisma/client';
 import { prisma } from '../../db/prisma';
+import { assertCanParticipate } from '../../utils/accountStatus.util';
 import { AppError } from '../../utils/appError.util';
 import { xpService } from '../xp/xp.service';
 import { badgeService } from '../badges/badge.service';
@@ -74,6 +75,8 @@ export const tipService = {
   },
 
   createTip: async (data: CreateTipDto & { userId: number }): Promise<Tip> => {
+    await assertCanParticipate(data.userId);
+
     const existingTips = await tipRepository.findAll({
       where: {
         userId: data.userId,

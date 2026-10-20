@@ -1,5 +1,6 @@
 import type { Message } from '@prisma/client';
 import { prisma } from '../../db/prisma';
+import { assertCanParticipate } from '../../utils/accountStatus.util';
 import { AppError } from '../../utils/appError.util';
 import { socketService } from '../../websocket/socket.service';
 import { notificationService } from '../notifications/notification.service';
@@ -118,6 +119,8 @@ export class MessagingService {
     if (recipientId === senderId) {
       throw new AppError('you cannot send a message to yourself', 400);
     }
+
+    await assertCanParticipate(senderId);
 
     const recipient = await prisma.user.findUnique({ where: { id: recipientId } });
     if (!recipient) {

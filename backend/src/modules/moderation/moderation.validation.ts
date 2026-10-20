@@ -19,6 +19,14 @@ export const demoteUserSchema = z.object({
   reason: z.string().min(10, 'reason must be at least 10 characters').max(500),
 });
 
+export const sanctionReasonSchema = z.object({
+  reason: z
+    .string('reason is required')
+    .trim()
+    .min(5, 'reason must be at least 5 characters')
+    .max(500, 'reason must not exceed 500 characters'),
+});
+
 export const rejectTipSchema = z.object({
   reason: z.string().max(500).optional(),
 });

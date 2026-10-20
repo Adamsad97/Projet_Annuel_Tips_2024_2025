@@ -1,23 +1,29 @@
 model User {
-  id                 Int      @id @default(autoincrement())
-  username           String   @unique
-  firstname          String?
-  lastname           String?
-  email              String   @unique
-  phone              String?
-  password           String
-  avatarProfile      String?
-  bio                String?
-  address            String?
-  xp                 Int      @default(0)
-  trustIndex         Int      @default(0)
-  isTwoFactorEnabled Boolean  @default(false)
+  id                   Int       @id @default(autoincrement())
+  username             String    @unique
+  firstname            String?
+  lastname             String?
+  email                String    @unique
+  phone                String?
+  password             String
+  avatarProfile        String?
+  bio                  String?
+  address              String?
+  xp                   Int       @default(0)
+  trustIndex           Int       @default(0)
+  isTwoFactorEnabled   Boolean   @default(false)
+  // Sanctions : ban (connexion impossible) et mute (lecture seule) ; date de fin null = définitif
+  bannedAt             DateTime?
+  bannedUntil          DateTime?
+  banReason            String?
+  mutedUntil           DateTime?
+  lastLoginAt          DateTime?
   // Secret TOTP (renseigné dès la configuration, actif seulement si isTwoFactorEnabled)
   twoFactorSecret      String?
   // Codes de secours hachés, chacun utilisable une seule fois
-  twoFactorBackupCodes String[] @default([])
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  twoFactorBackupCodes String[]  @default([])
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   gradeId Int?
   grade   Grade? @relation(fields: [gradeId], references: [id])
@@ -32,9 +38,12 @@ model User {
   moderator Moderator?
   admin     Admin?
 
-  conversations     ConversationParticipant[]
-  messages          Message[]
-  moderationActions ModerationAction[]
+  conversations         ConversationParticipant[]
+  messages              Message[]
+  moderationActions     ModerationAction[]        @relation("moderation_targets")
+  moderationActionsDone ModerationAction[]        @relation("moderator_actions")
+  appeals               Appeal[]                  @relation("appeals")
+  appealsResolved       Appeal[]                  @relation("appeals_resolved")
 
   following UserSubscription[] @relation("following")
   followers UserSubscription[] @relation("followers")

@@ -9,9 +9,11 @@ import voteRoutes from '../modules/votes/vote.routes';
 import reportRoutes from '../modules/reports/report.routes';
 import messagingRoutes from '../modules/messaging/messaging.routes';
 import notificationRoutes from '../modules/notifications/notification.routes';
+import appealRoutes from '../modules/appeals/appeal.routes';
+import adminRoutes from '../modules/admin/admin.routes';
 import moderationRoutes from '../modules/moderation/moderation.routes';
 import { ROUTES } from '../config/routes';
-import { requireAuth, requireModerator } from '../middlewares/auth.middleware';
+import { requireAuth, requireModerator, requireAdmin } from '../middlewares/auth.middleware';
 
 const apiRouter = express.Router();
 
@@ -33,7 +35,9 @@ apiRouter.use(voteRoutes);
 apiRouter.use(reportRoutes);
 apiRouter.use(messagingRoutes);
 apiRouter.use(notificationRoutes);
+apiRouter.use(appealRoutes);
 
 apiRouter.use(ROUTES.moderation.base, requireAuth, requireModerator, moderationRoutes);
+apiRouter.use(ROUTES.admin.base, requireAuth, requireAdmin, adminRoutes);
 
 export default apiRouter;
