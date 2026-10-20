@@ -13,7 +13,7 @@ Le backend dispose de **102 tests** repartis en deux categories :
 ```bash
 # Depuis la racine du projet
 npm run backend:test              # Tous les tests
-npm run backend:test:coverage     # Avec rapport de couverture
+npm run backend:test-coverage     # Avec rapport de couverture
 ```
 
 Les commandes ci-dessus :
@@ -81,7 +81,7 @@ src/tests/
 ### Obtenir le rapport de couverture
 
 ```bash
-npm run backend:test:coverage
+npm run backend:test-coverage
 ```
 
 Le rapport est genere dans `backend/coverage/`.
