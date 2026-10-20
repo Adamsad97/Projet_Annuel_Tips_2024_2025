@@ -23,6 +23,8 @@ RUN npm run build
 
 RUN rm -rf src tsconfig.json
 
+RUN mkdir -p uploads && chown node:node uploads
+
 USER node
 
 EXPOSE 3001

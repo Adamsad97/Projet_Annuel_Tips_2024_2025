@@ -5,6 +5,7 @@ import { env } from './config/env';
 import { errorHandler } from './middlewares/error.middleware';
 import { apiLimiter } from './middlewares/rateLimiter.middleware';
 import apiRouter from './routes/index';
+import { UPLOADS_DIR } from './modules/uploads/upload.controller';
 
 const app: Application = express();
 
@@ -36,6 +37,14 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.json({ limit: '10mb' }));
 
 app.use('/api', apiLimiter);
+
+// Fichiers uploadés (images de tips) servis en lecture seule, accessibles depuis le frontend
+app.use(
+  '/api/uploads',
+  express.static(UPLOADS_DIR, {
+    setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'),
+  }),
+);
 
 app.use('/api', apiRouter);
 

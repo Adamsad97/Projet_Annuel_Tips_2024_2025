@@ -26,6 +26,8 @@ services:
     restart: unless-stopped
     env_file:
       - ./backend/.env.production
+    volumes:
+      - tips_uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,3 +85,4 @@ networks:
 
 volumes:
   postgres_prod_data:
+  tips_uploads:

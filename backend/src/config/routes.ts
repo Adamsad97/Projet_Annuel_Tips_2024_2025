@@ -36,6 +36,10 @@ export const ROUTES = {
     promote: '/users/promote',
     demote: '/users/demote',
   },
+  uploads: {
+    base: '/uploads',
+    tipImages: '/tips',
+  },
   grades: {
     base: '/grades',
     list: '/',

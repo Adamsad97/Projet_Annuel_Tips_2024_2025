@@ -41,3 +41,4 @@ vitest.config.*
 
 Dockerfile*
 docker-compose*.yml
+/uploads/
