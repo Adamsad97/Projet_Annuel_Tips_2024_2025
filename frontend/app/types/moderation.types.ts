@@ -36,3 +36,21 @@ export interface Report {
 }
 
 export type ReportAction = 'APPROVE' | 'REJECT';
+
+// Action du modérateur connecté, renvoyée par GET /moderation/history
+export interface ModeratorHistoryEntry {
+  id: number;
+  actionType: string;
+  reason: string | null;
+  metadata: { tipId?: number } | null;
+  overturnedAt: string | null;
+  createdAt: string;
+  user: {
+    id: number;
+    username: string;
+    firstname: string | null;
+    lastname: string | null;
+    avatarProfile: string | null;
+  };
+  appeal: { status: 'OPEN' | 'ACCEPTED' | 'REJECTED' } | null;
+}

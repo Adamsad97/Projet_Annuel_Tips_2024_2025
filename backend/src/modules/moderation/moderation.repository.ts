@@ -80,14 +80,17 @@ export const moderationRepository = {
     return prisma.moderationAction.findMany({
       where: { moderatorId },
       include: {
+        // Pas d'email : l'historique n'affiche que l'identité publique du membre visé
         user: {
           select: {
             id: true,
+            username: true,
             firstname: true,
             lastname: true,
-            email: true,
+            avatarProfile: true,
           },
         },
+        appeal: { select: { status: true } },
       },
       orderBy: { createdAt: 'desc' },
       take: limit,

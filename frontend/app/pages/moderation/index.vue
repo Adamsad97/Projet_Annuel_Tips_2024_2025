@@ -46,6 +46,9 @@
       >
         Signalements ({{ reports.length }})
       </button>
+      <button class="tab" :class="{ active: activeTab === 'history' }" @click="openHistory">
+        Mon historique
+      </button>
     </div>
 
     <!-- Tips en attente -->
@@ -68,13 +71,13 @@
             <span v-if="tip.categories[0]"> • {{ tip.categories[0].category.name }} </span>
           </div>
           <div class="tip-actions">
-            <button class="btn btn-approve" @click="approveTip(tip.id)" :disabled="actionLoading">
+            <button class="btn btn-approve" :disabled="actionLoading" @click="approveTip(tip.id)">
               ✅ Approuver
             </button>
             <button
               class="btn btn-reject"
-              @click="showRejectModal(tip.id)"
               :disabled="actionLoading"
+              @click="showRejectModal(tip.id)"
             >
               ❌ Rejeter
             </button>
@@ -99,21 +102,61 @@
           <div class="report-actions">
             <button
               class="btn btn-approve"
-              @click="resolveReport(report.id, 'APPROVE')"
               :disabled="actionLoading"
+              @click="resolveReport(report.id, 'APPROVE')"
             >
               ✅ Approuver le contenu
             </button>
             <button
               class="btn btn-reject"
-              @click="resolveReport(report.id, 'REJECT')"
               :disabled="actionLoading"
+              @click="resolveReport(report.id, 'REJECT')"
             >
               ❌ Rejeter le contenu
             </button>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Historique des actions du modérateur connecté -->
+    <div v-if="activeTab === 'history'" class="content-section">
+      <div v-if="historyLoading" class="loading">Chargement...</div>
+
+      <div v-else-if="history.length === 0" class="empty-state">
+        Aucune action de modération pour le moment
+      </div>
+
+      <ul v-else class="history-list">
+        <li v-for="action in history" :key="action.id" class="history-item">
+          <div class="history-main">
+            <span class="history-type">
+              {{ ACTION_LABELS[action.actionType] ?? action.actionType }}
+            </span>
+            <span class="history-target">
+              —
+              <NuxtLink :to="`/users/${action.user.id}`">{{ action.user.username }}</NuxtLink>
+            </span>
+            <NuxtLink
+              v-if="action.metadata?.tipId"
+              :to="`/tips/${action.metadata.tipId}`"
+              class="history-link"
+            >
+              Voir le tip
+            </NuxtLink>
+          </div>
+          <p v-if="action.reason" class="history-reason">{{ action.reason }}</p>
+          <div class="history-meta">
+            <span>{{ formatDate(action.createdAt) }}</span>
+            <span v-if="action.overturnedAt" class="badge badge-overturned">
+              Annulée par un admin
+            </span>
+            <span v-else-if="action.appeal" class="badge" :class="`badge-${action.appeal.status}`">
+              {{ APPEAL_LABELS[action.appeal.status] }}
+            </span>
+          </div>
+        </li>
+      </ul>
     </div>
 
     <!-- Reject Modal -->
@@ -124,7 +167,7 @@
         <textarea v-model="rejectReason" placeholder="Raison du rejet..." rows="4" />
         <div class="modal-actions">
           <button class="btn btn-secondary" @click="rejectModalOpen = false">Annuler</button>
-          <button class="btn btn-reject" @click="confirmRejectTip" :disabled="!rejectReason.trim()">
+          <button class="btn btn-reject" :disabled="!rejectReason.trim()" @click="confirmRejectTip">
             Confirmer le rejet
           </button>
         </div>
@@ -134,7 +177,21 @@
 </template>
 
 <script setup lang="ts">
-import type { ModerationStats, PendingTip, Report, ReportAction } from '~/types/moderation.types';
+import type {
+  ModerationStats,
+  ModeratorHistoryEntry,
+  PendingTip,
+  Report,
+  ReportAction,
+} from '~/types/moderation.types';
+import { ACTION_LABELS } from '~/types';
+import { API_ROUTES } from '~/config/api';
+
+const APPEAL_LABELS: Record<string, string> = {
+  OPEN: 'Contestée — en attente',
+  ACCEPTED: 'Contestation acceptée',
+  REJECTED: 'Contestation rejetée',
+};
 
 definePageMeta({
   middleware: ['auth', 'moderator'],
@@ -142,7 +199,7 @@ definePageMeta({
 
 const api = useApi();
 
-const activeTab = ref<'tips' | 'reports'>('tips');
+const activeTab = ref<'tips' | 'reports' | 'history'>('tips');
 const loading = ref(false);
 const actionLoading = ref(false);
 
@@ -236,6 +293,22 @@ const resolveReport = async (reportId: number, action: ReportAction) => {
     console.error('Failed to resolve report:', err);
   } finally {
     actionLoading.value = false;
+  }
+};
+
+const history = ref<ModeratorHistoryEntry[]>([]);
+const historyLoading = ref(false);
+
+// Chargé à chaque ouverture de l'onglet pour inclure les actions faites entre-temps
+const openHistory = async () => {
+  activeTab.value = 'history';
+  historyLoading.value = true;
+  try {
+    history.value = await api.get<ModeratorHistoryEntry[]>(API_ROUTES.MODERATION.HISTORY);
+  } catch (err) {
+    console.error('Failed to load moderation history:', err);
+  } finally {
+    historyLoading.value = false;
   }
 };
 
@@ -534,5 +607,102 @@ h1 {
 .report-type {
   font-weight: 600;
   color: #1e293b;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.history-item {
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .history-item {
+  background: rgb(30 41 59 / 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.history-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.history-type {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dark .history-type {
+  color: #f1f5f9;
+}
+
+.history-target {
+  color: #475569;
+}
+
+.dark .history-target {
+  color: #cbd5e1;
+}
+
+.history-target a,
+.history-link {
+  color: #2563eb;
+}
+
+.history-link {
+  margin-left: auto;
+  font-size: 0.875rem;
+}
+
+.history-reason {
+  margin: 0.5rem 0 0;
+  color: #475569;
+}
+
+.dark .history-reason {
+  color: #cbd5e1;
+}
+
+.history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.badge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-overturned,
+.badge-ACCEPTED {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.badge-OPEN {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-REJECTED {
+  background: #dcfce7;
+  color: #166534;
 }
 </style>

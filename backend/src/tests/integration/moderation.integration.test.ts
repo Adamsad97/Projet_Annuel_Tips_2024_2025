@@ -415,6 +415,9 @@ describe('Moderation Integration', () => {
         (action: any) => action.actionType === 'APPROVE_TIP',
       );
       expect(approveAction).toBeDefined();
+      expect(approveAction.user).toMatchObject({ id: userId, username: 'author5' });
+      expect(approveAction.user).not.toHaveProperty('email');
+      expect(approveAction.appeal).toBeNull();
     });
   });
 });

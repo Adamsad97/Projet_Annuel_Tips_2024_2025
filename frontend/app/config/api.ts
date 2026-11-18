@@ -67,6 +67,7 @@ export const API_ROUTES = {
   },
 
   MODERATION: {
+    HISTORY: '/moderation/history',
     WARN: (userId: number) => `/moderation/users/${userId}/warn`,
     DOWNGRADE: (userId: number) => `/moderation/users/${userId}/downgrade`,
     USER_ACTIONS: (userId: number) => `/moderation/users/${userId}/actions`,
