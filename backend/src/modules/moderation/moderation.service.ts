@@ -90,7 +90,13 @@ export class ModerationService {
       userId: targetUserId,
       actionType: `RESOLVE_REPORT_${action}`,
       reason,
-      metadata: { reportId, tipId: report.tipId, commentId: report.commentId },
+      // reportedAt : mesure la rapidité de traitement (le signalement peut être supprimé ensuite)
+      metadata: {
+        reportId,
+        tipId: report.tipId,
+        commentId: report.commentId,
+        reportedAt: report.createdAt.toISOString(),
+      },
     });
     await this.rewardModerator(moderatorId);
     // Signalement validé : pénalise l'auteur ; rejeté : pénalise le signaleur

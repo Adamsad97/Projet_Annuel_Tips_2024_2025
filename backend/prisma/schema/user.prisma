@@ -58,7 +58,21 @@ model User {
   blocksReceived UserBlock[]    @relation("blocks_received")
   notifications  Notification[]
   pushSubscriptions PushSubscription[]
+  sessions          UserSession[]
   categoryFollows CategoryFollow[]
   chatbotQueries  ChatbotQuery[]
   challengeRewards ChallengeReward[]
+}
+
+// Période d'activité d'un membre (requêtes authentifiées espacées de moins de 30 min).
+// Sert à l'indice de confiance : régularité de connexion et durée moyenne de session.
+model UserSession {
+  id         Int      @id @default(autoincrement())
+  startedAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lastSeenAt])
 }

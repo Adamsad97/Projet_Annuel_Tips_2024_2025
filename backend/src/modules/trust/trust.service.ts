@@ -4,6 +4,8 @@ import { isBanned, isMuted } from '../../utils/accountStatus.util';
 import { notificationService } from '../notifications/notification.service';
 import { runInBackground } from '../../utils/background.util';
 import { SANCTION_ACTIONS, TRUST_BASE, TRUST_RULES, TRUST_WEIGHTS as W } from './trust.config';
+import { activityService } from './activity.service';
+import { analyzeReadability } from './readability.util';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -179,6 +181,8 @@ export class TrustService {
       },
     ];
 
+    factors.push(...(await this.behaviourFactors(userId)));
+
     if (user.moderator?.isActive) {
       factors.push(...(await this.moderatorFactors(userId)));
     }
@@ -239,6 +243,7 @@ export class TrustService {
 
   // Cycle complet : recalcul de tous les indices puis promotions / rétrogradations automatiques
   async runCycle(): Promise<TrustCycleSummary> {
+    await activityService.prune();
     const users = await prisma.user.findMany({ select: { id: true } });
     for (const { id } of users) {
       await this.recomputeUser(id);
@@ -358,7 +363,147 @@ export class TrustService {
     return { highest, lowest };
   }
 
+  // Régularité, qualité rédactionnelle, utilité, réactivité et prise en compte des retours
+  private async behaviourFactors(userId: number): Promise<TrustFactor[]> {
+    const responsivenessSince = daysAgo(W.responsiveness.periodDays);
+    const [activity, recentTips, commentScores, received, rejections] = await Promise.all([
+      activityService.getStats(userId, W.activeDays.periodDays),
+      prisma.tip.findMany({
+        where: { userId, status: 'APPROVED' },
+        orderBy: { createdAt: 'desc' },
+        take: W.writingQuality.sampleSize,
+        select: { title: true, content: true },
+      }),
+      prisma.vote.groupBy({
+        by: ['commentId'],
+        where: { comment: { userId } },
+        _sum: { value: true },
+      }),
+      prisma.comment.findMany({
+        where: {
+          tip: { userId },
+          userId: { not: userId },
+          createdAt: { gte: responsivenessSince },
+        },
+        select: { tipId: true, createdAt: true },
+      }),
+      prisma.moderationAction.findMany({
+        where: { userId, actionType: 'REJECT_TIP' },
+        select: { metadata: true },
+      }),
+    ]);
+
+    // Qualité rédactionnelle : moyenne sur les derniers tips assez longs pour être jugés
+    const scores = recentTips
+      .map((tip) => analyzeReadability(`${tip.title}. ${tip.content ?? ''}`)?.score)
+      .filter((score): score is number => score !== undefined);
+    const writingQuality = scores.length
+      ? scores.reduce((total, score) => total + score, 0) / scores.length
+      : null;
+
+    const usefulComments = commentScores.filter((entry) => (entry._sum.value ?? 0) > 0).length;
+
+    // Réactivité : l'auteur a-t-il écrit sur le même tip dans les 24 h suivant chaque commentaire ?
+    const authorComments = received.length
+      ? await prisma.comment.findMany({
+          where: {
+            userId,
+            tipId: { in: [...new Set(received.map((comment) => comment.tipId))] },
+            createdAt: { gte: responsivenessSince },
+          },
+          select: { tipId: true, createdAt: true },
+        })
+      : [];
+    const windowMs = W.responsiveness.withinHours * 60 * 60 * 1000;
+    const answered = received.filter((comment) =>
+      authorComments.some(
+        (reply) =>
+          reply.tipId === comment.tipId &&
+          reply.createdAt > comment.createdAt &&
+          reply.createdAt.getTime() - comment.createdAt.getTime() <= windowMs,
+      ),
+    ).length;
+    const responseRate =
+      received.length >= W.responsiveness.minComments ? answered / received.length : null;
+
+    // Retours acceptés : tips refusés puis corrigés et validés
+    const rejectedTipIds = [
+      ...new Set(
+        rejections
+          .map((action) => (action.metadata as { tipId?: number } | null)?.tipId)
+          .filter((id): id is number => typeof id === 'number'),
+      ),
+    ];
+    const correctedTips = rejectedTipIds.length
+      ? await prisma.tip.count({ where: { id: { in: rejectedTipIds }, status: 'APPROVED' } })
+      : 0;
+
+    return [
+      {
+        key: 'activeDays',
+        label: `Jours d'activité (${W.activeDays.periodDays} derniers jours)`,
+        value: activity.activeDays,
+        points: W.activeDays.max * saturate(activity.activeDays, W.activeDays.half),
+      },
+      {
+        key: 'avgSessionMinutes',
+        label: 'Durée moyenne de session (min)',
+        value: round1(activity.avgSessionMinutes),
+        points:
+          W.avgSessionMinutes.max * saturate(activity.avgSessionMinutes, W.avgSessionMinutes.half),
+      },
+      {
+        key: 'usefulComments',
+        label: 'Commentaires jugés utiles',
+        value: usefulComments,
+        points: W.usefulComments.max * saturate(usefulComments, W.usefulComments.half),
+      },
+      {
+        key: 'writingQuality',
+        label: 'Qualité rédactionnelle des tips (0-100)',
+        value: writingQuality === null ? 0 : round1(writingQuality),
+        // Neutre tant qu'aucun tip publié n'est assez long pour être analysé
+        points: writingQuality === null ? 0 : W.writingQuality.max * ((writingQuality - 50) / 50),
+      },
+      {
+        key: 'responsiveness',
+        label: `Réponses aux commentaires sous ${W.responsiveness.withinHours} h (%)`,
+        value: responseRate === null ? 0 : round1(responseRate * 100),
+        points: responseRate === null ? 0 : W.responsiveness.max * responseRate,
+      },
+      {
+        key: 'feedbackAccepted',
+        label: 'Tips refusés puis corrigés et validés',
+        value: correctedTips,
+        points: Math.min(W.feedbackAccepted.cap, correctedTips * W.feedbackAccepted.perItem),
+      },
+    ];
+  }
+
   private async moderatorFactors(userId: number): Promise<TrustFactor[]> {
+    const handledSince = daysAgo(W.reportsHandled.periodDays);
+    const handledReports = await prisma.moderationAction.findMany({
+      where: {
+        moderatorId: userId,
+        actionType: { startsWith: 'RESOLVE_REPORT_' },
+        overturnedAt: null,
+        createdAt: { gte: handledSince },
+      },
+      select: { createdAt: true, metadata: true },
+    });
+    const delaysHours = handledReports
+      .map((action) => {
+        const reportedAt = (action.metadata as { reportedAt?: string } | null)?.reportedAt;
+        return reportedAt
+          ? (action.createdAt.getTime() - new Date(reportedAt).getTime()) / (60 * 60 * 1000)
+          : null;
+      })
+      .filter((hours): hours is number => hours !== null && hours >= 0);
+    const avgDelayHours =
+      delaysHours.length >= W.reportHandlingSpeed.minReports
+        ? delaysHours.reduce((total, hours) => total + hours, 0) / delaysHours.length
+        : null;
+
     const [recentActions, totalActions, overturnedActions, lastMonthActions] = await Promise.all([
       prisma.moderationAction.count({
         where: {
@@ -396,6 +541,23 @@ export class TrustService {
         label: `Inactif depuis ${W.moderatorInactivity.periodDays} jours`,
         value: lastMonthActions === 0 ? 1 : 0,
         points: lastMonthActions === 0 ? -W.moderatorInactivity.penalty : 0,
+      },
+      {
+        key: 'reportsHandled',
+        label: `Signalements traités (${W.reportsHandled.periodDays} jours)`,
+        value: handledReports.length,
+        points: W.reportsHandled.max * saturate(handledReports.length, W.reportsHandled.half),
+      },
+      {
+        key: 'reportHandlingSpeed',
+        label: 'Délai moyen de traitement des signalements (h)',
+        value: avgDelayHours === null ? 0 : round1(avgDelayHours),
+        // Neutre tant qu'il n'y a pas assez de signalements traités pour juger
+        points:
+          avgDelayHours === null
+            ? 0
+            : W.reportHandlingSpeed.max *
+              (1 - saturate(avgDelayHours, W.reportHandlingSpeed.halfHours)),
       },
     ];
   }

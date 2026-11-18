@@ -68,6 +68,9 @@ All routes prefixed with `/api`.
 **GET /api/notifications** - My notifications
 **PATCH /api/notifications/:id/read** - Mark one as read
 **POST /api/notifications/read-all** - Mark all as read
+**GET /api/notifications/push/public-key** - VAPID public key (503 if push is not configured)
+**POST /api/notifications/push/subscriptions** - Save this browser push subscription (`PushSubscription.toJSON()`)
+**DELETE /api/notifications/push/subscriptions** - Remove it (body `{ endpoint }`)
 
 ## Chatbot
 
@@ -264,6 +267,8 @@ Stockees en base et poussees en temps reel. Types : `NEW_MESSAGE` (une seule not
 **GET /api/notifications** : `{ items, unreadCount }` (50 dernieres). Chaque notification a `title`, `body`, `link` (page du frontend a ouvrir) et `readAt`.
 
 Ouvrir une conversation marque ses notifications comme lues.
+
+Chaque notification est aussi envoyee en notification push aux navigateurs abonnes (cles `VAPID_*` du `.env`) ; les abonnements expires sont supprimes automatiquement.
 
 ---
 

@@ -3,6 +3,8 @@ import { AppError } from '../utils/appError.util';
 import { verifyAccessTokenOrThrow } from '../utils/jwt.util';
 import type { RequestWithUser } from '../types/auth.types';
 import { prisma } from '../db/prisma';
+// Sessions d'activité (régularité, durée) prises en compte par l'indice de confiance
+import { activityService } from '../modules/trust/activity.service';
 
 export function requireAuth(req: RequestWithUser, _res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
@@ -25,6 +27,7 @@ export function requireAuth(req: RequestWithUser, _res: Response, next: NextFunc
 
   try {
     req.user = verifyAccessTokenOrThrow(token);
+    activityService.touch(req.user.id);
     return next();
   } catch (err) {
     return next(err);
@@ -38,6 +41,7 @@ export function optionalAuth(req: RequestWithUser, _res: Response, next: NextFun
   if (scheme === 'Bearer' && token) {
     try {
       req.user = verifyAccessTokenOrThrow(token);
+      activityService.touch(req.user.id);
     } catch {
       req.user = undefined;
     }
