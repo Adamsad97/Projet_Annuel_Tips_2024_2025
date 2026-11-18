@@ -28,13 +28,19 @@ export class AuthController {
         throw new AppError('invalid refresh token', 401);
       }
 
+      // Session fermée (déconnexion ou changement de mot de passe) depuis l'émission du token
+      if ((payload.tokenVersion ?? 0) !== user.tokenVersion) {
+        throw new AppError('session revoked', 401);
+      }
+
       if (isBanned(user)) {
         throw new AppError('account banned', 403);
       }
 
       const newPayload = {
-        id: payload.id,
-        email: payload.email,
+        id: user.id,
+        email: user.email,
+        tokenVersion: user.tokenVersion,
       };
 
       const accessToken = createAccessToken(newPayload);
@@ -52,8 +58,10 @@ export class AuthController {
     }
   };
 
+  // Révoque tous les refresh tokens de l'utilisateur ; l'access token (15 min) est effacé par le client
   logout = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
+      await userRepository.update(req.user!.id, { tokenVersion: { increment: 1 } });
       return res.status(200).json({
         success: true,
         data: { message: 'logged out successfully' },

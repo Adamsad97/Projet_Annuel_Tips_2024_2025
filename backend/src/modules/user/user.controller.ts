@@ -120,8 +120,8 @@ export class UserController {
 
   changePassword = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-      await userService.changePassword(req.user!.id, req.body);
-      res.status(200).json({ success: true, message: 'password updated' });
+      const tokens = await userService.changePassword(req.user!.id, req.body);
+      res.status(200).json({ success: true, message: 'password updated', data: tokens });
     } catch (e) {
       next(e);
     }

@@ -89,7 +89,7 @@ Pour relancer plus tard : `npm run docker:up`, puis `cd frontend` et `npm run de
 
 ### Après un `git pull`
 
-Appliquer les nouvelles migrations de base de données (sans effet s'il n'y en a pas) :
+Appliquer les nouvelles migrations, régénérer le client Prisma et redémarrer l'API (sans effet s'il n'y a rien de nouveau) :
 
 ```bash
 npm run db:migrate

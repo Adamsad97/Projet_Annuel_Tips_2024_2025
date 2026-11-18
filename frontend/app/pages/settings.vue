@@ -7,6 +7,7 @@ import ProfilPicture from '~/components/ProfilPicture.vue';
 import TwoFactorSettings from '~/components/settings/TwoFactorSettings.vue';
 import type { User } from '~/types';
 import { API_ROUTES } from '~/config/api';
+import { storage } from '~/utils/storage';
 
 definePageMeta({
   middleware: 'auth',
@@ -123,7 +124,8 @@ const updatePassword = async () => {
 
   savingPassword.value = true;
   try {
-    await api.patch(
+    // Les autres sessions sont révoquées : on garde celle-ci avec les tokens renvoyés
+    const tokens = await api.patch<{ accessToken: string; refreshToken: string }>(
       API_ROUTES.USERS.PASSWORD,
       {
         currentPassword: passwordForm.currentPassword,
@@ -131,6 +133,10 @@ const updatePassword = async () => {
       },
       { showSuccessToast: true, successMessage: 'Mot de passe modifié' },
     );
+    if (tokens?.accessToken && tokens.refreshToken) {
+      storage.setAccessToken(tokens.accessToken);
+      storage.setRefreshToken(tokens.refreshToken);
+    }
     passwordForm.currentPassword = '';
     passwordForm.newPassword = '';
     passwordForm.confirmPassword = '';

@@ -31,9 +31,13 @@ export function toPublicUser<
 
 // Ouvre une session (tokens + utilisateur public) une fois l'authentification terminée
 export function createSession<
-  T extends Parameters<typeof toPublicUser>[0] & { id: number; email: string },
+  T extends Parameters<typeof toPublicUser>[0] & {
+    id: number;
+    email: string;
+    tokenVersion: number;
+  },
 >(user: T) {
-  const payload = { id: user.id, email: user.email };
+  const payload = { id: user.id, email: user.email, tokenVersion: user.tokenVersion };
 
   return {
     accessToken: createAccessToken(payload),
@@ -111,7 +115,10 @@ export const userService = {
     return toPublicUser(user);
   },
 
-  async changePassword(id: number, data: ChangePasswordInput): Promise<void> {
+  async changePassword(
+    id: number,
+    data: ChangePasswordInput,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await userRepository.findById(id);
     if (!user) {
       throw new AppError('user not found', 404);
@@ -122,7 +129,13 @@ export const userService = {
       throw new AppError('current password is incorrect', 400);
     }
 
-    await userRepository.update(id, { password: hashPassword(data.newPassword) });
+    // Les sessions ouvertes ailleurs sont révoquées ; l'appareil courant reçoit une nouvelle session
+    const updated = await userRepository.update(id, {
+      password: hashPassword(data.newPassword),
+      tokenVersion: { increment: 1 },
+    });
+    const { accessToken, refreshToken } = createSession(updated);
+    return { accessToken, refreshToken };
   },
 
   async updateAvatar(id: number, avatarPath: string): Promise<PublicUser> {

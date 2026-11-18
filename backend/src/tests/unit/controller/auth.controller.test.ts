@@ -61,6 +61,7 @@ describe('AuthController', () => {
         trust_index: 0,
         is_two_factor_enabled: false,
         two_factor_secret: null,
+        tokenVersion: 0,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -82,6 +83,7 @@ describe('AuthController', () => {
       expect(mockCreateAccessToken).toHaveBeenCalledWith({
         id: 1,
         email: 'test@test.com',
+        tokenVersion: 0,
       });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -109,6 +111,7 @@ describe('AuthController', () => {
         trust_index: 0,
         is_two_factor_enabled: false,
         two_factor_secret: null,
+        tokenVersion: 0,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -135,6 +138,24 @@ describe('AuthController', () => {
           refreshToken: 'new-refresh-token-2',
         },
       });
+    });
+
+    it('refuse un refresh token emis avant une deconnexion', async () => {
+      req = createMockRequest({ body: { refreshToken: 'old-token' } }) as Request;
+
+      mockVerifyRefreshToken.mockReturnValue({ id: 1, email: 'test@test.com', tokenVersion: 0 });
+      mockUserRepository.findById.mockResolvedValue({
+        id: 1,
+        email: 'test@test.com',
+        tokenVersion: 1,
+      } as never);
+
+      await authController.refresh(req, res, next);
+
+      const error = (next as jest.Mock).mock.calls[0][0];
+      expect(error.message).toBe('session revoked');
+      expect(error.statusCode).toBe(401);
+      expect(mockCreateAccessToken).not.toHaveBeenCalled();
     });
 
     it('erreur si user introuvable', async () => {
@@ -188,30 +209,22 @@ describe('AuthController', () => {
   });
 
   describe('logout', () => {
-    it('retourne success quand user est authentifie', async () => {
+    it('revoque les sessions et retourne success', async () => {
       req = createMockRequest() as RequestWithUser;
       (req as RequestWithUser).user = { id: 1, email: 'test@test.com' };
+      mockUserRepository.update.mockResolvedValue({} as never);
 
       await authController.logout(req as RequestWithUser, res, next);
 
+      expect(mockUserRepository.update).toHaveBeenCalledWith(1, {
+        tokenVersion: { increment: 1 },
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
         data: { message: 'logged out successfully' },
       });
       expect(next).not.toHaveBeenCalled();
-    });
-
-    it('retourne success meme sans user', async () => {
-      req = createMockRequest() as RequestWithUser;
-
-      await authController.logout(req as RequestWithUser, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        success: true,
-        data: { message: 'logged out successfully' },
-      });
     });
   });
 
