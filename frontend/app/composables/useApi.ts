@@ -116,7 +116,8 @@ export function useApi() {
     put: <T>(endpoint: string, body?: unknown, options?: Omit<ApiCallOptions, 'method' | 'body'>) =>
       apiCall<T>(endpoint, { ...options, method: 'PUT', body }),
 
-    delete: <T>(endpoint: string, options?: Omit<ApiCallOptions, 'method' | 'body'>) =>
+    // Corps facultatif (ex : endpoint de l'abonnement push à retirer)
+    delete: <T>(endpoint: string, options?: Omit<ApiCallOptions, 'method'>) =>
       apiCall<T>(endpoint, { ...options, method: 'DELETE' }),
 
     patch: <T>(

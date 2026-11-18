@@ -57,6 +57,7 @@ model User {
   blocksMade     UserBlock[]    @relation("blocks_made")
   blocksReceived UserBlock[]    @relation("blocks_received")
   notifications  Notification[]
+  pushSubscriptions PushSubscription[]
   categoryFollows CategoryFollow[]
   chatbotQueries  ChatbotQuery[]
   challengeRewards ChallengeReward[]

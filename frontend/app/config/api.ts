@@ -64,6 +64,8 @@ export const API_ROUTES = {
     LIST: '/notifications',
     READ_ALL: '/notifications/read-all',
     READ: (id: number) => `/notifications/${id}/read`,
+    PUSH_PUBLIC_KEY: '/notifications/push/public-key',
+    PUSH_SUBSCRIPTIONS: '/notifications/push/subscriptions',
   },
 
   MODERATION: {

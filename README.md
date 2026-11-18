@@ -30,6 +30,8 @@ cp frontend/.env.example frontend/.env
 
 Les valeurs par défaut conviennent pour le développement, rien à modifier.
 
+Facultatif, pour tester les notifications push du navigateur : générer des clés avec `cd backend && npx web-push generate-vapid-keys` et les copier dans `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` de `backend/.env`. Sans elles, les notifications restent dans l'application.
+
 **Étape 3 : installer les dépendances**
 
 ```bash
@@ -142,6 +144,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 - `NODE_ENV=production`
 - `JWT_SECRET=` le premier secret, `REFRESH_SECRET=` le second.
+- Notifications push : `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (générées avec `npx web-push generate-vapid-keys`, différentes de celles de dev) et `VAPID_SUBJECT=mailto:` + une adresse de contact. Le site doit être servi en HTTPS.
 
 Garder les autres lignes. L'API refuse de démarrer en production avec les secrets d'exemple (`change_me…`).
 

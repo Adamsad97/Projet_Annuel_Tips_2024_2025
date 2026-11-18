@@ -2,6 +2,8 @@ import type { Notification, NotificationType } from '@prisma/client';
 import { prisma } from '../../db/prisma';
 import { AppError } from '../../utils/appError.util';
 import { socketService } from '../../websocket/socket.service';
+import { runInBackground } from '../../utils/background.util';
+import { pushService } from './push.service';
 
 const NOTIFICATIONS_LIMIT = 50;
 
@@ -13,10 +15,12 @@ interface CreateNotificationInput {
 }
 
 export class NotificationService {
-  // Enregistre la notification et la pousse en temps réel à l'utilisateur connecté
+  // Enregistre la notification, la pousse en temps réel dans l'application ouverte
+  // et l'envoie en notification push aux navigateurs abonnés (même onglet fermé)
   async notify(userId: number, data: CreateNotificationInput): Promise<Notification> {
     const notification = await prisma.notification.create({ data: { ...data, userId } });
     socketService.emitToUser(userId, 'notification:new', notification);
+    runInBackground('push notification', () => pushService.sendToUser(userId, notification));
     return notification;
   }
 

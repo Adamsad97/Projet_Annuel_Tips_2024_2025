@@ -15,6 +15,7 @@ export function useAuth() {
   const api = useApi();
   const router = useRouter();
   const toast = useToastMessage();
+  const push = usePushNotifications();
 
   // Jeton temporaire reçu quand le compte a la 2FA (mot de passe validé, code attendu)
   const twoFactorToken = useState<string | null>('auth:two-factor-token', () => null);
@@ -105,6 +106,9 @@ export function useAuth() {
   async function logout(): Promise<void> {
     try {
       if (authStore.isAuthenticated) {
+        // Avant la déconnexion (la requête doit être authentifiée) : ce navigateur
+        // ne doit plus recevoir les notifications de ce compte
+        await push.disable().catch(() => undefined);
         await api.post(API_ROUTES.AUTH.LOGOUT);
       }
 

@@ -22,3 +22,17 @@ model Notification {
 
   @@index([userId, readAt])
 }
+
+// Abonnement push d'un navigateur (un membre peut en avoir un par appareil)
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

@@ -35,4 +35,8 @@ export const env = {
   HOST: process.env.HOST || 'localhost',
   NODE_ENV: process.env.NODE_ENV || 'development',
   CORS_ORIGIN: process.env.CORS_ORIGIN,
+  // Notifications push du navigateur : désactivées si les clés VAPID ne sont pas renseignées
+  VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || '',
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY || '',
+  VAPID_SUBJECT: process.env.VAPID_SUBJECT || 'mailto:admin@example.com',
 };

@@ -40,6 +40,31 @@ const passwordForm = reactive({
 const { categories, loadCategories, toggleFollow } = useCategoryFollow();
 onMounted(loadCategories);
 
+// Notifications push du navigateur (reçues même onglet fermé)
+const push = usePushNotifications();
+onMounted(() => push.refresh());
+
+const PUSH_STATUS_TEXT: Record<string, string> = {
+  enabled: 'Activées sur ce navigateur',
+  disabled: 'Désactivées sur ce navigateur',
+  denied: 'Bloquées par le navigateur : autorisez les notifications pour ce site dans ses réglages',
+  unsupported: 'Non prises en charge par ce navigateur',
+  unavailable: 'Indisponibles : le serveur n’est pas configuré pour les notifications push',
+};
+
+const togglePush = async () => {
+  try {
+    if (push.status.value === 'enabled') {
+      await push.disable();
+      toast.info('Notifications push désactivées');
+    } else {
+      if (await push.enable()) toast.success('Notifications push activées');
+    }
+  } catch {
+    toast.error('Impossible de modifier les notifications push');
+  }
+};
+
 const savingProfile = ref(false);
 const savingPassword = ref(false);
 const uploadingAvatar = ref(false);
@@ -150,7 +175,7 @@ const updatePassword = async () => {
 const tabs = [
   { id: 'general', label: 'Général', icon: 'tabler:user' },
   { id: 'security', label: 'Sécurité', icon: 'tabler:lock' },
-  { id: 'notifications', label: 'Catégories suivies', icon: 'tabler:bell' },
+  { id: 'notifications', label: 'Notifications', icon: 'tabler:bell' },
 ];
 </script>
 
@@ -391,6 +416,36 @@ const tabs = [
               Suivez des catégories pour être notifié en temps réel dès qu'un nouveau tip y est
               publié. Les messages privés, badges et décisions de modération sont toujours notifiés.
             </p>
+
+            <div
+              class="flex items-center justify-between gap-4 p-5 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-white/20"
+            >
+              <div>
+                <div class="font-bold text-slate-900 dark:text-white">
+                  Notifications push du navigateur
+                </div>
+                <div class="text-xs text-slate-500">
+                  Recevez vos notifications même quand TipsTop est fermé. —
+                  {{ PUSH_STATUS_TEXT[push.status.value] }}
+                </div>
+              </div>
+              <label
+                v-if="push.status.value === 'enabled' || push.status.value === 'disabled'"
+                class="relative inline-flex items-center cursor-pointer shrink-0"
+              >
+                <input
+                  :checked="push.status.value === 'enabled'"
+                  :disabled="push.busy.value"
+                  type="checkbox"
+                  class="sr-only peer"
+                  aria-label="Activer les notifications push"
+                  @change="togglePush"
+                />
+                <div
+                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"
+                ></div>
+              </label>
+            </div>
 
             <p v-if="categories.length === 0" class="text-sm text-slate-400">Chargement…</p>
             <div v-else class="space-y-3">

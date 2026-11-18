@@ -73,6 +73,8 @@ export const ROUTES = {
     list: '/notifications',
     readAll: '/notifications/read-all',
     read: '/notifications/:id/read',
+    pushPublicKey: '/notifications/push/public-key',
+    pushSubscriptions: '/notifications/push/subscriptions',
   },
   appeals: {
     mine: '/moderation-actions/mine',
