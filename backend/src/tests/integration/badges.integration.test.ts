@@ -216,7 +216,7 @@ describe('Badge Service Integration', () => {
   describe('Full Badge Flow Integration', () => {
     it('attribue plusieurs badges au fur et a mesure', async () => {
       const user = await createUser();
-      const voter = await createUser();
+      await createUser(); // autre membre présent en base
 
       // 1 tip -> first_tip
       await createTipsForUser(user.id, 1);

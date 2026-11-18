@@ -12,7 +12,6 @@ import { prisma } from '../../db/prisma';
 
 describe('Moderation Integration', () => {
   const baseAuth = ROUTES.api + ROUTES.users.base;
-  const baseTips = ROUTES.api + ROUTES.tips.base;
   const baseMod = ROUTES.api + ROUTES.moderation.base;
 
   beforeAll(async () => {
@@ -109,7 +108,7 @@ describe('Moderation Integration', () => {
 
   describe('POST /moderation/tips/:id/approve', () => {
     it('approuve un tip et donne de xp', async () => {
-      const { token: userToken, userId } = await createAndLoginUser('tipauthor');
+      const { userId } = await createAndLoginUser('tipauthor');
       const { token: modToken } = await createModerator('mod1');
 
       const tipId = await createPendingTip(userId);
@@ -249,7 +248,7 @@ describe('Moderation Integration', () => {
   describe('POST /moderation/reports/:id/resolve', () => {
     it('resout un report et rejette le tip', async () => {
       const { userId: authorId } = await createAndLoginUser('author3');
-      const { token: modToken, userId: modId } = await createModerator('mod7');
+      const { token: modToken } = await createModerator('mod7');
       const { userId: reporterId } = await createAndLoginUser('reporter1');
 
       const tipId = await createPendingTip(authorId);
@@ -392,7 +391,7 @@ describe('Moderation Integration', () => {
 
   describe('GET /moderation/history', () => {
     it('retourne historique actions moderateur', async () => {
-      const { token: modToken, userId: modId } = await createModerator('mod11');
+      const { token: modToken } = await createModerator('mod11');
       const { userId } = await createAndLoginUser('author5');
 
       const tipId = await createPendingTip(userId);
@@ -412,7 +411,7 @@ describe('Moderation Integration', () => {
       expect(res.body.data.length).toBeGreaterThanOrEqual(1);
 
       const approveAction = res.body.data.find(
-        (action: any) => action.actionType === 'APPROVE_TIP',
+        (action: { actionType: string }) => action.actionType === 'APPROVE_TIP',
       );
       expect(approveAction).toBeDefined();
       expect(approveAction.user).toMatchObject({ id: userId, username: 'author5' });

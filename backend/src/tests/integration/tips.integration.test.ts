@@ -232,6 +232,50 @@ describe('Tips Integration', () => {
     expect(all.body.data).toHaveLength(2);
   });
 
+  it('GET /tips should search keywords in title and content, combined with filters', async () => {
+    const { token } = await createAndLoginUser('searcher');
+
+    const create = (body: Record<string, unknown>) =>
+      request(app)
+        .post(baseTips + ROUTES.tips.create)
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+
+    const byTitle = await create({
+      title: 'Détartrer une Bouilloire',
+      content: 'Avec du vinaigre blanc',
+      categories: ['Cuisine'],
+    });
+    const byContent = await create({
+      title: 'Question entretien',
+      content: 'Comment nettoyer une bouilloire en inox ?',
+      kind: 'QUESTION',
+    });
+    await create({ title: 'Ranger son garage', content: 'Des étagères murales' });
+    const pending = await create({ title: 'Bouilloire en attente', content: 'Pas encore validé' });
+    await prisma.tip.updateMany({
+      where: { id: { not: pending.body.data.id } },
+      data: { status: 'APPROVED' },
+    });
+
+    const ids = (res: request.Response) =>
+      (res.body.data as Array<{ id: number }>).map((tip) => tip.id).sort();
+
+    // Insensible à la casse, dans le titre comme dans le contenu, jamais les tips non publiés
+    const search = await request(app).get(`${baseTips}?q=BOUILLOIRE`);
+    expect(search.status).toBe(200);
+    expect(ids(search)).toEqual([byTitle.body.data.id, byContent.body.data.id].sort());
+
+    const withCategory = await request(app).get(`${baseTips}?q=bouilloire&category=cuisine`);
+    expect(ids(withCategory)).toEqual([byTitle.body.data.id]);
+
+    const questionsOnly = await request(app).get(`${baseTips}?q=bouilloire&kind=QUESTION`);
+    expect(ids(questionsOnly)).toEqual([byContent.body.data.id]);
+
+    const noMatch = await request(app).get(`${baseTips}?q=trottinette`);
+    expect(noMatch.body.data).toHaveLength(0);
+  });
+
   it('PATCH /tips/:id should replace categories', async () => {
     const { token } = await createAndLoginUser('catupdater');
 

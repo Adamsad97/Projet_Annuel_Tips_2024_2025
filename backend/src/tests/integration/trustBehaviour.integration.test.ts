@@ -41,6 +41,7 @@ describe('Trust index behaviour factors Integration', () => {
   };
 
   it('should open a session on authenticated requests and extend it while active', async () => {
+    activityService.setTrackingEnabled(true);
     await request(app)
       .post(baseUsers + ROUTES.users.register)
       .send({ email: 'active@test.com', password: 'Password123!', username: 'active' });
@@ -52,6 +53,7 @@ describe('Trust index behaviour factors Integration', () => {
       .get(baseUsers + ROUTES.users.profile)
       .set('Authorization', `Bearer ${login.body.data.accessToken}`);
     await flushBackgroundTasks();
+    activityService.setTrackingEnabled(false);
 
     const userId = login.body.data.user.id as number;
     expect(await prisma.userSession.count({ where: { userId } })).toBe(1);

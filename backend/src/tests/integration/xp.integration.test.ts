@@ -149,9 +149,9 @@ describe('XP Service Integration', () => {
 
   describe('getLeaderboard', () => {
     it('retourne utilisateurs tries par xp decroissant', async () => {
-      const user1 = await createUser(100);
+      await createUser(100);
       const user2 = await createUser(250);
-      const user3 = await createUser(50);
+      await createUser(50);
 
       const result = await xpService.getLeaderboard({ take: 10, skip: 0 });
 

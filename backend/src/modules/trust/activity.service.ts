@@ -13,6 +13,10 @@ export const SESSION_RETENTION_DAYS = 90;
 
 const lastWrite = new Map<number, number>();
 
+// Désactivé en test : une écriture en arrière-plan pourrait viser un compte déjà supprimé
+// par le nettoyage de fin de test. Les tests qui en ont besoin le réactivent.
+let trackingEnabled = process.env.NODE_ENV !== 'test';
+
 export interface ActivityStats {
   activeDays: number;
   sessions: number;
@@ -21,7 +25,12 @@ export interface ActivityStats {
 
 export const activityService = {
   // Appelé à chaque requête authentifiée ; n'attend rien et n'échoue jamais
+  setTrackingEnabled(enabled: boolean): void {
+    trackingEnabled = enabled;
+  },
+
   touch(userId: number): void {
+    if (!trackingEnabled) return;
     const now = Date.now();
     if ((lastWrite.get(userId) ?? 0) > now - WRITE_THROTTLE_MS) return;
     lastWrite.set(userId, now);

@@ -33,7 +33,7 @@ export class UserController {
     res.status(201).json({ success: true, data: user });
   };
 
-  login = async (req: Request, res: Response, next: NextFunction) => {
+  login = async (req: Request<unknown, unknown, LoginBody>, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
       const result = await userService.login(email, password);

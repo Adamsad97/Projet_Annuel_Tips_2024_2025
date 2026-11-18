@@ -28,6 +28,6 @@ if (env.NODE_ENV !== 'test') {
 }
 
 httpServer.listen(PORT, () => {
-  console.log(`🚀 Server running at http://${HOST}:${PORT}`);
-  console.log(`🔌 WebSocket ready for real-time updates`);
+  console.info(`🚀 Server running at http://${HOST}:${PORT}`);
+  console.info(`🔌 WebSocket ready for real-time updates`);
 });

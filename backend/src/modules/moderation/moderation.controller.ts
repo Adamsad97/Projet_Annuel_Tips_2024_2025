@@ -5,7 +5,6 @@ import {
   promoteUserSchema,
   demoteUserSchema,
   rejectTipSchema,
-  updateTipStatusSchema,
   sanctionReasonSchema,
 } from './moderation.validation';
 import { parseIdParam } from '../../utils/params.util';

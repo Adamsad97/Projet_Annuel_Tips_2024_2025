@@ -24,7 +24,6 @@ export function toPublicUser<
     twoFactorBackupCodes?: string[];
   },
 >(user: T): Omit<T, PrivateUserFields> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, trustIndex, twoFactorSecret, twoFactorBackupCodes, ...publicUser } = user;
   return publicUser;
 }

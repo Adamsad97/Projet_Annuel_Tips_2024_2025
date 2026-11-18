@@ -47,18 +47,18 @@ export class SocketService {
     });
 
     this.io.on('connection', (socket: Socket) => {
-      console.log(`[WebSocket] Client connected: ${socket.id}`);
+      console.info(`[WebSocket] Client connected: ${socket.id}`);
 
       if (socket.data.userId) {
         socket.join(userRoom(socket.data.userId));
       }
 
       socket.on('disconnect', () => {
-        console.log(`[WebSocket] Client disconnected: ${socket.id}`);
+        console.info(`[WebSocket] Client disconnected: ${socket.id}`);
       });
     });
 
-    console.log('[WebSocket] Server initialized');
+    console.info('[WebSocket] Server initialized');
   }
 
   emitTipApproved(tipData: TipApprovedEvent): void {
@@ -68,7 +68,7 @@ export class SocketService {
     }
 
     this.io.emit('tip:approved', tipData);
-    console.log(`[WebSocket] Tip approved event emitted for tip #${tipData.tipId}`);
+    console.info(`[WebSocket] Tip approved event emitted for tip #${tipData.tipId}`);
   }
 
   emitTipRejected(tipId: number): void {
@@ -78,7 +78,7 @@ export class SocketService {
     }
 
     this.io.emit('tip:rejected', { tipId });
-    console.log(`[WebSocket] Tip rejected event emitted for tip #${tipId}`);
+    console.info(`[WebSocket] Tip rejected event emitted for tip #${tipId}`);
   }
 
   // Événement privé (message, notification…) envoyé à tous les onglets d'un utilisateur

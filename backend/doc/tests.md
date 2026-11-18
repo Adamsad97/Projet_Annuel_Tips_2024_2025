@@ -2,9 +2,9 @@
 
 ## Vue d'ensemble
 
-Le backend dispose de **102 tests** repartis en deux categories :
-- **Tests unitaires** - Testent les composants de maniere isolee
-- **Tests d'integration** - Testent les flux complets avec la base de donnees
+Le backend dispose de **228 tests (36 fichiers)** repartis en deux categories :
+- **Tests unitaires** (15 fichiers) - Testent les composants de maniere isolee
+- **Tests d'integration** (21 fichiers) - Testent les flux complets avec la base de donnees et les vraies routes HTTP
 
 ## Lancer les tests
 
@@ -27,54 +27,41 @@ Les commandes ci-dessus :
 
 ```
 src/tests/
-├── integration/
-│   ├── auth.integration.test.ts
-│   ├── tips.integration.test.ts
-│   ├── moderation.integration.test.ts
-│   ├── xp.integration.test.ts
-│   ├── badges.integration.test.ts
-│   └── ping.test.ts
+├── integration/        # un fichier par domaine (voir tableau ci-dessous)
 ├── unit/
-│   ├── controller/
-│   ├── middleware/
+│   ├── chatbot/        # analyse du texte des questions
+│   ├── controller/     # refresh / logout
+│   ├── middleware/     # auth, roles, validation Zod, erreurs, rate limiting
 │   ├── repository/
 │   ├── service/
-│   ├── utils/
+│   ├── utils/          # JWT, hash, AppError, lisibilite (indice de confiance)
 │   └── websocket/
 ├── jest.setup.ts
 └── prisma.helpers.ts
 ```
 
-## Modules testes
+## Modules testes (integration)
 
-### Moderation 
-- Approbation/rejet de tips avec attribution XP
-- Resolution de reports
-- Promotion/demotion d'utilisateurs
-- Statistiques et historique
-
-### XP
-- Attribution d'XP
-- Promotions automatiques de grades
-- Progression utilisateur
-- Leaderboard
-
-### Badges
-- Verification conditions de badges
-- Attribution avec bonus XP
-- Calcul de progression
-- Multi-badges flow
-
-### Auth & Users
-- Inscription/connexion
-- Tokens JWT (access/refresh)
-- Middleware d'authentification
-- Autorisations par role
-
-### Middlewares
-- Validation Zod
-- Gestion d'erreurs
-- Rate limiting
+| Fichier | Ce qui est couvert |
+|---|---|
+| `auth` | Inscription, connexion, revocation des sessions (deconnexion, changement de mot de passe) |
+| `twoFactor` | Activation 2FA, connexion avec code, codes de secours, desactivation |
+| `profile` | Profil, mot de passe, avatar, profil public sans donnees privees |
+| `tips` | CRUD, images, localisation, categories, filtres, recherche par mot-cle |
+| `discovery` | Apercu invite, tendances, vues, suivi de categories |
+| `interactions` | Commentaires, votes, signalements |
+| `messaging` | Messages (un seul sans reponse, edition avant lecture), blocages, notifications |
+| `push` | Abonnements push du navigateur, envoi, abonnements expires |
+| `uploads` | Upload et service des images |
+| `gamification` | Seuil d'XP pour proposer un tip, quotas et avantages par grade |
+| `xp` / `badges` | Attribution d'XP et de badges, montee en grade, classement |
+| `community` | Statistiques, grades, contact, abonnements entre membres, classements |
+| `moderation` | Validation des tips, signalements, promotion, stats, historique |
+| `adminModeration` | Sanctions, contestations, comptes, grades/badges, analytics |
+| `trust` / `trustBehaviour` | Indice de confiance : facteurs, sanctions, ajustement admin, promotion et retrogradation automatiques, sessions, lisibilite, reactivite |
+| `platform` | Feature flags (tests A/B), logs centralises |
+| `chatbot` | Recherche de tips, reponses types, configuration admin |
+| `sponsoring` | Campagnes ciblees, budget, clics, defis sponsorises |
 
 ## Coverage
 
@@ -98,11 +85,6 @@ Le rapport HTML interactif permet de :
 - Naviguer dans les fichiers
 - Identifier les branches non testees
 
-### Coverage actuel
-
-**Coverage global : 81.21%**
-
-![Coverage Report](image.png)
 
 ## CI/CD
 
@@ -131,9 +113,11 @@ Le fichier `jest.setup.ts` configure :
    }));
    ```
 
-2. **Reset DB** - Nettoie et migre la DB de test avant les tests
+2. **Variables d'environnement** - Charge `.env.test`, force `NODE_ENV=test` et `GAMIFICATION_ENFORCE=false`
 
-3. **Variables d'environnement** - Charge `.env.test`
+Aucun reset automatique de la base : le schema est applique avant les tests (`prisma migrate deploy`, fait par `npm run backend:test` et par la CI), et chaque fichier nettoie ses propres donnees.
+
+En `NODE_ENV=test`, le suivi des sessions d'activite (indice de confiance) est desactive : une ecriture en arriere-plan pourrait sinon viser un compte deja supprime et logger apres la fin des tests, ce qui fait echouer Jest. `trustBehaviour.integration.test.ts` le reactive le temps de son test.
 
 ## Helpers de test
 

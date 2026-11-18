@@ -1,15 +1,12 @@
 import { SocketService } from '../../../websocket/socket.service';
-import { Server as HttpServer } from 'http';
 import type { Server as SocketIOServer } from 'socket.io';
 
 describe('SocketService', () => {
   let socketService: SocketService;
-  let mockHttpServer: HttpServer;
   let mockIO: jest.Mocked<SocketIOServer>;
 
   beforeEach(() => {
     socketService = new SocketService();
-    mockHttpServer = {} as HttpServer;
     mockIO = {
       emit: jest.fn(),
       on: jest.fn(),
