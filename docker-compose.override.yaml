@@ -40,9 +40,7 @@ services:
       - projet-tips-net
     environment:
       NODE_ENV: development
-      # Emails de dev capturés par Mailpit (interface : http://localhost:8026)
-      SMTP_HOST: mailpit
-      SMTP_PORT: 1025
+      # Emails : réglés dans backend/.env (Mailpit par défaut, ou un vrai SMTP pour les recevoir)
 
   mailpit:
     image: axllent/mailpit:v1.27
