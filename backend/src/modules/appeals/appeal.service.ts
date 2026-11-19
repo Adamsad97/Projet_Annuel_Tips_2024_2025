@@ -19,6 +19,7 @@ const MY_MODERATION_LINK = '/my-moderation';
 
 type ActionMetadata = {
   tipId?: number | null;
+  commentId?: number | null;
   previousXp?: number;
   previousGradeId?: number | null;
 };
@@ -153,6 +154,13 @@ export class AppealService {
           await prisma.tip.updateMany({
             where: { id: metadata.tipId },
             data: { status: 'APPROVED' },
+          });
+        }
+        // Le commentaire retiré réapparaît (updateMany : sans effet s'il a été supprimé depuis)
+        if (metadata.commentId) {
+          await prisma.comment.updateMany({
+            where: { id: metadata.commentId },
+            data: { removedAt: null },
           });
         }
         break;

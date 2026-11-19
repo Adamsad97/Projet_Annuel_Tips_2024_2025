@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import { prisma } from '../../db/prisma';
 import { BadgeCode, type BadgeConditions, type UserBadgeStats } from '../../types/badge.types';
 import { AppError } from '../../utils/appError.util';
@@ -76,7 +77,7 @@ export class BadgeService {
             votes: true,
           },
         },
-        comments: true,
+        comments: { where: VISIBLE_COMMENT },
         followers: true,
       },
     });

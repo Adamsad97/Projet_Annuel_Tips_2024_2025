@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import { prisma } from '../../db/prisma';
 import type { Tip, Prisma } from '@prisma/client';
 import { tipAuthorSelect } from './tip.select';
@@ -22,7 +23,7 @@ export const tipRepository = {
         },
         _count: {
           select: {
-            comments: true,
+            comments: { where: VISIBLE_COMMENT },
             votes: true,
             views: true,
           },
@@ -45,6 +46,7 @@ export const tipRepository = {
           },
         },
         comments: {
+          where: VISIBLE_COMMENT,
           include: {
             user: {
               select: {
@@ -61,7 +63,7 @@ export const tipRepository = {
         },
         _count: {
           select: {
-            comments: true,
+            comments: { where: VISIBLE_COMMENT },
             votes: true,
             views: true,
           },

@@ -2,9 +2,9 @@
 
 ## Vue d'ensemble
 
-Le backend dispose de **228 tests (36 fichiers)** repartis en deux categories :
+Le backend dispose de **229 tests (37 fichiers)** repartis en deux categories :
 - **Tests unitaires** (15 fichiers) - Testent les composants de maniere isolee
-- **Tests d'integration** (21 fichiers) - Testent les flux complets avec la base de donnees et les vraies routes HTTP
+- **Tests d'integration** (22 fichiers) - Testent les flux complets avec la base de donnees et les vraies routes HTTP
 
 ## Lancer les tests
 
@@ -58,6 +58,7 @@ src/tests/
 | `community` | Statistiques, grades, contact, abonnements entre membres, classements |
 | `moderation` | Validation des tips, signalements, promotion, stats, historique |
 | `adminModeration` | Sanctions, contestations, comptes, grades/badges, analytics |
+| `commentRemoval` | Commentaire signale masque partout puis restaure si la contestation est acceptee |
 | `trust` / `trustBehaviour` | Indice de confiance : facteurs, sanctions, ajustement admin, promotion et retrogradation automatiques, sessions, lisibilite, reactivite |
 | `platform` | Feature flags (tests A/B), logs centralises |
 | `chatbot` | Recherche de tips, reponses types, configuration admin |

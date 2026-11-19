@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import { moderationRepository } from './moderation.repository';
 import { AppError } from '../../utils/appError.util';
 import { prisma } from '../../db/prisma';
@@ -59,9 +60,11 @@ export class ModerationService {
           data: { status: 'REJECTED' },
         });
       }
+      // Masqué et non supprimé : une contestation acceptée doit pouvoir le restaurer
       if (report.commentId) {
-        await prisma.comment.delete({
+        await prisma.comment.update({
           where: { id: report.commentId },
+          data: { removedAt: new Date() },
         });
       }
 
@@ -107,7 +110,7 @@ export class ModerationService {
         type: 'MODERATION',
         title: report.tipId
           ? 'Un de vos tips a été retiré suite à un signalement'
-          : 'Un de vos commentaires a été supprimé suite à un signalement',
+          : 'Un de vos commentaires a été retiré suite à un signalement',
         body: reason,
         link: MY_MODERATION_LINK,
       });
@@ -239,7 +242,7 @@ export class ModerationService {
         },
         _count: {
           select: {
-            comments: true,
+            comments: { where: VISIBLE_COMMENT },
             votes: true,
           },
         },

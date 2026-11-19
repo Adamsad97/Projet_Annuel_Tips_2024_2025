@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import { prisma } from '../../db/prisma';
 import { AppError } from '../../utils/appError.util';
 import { xpService } from '../xp/xp.service';
@@ -46,7 +47,9 @@ export class VoteService {
   }
 
   async voteOnComment(commentId: number, userId: number, value: VoteValue): Promise<VoteSummary> {
-    const comment = await prisma.comment.findUnique({ where: { id: commentId } });
+    const comment = await prisma.comment.findFirst({
+      where: { id: commentId, ...VISIBLE_COMMENT },
+    });
 
     if (!comment) {
       throw new AppError('comment not found', 404);

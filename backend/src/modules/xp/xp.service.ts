@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma';
 import type { XpAction } from '../../types/xp.types';
@@ -83,7 +84,7 @@ export class XpService {
         _count: {
           select: {
             tips: true,
-            comments: true,
+            comments: { where: VISIBLE_COMMENT },
             votes: true,
             followers: true,
           },

@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import type { Report } from '@prisma/client';
 import { prisma } from '../../db/prisma';
 import { AppError } from '../../utils/appError.util';
@@ -13,7 +14,9 @@ export class ReportService {
   }
 
   async reportComment(commentId: number, userId: number, reason: string): Promise<Report> {
-    const comment = await prisma.comment.findUnique({ where: { id: commentId } });
+    const comment = await prisma.comment.findFirst({
+      where: { id: commentId, ...VISIBLE_COMMENT },
+    });
 
     if (!comment) {
       throw new AppError('comment not found', 404);

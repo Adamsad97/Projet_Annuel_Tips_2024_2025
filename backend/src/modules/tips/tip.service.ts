@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import { tipRepository } from './tip.repository';
 import type { Prisma, Tip } from '@prisma/client';
 import { prisma } from '../../db/prisma';
@@ -127,7 +128,7 @@ export const tipService = {
         OR: [
           recentActivity,
           { votes: { some: recentActivity } },
-          { comments: { some: recentActivity } },
+          { comments: { some: { ...recentActivity, ...VISIBLE_COMMENT } } },
           { views: { some: { viewedAt: { gte: since } } } },
         ],
       },
@@ -136,7 +137,7 @@ export const tipService = {
         categories: { include: { category: true } },
         _count: {
           select: {
-            comments: { where: recentActivity },
+            comments: { where: { ...recentActivity, ...VISIBLE_COMMENT } },
             views: { where: { viewedAt: { gte: since } } },
             votes: true,
           },

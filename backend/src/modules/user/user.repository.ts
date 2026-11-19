@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma';
 
@@ -75,12 +76,12 @@ export const userRepository = {
           where: { status: 'APPROVED' },
           include: {
             categories: { include: { category: true } },
-            _count: { select: { comments: true, votes: true, views: true } },
+            _count: { select: { comments: { where: VISIBLE_COMMENT }, votes: true, views: true } },
           },
           orderBy: { createdAt: 'desc' },
           take: recentTipsCount,
         },
-        _count: { select: { comments: true } },
+        _count: { select: { comments: { where: VISIBLE_COMMENT } } },
       },
     });
   },

@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import { prisma } from '../../db/prisma';
 import { AppError } from '../../utils/appError.util';
 import { isBanned, isMuted } from '../../utils/accountStatus.util';
@@ -64,8 +65,10 @@ export class TrustService {
         where: { tip: { userId } },
         _count: { _all: true },
       }),
-      prisma.comment.count({ where: { userId } }),
-      prisma.comment.count({ where: { tip: { userId }, userId: { not: userId } } }),
+      prisma.comment.count({ where: { userId, ...VISIBLE_COMMENT } }),
+      prisma.comment.count({
+        where: { tip: { userId }, userId: { not: userId }, ...VISIBLE_COMMENT },
+      }),
       prisma.tipCategory.findMany({
         where: { tip: { userId, status: 'APPROVED' } },
         distinct: ['categoryId'],
@@ -376,13 +379,14 @@ export class TrustService {
       }),
       prisma.vote.groupBy({
         by: ['commentId'],
-        where: { comment: { userId } },
+        where: { comment: { userId, ...VISIBLE_COMMENT } },
         _sum: { value: true },
       }),
       prisma.comment.findMany({
         where: {
           tip: { userId },
           userId: { not: userId },
+          ...VISIBLE_COMMENT,
           createdAt: { gte: responsivenessSince },
         },
         select: { tipId: true, createdAt: true },
@@ -408,6 +412,7 @@ export class TrustService {
       ? await prisma.comment.findMany({
           where: {
             userId,
+            ...VISIBLE_COMMENT,
             tipId: { in: [...new Set(received.map((comment) => comment.tipId))] },
             createdAt: { gte: responsivenessSince },
           },

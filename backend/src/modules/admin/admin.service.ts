@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from '../comments/comment.visibility';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma';
 import { AppError } from '../../utils/appError.util';
@@ -54,7 +55,7 @@ export class AdminService {
           mutedUntil: true,
           moderator: { select: { isActive: true } },
           admin: { select: { userId: true } },
-          _count: { select: { tips: true, comments: true } },
+          _count: { select: { tips: true, comments: { where: VISIBLE_COMMENT } } },
         },
         orderBy:
           query.sort === 'trust-asc'

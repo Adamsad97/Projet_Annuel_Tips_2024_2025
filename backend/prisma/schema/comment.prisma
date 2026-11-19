@@ -3,6 +3,8 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  // Masqué par la modération après un signalement validé ; restauré si la contestation est acceptée
+  removedAt DateTime?
 
   userId   Int
   tipId    Int

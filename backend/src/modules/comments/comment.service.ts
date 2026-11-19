@@ -1,3 +1,4 @@
+import { VISIBLE_COMMENT } from './comment.visibility';
 import type { Comment } from '@prisma/client';
 import { prisma } from '../../db/prisma';
 import { assertCanParticipate } from '../../utils/accountStatus.util';
@@ -43,7 +44,7 @@ export class CommentService {
     }
 
     const comments = await prisma.comment.findMany({
-      where: { tipId },
+      where: { tipId, ...VISIBLE_COMMENT },
       include: {
         user: { select: commentAuthorSelect },
         votes: { select: { userId: true, value: true } },
@@ -69,12 +70,12 @@ export class CommentService {
     // Commentaires racines du plus récent au plus ancien, réponses dans l'ordre chronologique
     const roots: CommentView[] = [];
     for (const view of views.values()) {
-      const parent = view.parentId ? views.get(view.parentId) : undefined;
-      if (parent) {
-        parent.replies.push(view);
-      } else {
+      if (!view.parentId) {
         roots.unshift(view);
+        continue;
       }
+      // Réponse à un commentaire retiré par la modération : masquée avec lui
+      views.get(view.parentId)?.replies.push(view);
     }
 
     return roots;
@@ -86,7 +87,9 @@ export class CommentService {
 
     let parentId: number | undefined;
     if (data.parentId) {
-      const parent = await prisma.comment.findUnique({ where: { id: data.parentId } });
+      const parent = await prisma.comment.findFirst({
+        where: { id: data.parentId, ...VISIBLE_COMMENT },
+      });
 
       if (!parent || parent.tipId !== tipId) {
         throw new AppError('parent comment not found on this tip', 400);
@@ -123,7 +126,8 @@ export class CommentService {
   }
 
   private async findOwnedCommentOrThrow(id: number, userId: number): Promise<Comment> {
-    const comment = await prisma.comment.findUnique({ where: { id } });
+    // Un commentaire retiré ne se modifie pas : son auteur passe par une contestation
+    const comment = await prisma.comment.findFirst({ where: { id, ...VISIBLE_COMMENT } });
 
     if (!comment) {
       throw new AppError('comment not found', 404);
