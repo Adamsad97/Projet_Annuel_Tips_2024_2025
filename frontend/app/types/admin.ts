@@ -99,6 +99,8 @@ export const ACTION_LABELS: Record<string, string> = {
   MUTE: 'Interdiction de publier',
   REJECT_TIP: 'Tip refusé',
   RESOLVE_REPORT_REJECT: 'Contenu retiré après signalement',
+  RESOLVE_REPORT_APPROVE: 'Signalement classé sans suite (contenu conservé)',
+  TRUST_ADJUST: 'Indice de confiance ajusté',
   AUTO_PROMOTE: 'Promotion automatique en modérateur',
   AUTO_DEMOTE: 'Retrait automatique du rôle de modérateur',
   APPROVE_TIP: 'Tip validé',

@@ -56,7 +56,8 @@
       <div v-if="loading" class="loading">Chargement...</div>
 
       <div v-else-if="pendingTips.length === 0" class="empty-state">
-        Aucun tip en attente de modération
+        Aucun tip en attente de modération. Les tips et questions publiés par les membres
+        apparaissent ici avant leur mise en ligne.
       </div>
 
       <div v-else class="tips-list">
@@ -67,7 +68,7 @@
           </div>
           <p class="tip-content">{{ tip.content }}</p>
           <div class="tip-meta">
-            <span>Par {{ tip.user.firstname }} {{ tip.user.lastname }}</span>
+            <span>Par {{ memberName(tip.user) }}</span>
             <span v-if="tip.categories[0]"> • {{ tip.categories[0].category.name }} </span>
           </div>
           <div class="tip-actions">
@@ -95,24 +96,55 @@
       <div v-else class="reports-list">
         <div v-for="report in reports" :key="report.id" class="report-card">
           <div class="report-header">
-            <span class="report-type">{{ report.tipId ? '📝 Tip' : '💬 Commentaire' }}</span>
+            <span class="report-type">
+              {{ report.tipId ? '📝 Tip signalé' : '💬 Commentaire signalé' }}
+            </span>
             <span class="report-date">{{ formatDate(report.createdAt) }}</span>
           </div>
-          <p class="report-reason">{{ report.reason }}</p>
+
+          <!-- Contenu visé : ce que le modérateur doit juger -->
+          <div class="reported-content">
+            <template v-if="report.tip">
+              <p class="reported-title">{{ report.tip.title }}</p>
+              <p class="reported-text">{{ excerpt(report.tip.content) }}</p>
+              <p class="reported-meta">
+                Par <strong>{{ memberName(report.tip.user) }}</strong> ·
+                <NuxtLink :to="`/tips/${report.tip.id}`" target="_blank">Voir le tip</NuxtLink>
+              </p>
+            </template>
+            <template v-else-if="report.comment">
+              <p class="reported-text">« {{ excerpt(report.comment.content) }} »</p>
+              <p class="reported-meta">
+                Par <strong>{{ memberName(report.comment.user) }}</strong> ·
+                <NuxtLink :to="`/tips/${report.comment.tipId}`" target="_blank">
+                  Voir dans la discussion
+                </NuxtLink>
+              </p>
+            </template>
+            <p v-else class="reported-text">Contenu introuvable (déjà supprimé).</p>
+          </div>
+
+          <p class="report-reason">
+            <span class="report-reason-label">Motif du signalement</span>
+            « {{ report.reason }} » — signalé par {{ memberName(report.user) }}
+          </p>
+
           <div class="report-actions">
-            <button
-              class="btn btn-approve"
-              :disabled="actionLoading"
-              @click="resolveReport(report.id, 'APPROVE')"
-            >
-              ✅ Approuver le contenu
-            </button>
             <button
               class="btn btn-reject"
               :disabled="actionLoading"
+              title="Le signalement est fondé : le contenu est masqué et son auteur notifié"
               @click="resolveReport(report.id, 'REJECT')"
             >
-              ❌ Rejeter le contenu
+              🚫 Retirer le contenu
+            </button>
+            <button
+              class="btn btn-secondary"
+              :disabled="actionLoading"
+              title="Le signalement n'est pas fondé : le contenu reste en ligne"
+              @click="resolveReport(report.id, 'APPROVE')"
+            >
+              ✅ Garder le contenu
             </button>
           </div>
         </div>
@@ -133,8 +165,9 @@
             <span class="history-type">
               {{ ACTION_LABELS[action.actionType] ?? action.actionType }}
             </span>
+            <!-- Décision sur un contenu : la personne affichée en est l'auteur, pas une sanctionnée -->
             <span class="history-target">
-              —
+              {{ CONTENT_ACTIONS.includes(action.actionType) ? '— contenu de' : '— membre :' }}
               <NuxtLink :to="`/users/${action.user.id}`">{{ action.user.username }}</NuxtLink>
             </span>
             <NuxtLink
@@ -178,6 +211,7 @@
 
 <script setup lang="ts">
 import type {
+  ModerationMember,
   ModerationStats,
   ModeratorHistoryEntry,
   PendingTip,
@@ -186,6 +220,14 @@ import type {
 } from '~/types/moderation.types';
 import { ACTION_LABELS } from '~/types';
 import { API_ROUTES } from '~/config/api';
+
+// Actions qui portent sur un tip ou un commentaire (et non sur le membre lui-même)
+const CONTENT_ACTIONS = [
+  'APPROVE_TIP',
+  'REJECT_TIP',
+  'RESOLVE_REPORT_APPROVE',
+  'RESOLVE_REPORT_REJECT',
+];
 
 const APPEAL_LABELS: Record<string, string> = {
   OPEN: 'Contestée — en attente',
@@ -311,6 +353,12 @@ const openHistory = async () => {
     historyLoading.value = false;
   }
 };
+
+const memberName = (member: Pick<ModerationMember, 'username' | 'firstname' | 'lastname'>) =>
+  [member.firstname, member.lastname].filter(Boolean).join(' ') || member.username;
+
+const excerpt = (text: string | null, max = 280) =>
+  !text ? '' : text.length > max ? `${text.slice(0, max)}…` : text;
 
 const formatDate = (date: Date | string) => {
   return new Date(date).toLocaleDateString('fr-FR', {
@@ -607,6 +655,53 @@ h1 {
 .report-type {
   font-weight: 600;
   color: #1e293b;
+}
+
+.reported-content {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  background: #fffbeb;
+}
+
+.dark .reported-content {
+  background: rgb(120 53 15 / 0.2);
+}
+
+.reported-title {
+  margin: 0 0 0.25rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.reported-text {
+  margin: 0 0 0.5rem;
+  color: #334155;
+  white-space: pre-line;
+}
+
+.dark .reported-title,
+.dark .reported-text {
+  color: #f1f5f9;
+}
+
+.reported-meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.reported-meta a {
+  color: #2563eb;
+}
+
+.report-reason-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
 }
 
 .history-list {
