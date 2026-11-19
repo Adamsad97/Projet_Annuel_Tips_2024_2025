@@ -17,12 +17,16 @@ describe('XP Service Integration', () => {
     await disconnectPrisma();
   });
 
+  // Compteur et non Date.now() : deux créations dans la même milliseconde donnaient le même
+  // pseudo (contrainte d'unicité), ce qui faisait échouer le test au hasard en CI
+  let userSeq = 0;
   const createUser = async (xp = 0) => {
+    userSeq += 1;
     return prisma.user.create({
       data: {
-        email: `user${Date.now()}@test.com`,
+        email: `xpuser${userSeq}@test.com`,
         password: 'hashed:password',
-        username: `user${Date.now()}`,
+        username: `xpuser${userSeq}`,
         firstname: 'Test',
         lastname: 'User',
         xp,
