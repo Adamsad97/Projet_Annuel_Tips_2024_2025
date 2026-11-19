@@ -65,7 +65,10 @@ export function useToastMessage() {
     let message = 'unexpected error';
 
     if (err && typeof err === 'object') {
-      const apiErr = err as ApiErrorResponse;
+      // Erreur réseau ofetch : le message utile de l'API est dans le corps de la réponse (data),
+      // pas dans err.message (« [POST] "/api/...": 401 Unauthorized »)
+      const body = (err as { data?: unknown }).data;
+      const apiErr = (body && typeof body === 'object' ? body : err) as ApiErrorResponse;
 
       if (apiErr.details && Array.isArray(apiErr.details) && apiErr.details.length > 0) {
         message = apiErr.details

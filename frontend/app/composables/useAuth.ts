@@ -57,6 +57,10 @@ export function useAuth() {
       if (fetchError.statusCode === 403 && fetchError.data?.message === 'email not verified') {
         return 'email-not-verified';
       }
+      if (fetchError.statusCode === 401) {
+        toast.error('Email ou mot de passe incorrect.', 'Connexion impossible');
+        return 'error';
+      }
       toast.apiError(fetchError);
       return 'error';
     }
