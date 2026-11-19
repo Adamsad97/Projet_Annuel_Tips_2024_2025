@@ -14,11 +14,21 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
   ],
 
-  css: ['./app/assets/css/main.css'],
+  // Alias ~ (dossier app/) : un chemin relatif n'est plus résolu par Nuxt 4.6 en dev
+  css: ['~/assets/css/main.css'],
 
   vite: {
     plugins: [tailwindcss()],
+    // Docker sous Windows : les modifications du dossier monté ne déclenchent pas d'événement,
+    // on scrute les fichiers pour garder le rechargement à chaud (NUXT_WATCH_POLLING=true)
+    ...(process.env.NUXT_WATCH_POLLING === 'true' && {
+      server: { watch: { usePolling: true, interval: 300 } },
+    }),
   },
+
+  ...(process.env.NUXT_WATCH_POLLING === 'true' && {
+    watchers: { chokidar: { usePolling: true, interval: 300 } },
+  }),
 
   imports: {
     dirs: ['config', 'types', 'stores', 'composables', 'utils'],
