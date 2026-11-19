@@ -177,7 +177,6 @@ Fichier `nuxt.config.ts`:
 ```typescript
 modules: [
   '@nuxt/eslint',        // Linting
-  '@nuxt/image',         // Optimisation images
   '@nuxt/icon',          // Systeme d'icones
   '@nuxt/ui',            // Composants UI
   '@nuxtjs/color-mode',  // Dark mode

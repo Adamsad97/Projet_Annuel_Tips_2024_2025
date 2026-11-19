@@ -48,7 +48,6 @@ AideFlash est une plateforme communautaire de partage d'astuces et conseils prat
 - Robots.txt configurable
 - Meta tags optimises
 - Lazy loading et code splitting automatique
-- Optimisation d'images avec @nuxt/image
 
 ## Structure de la documentation
 
