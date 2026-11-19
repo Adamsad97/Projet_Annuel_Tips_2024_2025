@@ -39,28 +39,23 @@ npm run install:all
 npm run backend:fix-IDE
 ```
 
-**Étape 4 : démarrer la base de données et l'API (Docker)**
+**Étape 4 : tout démarrer (Docker)**
 
 ```bash
 npm run docker:dev
 ```
 
-Construit l'image, démarre PostgreSQL, l'API et Adminer, applique les migrations et crée les données de test. Attendre le message `seeding complete`.
+Construit les images, démarre PostgreSQL, l'API, le site, Mailpit et Adminer, applique les migrations et crée les données de test. Attendre le message `seeding complete`.
 
-**Étape 5 : démarrer le site (dans un second terminal, depuis la racine du projet)**
+Le site met environ 30 secondes à être prêt la première fois. Pour suivre son démarrage : `npm run docker:logs:frontend` (attendre `Ready`, puis `Ctrl + C` pour quitter les logs). Les modifications du code (front et API) sont rechargées automatiquement.
 
-```bash
-cd frontend
-npm run dev
-```
+Le port 3000 doit être libre : arrêter d'abord tout autre site qui l'utilise.
 
-Le premier démarrage peut prendre 1 à 2 minutes. Attendre la ligne `Local: http://localhost:3000/`.
-
-**Étape 6 : ouvrir le site**
+**Étape 5 : ouvrir le site**
 
 Ouvrir http://localhost:3000 et se connecter avec un des [comptes de test](#comptes-de-test).
 
-**Étape 7 : parcours de test conseillé**
+**Étape 6 : parcours de test conseillé**
 
 1. **Visiteur** (sans connexion) : accueil, liste des tips (seul le début du contenu est visible), carte, page « À propos » (statistiques réelles).
 2. **alice@example.com** : publier un tip (« Partager un Tip »), il apparaît « En attente » dans « Mes tips ».
@@ -70,7 +65,7 @@ Ouvrir http://localhost:3000 et se connecter avec un des [comptes de test](#comp
 6. **Profil et paramètres** : XP, grade et badges ; modifier son profil, activer la double authentification (2FA).
 7. **admin@tipstop.com** : page « Administration » (utilisateurs et sanctions, indice de confiance, contestations, messages de contact, badges et grades, chatbot, publicité, fonctionnalités A/B, logs).
 
-**Étape 8 : lancer les tests automatisés (Docker toujours démarré)**
+**Étape 7 : lancer les tests automatisés (Docker toujours démarré)**
 
 ```bash
 npm run backend:test
@@ -79,15 +74,15 @@ npm run lint
 
 `backend:test` utilise une base dédiée (`postgres-test`) et ne touche pas aux données de l'étape 4.
 
-**Étape 9 : arrêter le projet**
+**Étape 8 : arrêter le projet**
 
-`Ctrl + C` dans le terminal du site, puis :
+Tout s'arrête avec :
 
 ```bash
 npm run docker:down
 ```
 
-Pour relancer plus tard : `npm run docker:up`, puis `cd frontend` et `npm run dev`.
+Pour relancer plus tard : `npm run docker:up` (site, API, base et Mailpit).
 
 ### Après un `git pull`
 
@@ -223,7 +218,8 @@ Ou, si les données locales n'ont pas d'importance : `npm run docker:clean` puis
 ## Problèmes courants
 
 - **Le backend ne démarre pas** : vérifier que Docker est lancé, puis `npm run docker:logs` et `npm run db:migrate`.
-- **Erreurs API dans le frontend** : vérifier http://localhost:3001/api/ping, `NUXT_PUBLIC_API_BASE_URL` dans `frontend/.env` et `CORS_ORIGIN` dans `backend/.env`.
+- **Erreurs API dans le frontend** : vérifier http://localhost:3001/api/ping et les logs (`npm run docker:logs:frontend`, `npm run docker:logs:backend`). Dans Docker, le site appelle l'API via `/api` (variables du service `frontend` dans `docker-compose.override.yaml`) ; `frontend/.env` ne sert que si on lance le site hors Docker.
+- **Le site affiche un autre projet sur le port 3000** : un autre conteneur ou serveur utilise ce port ; l'arrêter puis `npm run docker:up`.
 - **Erreurs TypeScript / Prisma dans l'IDE** : `npm run backend:fix-IDE` puis recharger l'IDE.
 - **Colonne ou table manquante** : des migrations sont en attente, lancer `npm run db:migrate`.
 - **`migrate deploy` refuse de s'appliquer (P3005, base non vide)** : la base a été créée avec `db push`, lancer une fois `npm run db:baseline`.

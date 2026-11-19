@@ -49,8 +49,11 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (including dev)
+# Nuxt écrit .nuxt et node_modules/.cache au démarrage : l'utilisateur node doit en être propriétaire
 RUN npm ci --quiet && \
-    npm cache clean --force
+    npm cache clean --force && \
+    mkdir -p .nuxt .output node_modules/.cache && \
+    chown -R node:node /app
 
 USER node
 

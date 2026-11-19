@@ -42,6 +42,36 @@ services:
       NODE_ENV: development
       # Emails : réglés dans backend/.env (Mailpit par défaut, ou un vrai SMTP pour les recevoir)
 
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.nuxt
+    networks:
+      - projet-tips-net
+    # Démarre une fois l'API prête : pas de page en erreur pendant que le backend démarre
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      # Comme en production : le navigateur appelle /api sur le même domaine et Nuxt relaie
+      # vers le backend (server/middleware/api-proxy.ts), y compris pendant le rendu serveur
+      NUXT_PUBLIC_API_BASE_URL: /api
+      NUXT_API_PROXY_TARGET: http://backend:3001
+      # Temps réel (Socket.io) : le navigateur se connecte directement au backend
+      NUXT_PUBLIC_BACKEND_URL: http://localhost:3001
+      NUXT_PUBLIC_ADMINER_URL: http://localhost:8080
+      NUXT_PUBLIC_SITE_URL: http://localhost:3000
+      NUXT_WATCH_POLLING: "true"
+
   mailpit:
     image: axllent/mailpit:v1.27
     restart: unless-stopped

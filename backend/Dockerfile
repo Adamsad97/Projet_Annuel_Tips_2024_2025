@@ -53,7 +53,9 @@ RUN npm ci --quiet && \
 
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
-RUN npx prisma generate
+# node propriétaire : le client Prisma est régénéré à chaque démarrage (schéma monté en volume)
+RUN npx prisma generate && \
+    chown -R node:node /app
 
 USER node
 
