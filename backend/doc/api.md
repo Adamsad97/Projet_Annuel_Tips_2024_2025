@@ -8,11 +8,13 @@ All routes prefixed with `/api`.
 
 ## Auth
 
-**POST /api/users/register** - Create account (username, email, password)
-**POST /api/users/login** - Login (email, password)
+**POST /api/users/register** - Create account (username, email, password) and email a verification link; response has `emailVerificationRequired`
+**POST /api/users/login** - Login (email, password); 403 `email not verified` until the link is clicked
 **POST /api/users/login/2fa** - Login second step (two-factor code)
 **POST /api/auth/refresh** - Refresh token
-**POST /api/auth/logout** - Logout
+**POST /api/auth/logout** - Logout (revokes refresh tokens)
+**POST /api/auth/verify-email** - Activate the account (`{ token }` from the emailed link, valid 24 h, single use)
+**POST /api/auth/verify-email/resend** - Send a new link (`{ email }`, same answer whether the account exists or not, max 1 per minute)
 
 ## User
 

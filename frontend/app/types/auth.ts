@@ -42,7 +42,10 @@ export interface TwoFactorChallenge {
   twoFactorToken: string;
 }
 
-export type LoginResult = 'success' | 'two-factor' | 'error';
+export type LoginResult = 'success' | 'two-factor' | 'email-not-verified' | 'error';
+
+// verify-email : compte créé, connexion possible après clic sur le lien reçu par email
+export type RegisterResult = 'success' | 'verify-email' | 'error';
 
 export interface TwoFactorSetup {
   secret: string;

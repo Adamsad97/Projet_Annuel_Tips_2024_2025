@@ -8,7 +8,10 @@ import {
 import { AppError } from '../../utils/appError.util';
 import type { RequestWithUser } from '../../types/auth.types';
 import { requireAuth } from '../../middlewares/auth.middleware';
-import { authLimiter } from '../../middlewares/rateLimiter.middleware';
+import { authLimiter, strictLimiter } from '../../middlewares/rateLimiter.middleware';
+import { validateSchema } from '../../middlewares/validate.middleware';
+import { emailVerificationService } from './emailVerification.service';
+import { resendVerificationSchema, verifyEmailSchema } from './auth.validation';
 import { ROUTES } from '../../config/routes';
 import { userRepository } from '../user/user.repository';
 import { isBanned } from '../../utils/accountStatus.util';
@@ -71,10 +74,45 @@ export class AuthController {
     }
   };
 
+  // Lien reçu par email : active le compte
+  verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await emailVerificationService.verify(req.body.token);
+      res.status(200).json({ success: true, message: 'email verified' });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  // Même réponse que l'adresse soit inscrite ou non (pas de divulgation des comptes)
+  resendVerification = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await emailVerificationService.resend(req.body.email);
+      res.status(200).json({
+        success: true,
+        message: 'if this account exists and is not verified, a new email has been sent',
+      });
+    } catch (e) {
+      next(e);
+    }
+  };
+
   build(): Router {
     const router = express.Router();
     router.post(ROUTES.auth.refresh, authLimiter, this.refresh);
     router.post(ROUTES.auth.logout, requireAuth, this.logout);
+    router.post(
+      ROUTES.auth.verifyEmail,
+      authLimiter,
+      validateSchema(verifyEmailSchema),
+      this.verifyEmail,
+    );
+    router.post(
+      ROUTES.auth.resendVerification,
+      strictLimiter,
+      validateSchema(resendVerificationSchema),
+      this.resendVerification,
+    );
     return router;
   }
 }

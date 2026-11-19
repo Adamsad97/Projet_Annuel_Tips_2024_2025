@@ -6,6 +6,8 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env.test'), quiet: true })
 process.env.NODE_ENV = 'test';
 // Les règles de gamification (seuil d'XP, quotas) sont testées dans gamification.integration.test.ts
 process.env.GAMIFICATION_ENFORCE = 'false';
+// Vérification d'email testée dans emailVerification.integration.test.ts ; ailleurs, comptes actifs dès l'inscription
+process.env.EMAIL_VERIFICATION = 'false';
 
 // Le schéma de la base de test est appliqué avant les tests (prisma migrate deploy :
 // script backend:test, job CI). Aucun reset automatique ici, pour ne jamais vider une

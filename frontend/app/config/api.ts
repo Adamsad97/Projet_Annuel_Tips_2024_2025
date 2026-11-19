@@ -4,6 +4,8 @@ export const API_ROUTES = {
   AUTH: {
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
+    VERIFY_EMAIL: '/auth/verify-email',
+    RESEND_VERIFICATION: '/auth/verify-email/resend',
   },
 
   USERS: {

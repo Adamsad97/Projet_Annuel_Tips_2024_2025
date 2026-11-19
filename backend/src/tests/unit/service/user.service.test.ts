@@ -54,6 +54,11 @@ describe('userService', () => {
         updatedAt: new Date(),
       };
       (prisma.user.create as jest.Mock).mockResolvedValue(created);
+      // Vérification d'email désactivée en test : le compte est marqué vérifié dès l'inscription
+      (prisma.user.update as jest.Mock).mockResolvedValue({
+        ...created,
+        emailVerifiedAt: new Date(),
+      });
 
       const res = await userService.register('a@x', 'pass', 'u');
       expect(res).toMatchObject({ id: 1, email: 'a@x', username: 'u' });

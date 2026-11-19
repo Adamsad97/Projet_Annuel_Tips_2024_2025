@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RegisterCredentials } from '~/types';
+import EmailVerificationNotice from '~/components/auth/EmailVerificationNotice.vue';
 
 definePageMeta({
   layout: 'auth',
@@ -17,12 +18,17 @@ const form = ref<RegisterCredentials>({
   lastname: '',
 });
 
+// Adresse à laquelle le lien d'activation a été envoyé (affiche l'encadré à la place du formulaire)
+const pendingEmail = ref<string | null>(null);
+
 const handleRegister = async () => {
   if (isLoading.value) return;
   isLoading.value = true;
-  const success = await register(form.value);
+  const result = await register(form.value);
   isLoading.value = false;
-  if (success) {
+  if (result === 'verify-email') {
+    pendingEmail.value = form.value.email.trim().toLowerCase();
+  } else if (result === 'success') {
     navigateTo('/profile');
   }
 };
@@ -63,7 +69,13 @@ const handleRegister = async () => {
           <p class="text-gray-500 dark:text-gray-400">Commencez à partager votre savoir.</p>
         </div>
 
-        <form class="space-y-6" @submit.prevent="handleRegister">
+        <EmailVerificationNotice
+          v-if="pendingEmail"
+          :email="pendingEmail"
+          title="Compte créé ! Plus qu’une étape"
+        />
+
+        <form v-else class="space-y-6" @submit.prevent="handleRegister">
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">

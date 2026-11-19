@@ -39,4 +39,17 @@ export const env = {
   VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || '',
   VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY || '',
   VAPID_SUBJECT: process.env.VAPID_SUBJECT || 'mailto:admin@example.com',
+  // Adresse du site (frontend), utilisée pour les liens envoyés par email
+  APP_URL: (
+    process.env.APP_URL ||
+    process.env.CORS_ORIGIN?.split(',')[0] ||
+    'http://localhost:3000'
+  ).replace(/\/+$/, ''),
+  // Envoi d'emails : sans SMTP_HOST, le contenu est affiché dans les logs (développement)
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: Number(process.env.SMTP_PORT) || 587,
+  SMTP_SECURE: process.env.SMTP_SECURE === 'true',
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
+  MAIL_FROM: process.env.MAIL_FROM || 'TipsTop <no-reply@tipstop.local>',
 };

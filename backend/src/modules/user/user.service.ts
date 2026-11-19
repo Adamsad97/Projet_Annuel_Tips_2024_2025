@@ -9,6 +9,11 @@ import { removeUploadedFile } from '../../utils/imageUpload.util';
 import type { ChangePasswordInput, UpdateProfileInput } from './user.validation';
 import { notificationService } from '../notifications/notification.service';
 import { badgeService } from '../badges/badge.service';
+import { logService } from '../logs/log.service';
+import {
+  emailVerificationService,
+  isEmailVerificationRequired,
+} from '../auth/emailVerification.service';
 
 // Champs jamais renvoyés au client : indice de confiance (réservé à l'admin) et secrets 2FA
 type PrivateUserFields = 'password' | 'trustIndex' | 'twoFactorSecret' | 'twoFactorBackupCodes';
@@ -62,13 +67,24 @@ export const userService = {
     }
 
     const hash = hashPassword(password);
-    const user = await userRepository.create(
+    let user = await userRepository.create(
       normalizedEmail,
       hash,
       normalizedUsername,
       firstname,
       lastname,
     );
+
+    if (isEmailVerificationRequired()) {
+      // Un échec d'envoi ne bloque pas l'inscription : le membre peut redemander l'email
+      try {
+        await emailVerificationService.send(user);
+      } catch (error) {
+        await logService.recordServerError(error, { context: { kind: 'mail', userId: user.id } });
+      }
+    } else {
+      user = await userRepository.update(user.id, { emailVerifiedAt: new Date() });
+    }
 
     return toPublicUser(user);
   },
@@ -86,6 +102,11 @@ export const userService = {
         `account banned ${formatSanctionEnd(user.bannedUntil)}${user.banReason ? ` : ${user.banReason}` : ''}`,
         403,
       );
+    }
+
+    // Vérifié après le mot de passe : un tiers ne peut pas savoir si l'adresse est confirmée
+    if (isEmailVerificationRequired() && !user.emailVerifiedAt) {
+      throw new AppError('email not verified', 403);
     }
 
     // Avec la 2FA, le mot de passe seul ne suffit pas : on renvoie un jeton temporaire

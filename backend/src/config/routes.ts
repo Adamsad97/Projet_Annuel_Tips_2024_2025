@@ -27,6 +27,8 @@ export const ROUTES = {
     base: '/auth',
     refresh: '/refresh',
     logout: '/logout',
+    verifyEmail: '/verify-email',
+    resendVerification: '/verify-email/resend',
   },
   tips: {
     base: '/tips',

@@ -2,9 +2,9 @@
 
 ## Vue d'ensemble
 
-Le backend dispose de **229 tests (37 fichiers)** repartis en deux categories :
+Le backend dispose de **232 tests (38 fichiers)** repartis en deux categories :
 - **Tests unitaires** (15 fichiers) - Testent les composants de maniere isolee
-- **Tests d'integration** (22 fichiers) - Testent les flux complets avec la base de donnees et les vraies routes HTTP
+- **Tests d'integration** (23 fichiers) - Testent les flux complets avec la base de donnees et les vraies routes HTTP
 
 ## Lancer les tests
 
@@ -45,6 +45,7 @@ src/tests/
 | Fichier | Ce qui est couvert |
 |---|---|
 | `auth` | Inscription, connexion, revocation des sessions (deconnexion, changement de mot de passe) |
+| `emailVerification` | Lien envoye a l'inscription, connexion refusee avant verification, lien expire ou deja utilise, renvoi sans divulguer les comptes |
 | `twoFactor` | Activation 2FA, connexion avec code, codes de secours, desactivation |
 | `profile` | Profil, mot de passe, avatar, profil public sans donnees privees |
 | `tips` | CRUD, images, localisation, categories, filtres, recherche par mot-cle |
@@ -114,7 +115,7 @@ Le fichier `jest.setup.ts` configure :
    }));
    ```
 
-2. **Variables d'environnement** - Charge `.env.test`, force `NODE_ENV=test` et `GAMIFICATION_ENFORCE=false`
+2. **Variables d'environnement** - Charge `.env.test`, force `NODE_ENV=test`, `GAMIFICATION_ENFORCE=false` et `EMAIL_VERIFICATION=false` (comptes actifs des l'inscription ; la verification est testee dans `emailVerification.integration.test.ts`)
 
 Aucun reset automatique de la base : le schema est applique avant les tests (`prisma migrate deploy`, fait par `npm run backend:test` et par la CI), et chaque fichier nettoie ses propres donnees.
 

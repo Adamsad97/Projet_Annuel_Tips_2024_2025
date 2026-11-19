@@ -228,6 +228,7 @@ async function main() {
       lastname: 'Principal',
       email: 'admin@tipstop.com',
       password: hashPassword('Admin123!'),
+      emailVerifiedAt: new Date(), // comptes de démonstration déjà vérifiés
       xp: 10000,
       gradeId: grades[5].id, // Légende
     },
@@ -249,6 +250,7 @@ async function main() {
       lastname: 'Actif',
       email: 'moderator@tipstop.com',
       password: hashPassword('Modo123!'),
+      emailVerifiedAt: new Date(), // comptes de démonstration déjà vérifiés
       xp: 1500,
       gradeId: grades[4].id, // Maître
     },
@@ -271,6 +273,7 @@ async function main() {
         lastname: 'Martin',
         email: 'alice@example.com',
         password: hashPassword('Alice123!'),
+        emailVerifiedAt: new Date(), // comptes de démonstration déjà vérifiés
         xp: 250,
         gradeId: grades[2].id, // Confirmé
       },
@@ -284,6 +287,7 @@ async function main() {
         lastname: 'Durant',
         email: 'bob@example.com',
         password: hashPassword('Bob123!'),
+        emailVerifiedAt: new Date(), // comptes de démonstration déjà vérifiés
         xp: 75,
         gradeId: grades[1].id, // Apprenti
       },
@@ -297,6 +301,7 @@ async function main() {
         lastname: 'Dubois',
         email: 'charlie@example.com',
         password: hashPassword('Charlie123!'),
+        emailVerifiedAt: new Date(), // comptes de démonstration déjà vérifiés
         xp: 15,
         gradeId: grades[0].id, // Débutant
       },

@@ -30,7 +30,11 @@ export class UserController {
   register = async (req: Request<unknown, unknown, RegisterBody>, res: Response) => {
     const { email, password, username, firstname, lastname } = req.body;
     const user = await userService.register(email, password, username, firstname, lastname);
-    res.status(201).json({ success: true, data: user });
+    // Le frontend affiche « vérifiez votre boîte mail » au lieu de connecter directement
+    res.status(201).json({
+      success: true,
+      data: { ...user, emailVerificationRequired: !user.emailVerifiedAt },
+    });
   };
 
   login = async (req: Request<unknown, unknown, LoginBody>, res: Response, next: NextFunction) => {

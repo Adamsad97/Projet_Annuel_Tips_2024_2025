@@ -1,9 +1,11 @@
+import type { FetchError } from 'ofetch';
 import type {
   User,
   LoginCredentials,
   RegisterCredentials,
   LoginResponse,
   LoginResult,
+  RegisterResult,
   TwoFactorChallenge,
 } from '~/types/auth';
 import { useAuthStore } from '~/stores/auth';
@@ -36,7 +38,7 @@ export function useAuth() {
       const response = await api.post<LoginResponse | TwoFactorChallenge>(
         API_ROUTES.USERS.LOGIN,
         credentials,
-        { skipAuth: true },
+        { skipAuth: true, showErrorToast: false },
       );
 
       if ('twoFactorRequired' in response) {
@@ -50,7 +52,41 @@ export function useAuth() {
       if (import.meta.dev) {
         console.error('[auth] login error:', error);
       }
+      // Pas de toast d'erreur : la page de connexion propose de renvoyer l'email
+      const fetchError = error as FetchError<{ message?: string }>;
+      if (fetchError.statusCode === 403 && fetchError.data?.message === 'email not verified') {
+        return 'email-not-verified';
+      }
+      toast.apiError(fetchError);
       return 'error';
+    }
+  }
+
+  // Lien reçu par email (page /auth/verify-email)
+  async function verifyEmail(token: string): Promise<boolean> {
+    try {
+      await api.post(
+        API_ROUTES.AUTH.VERIFY_EMAIL,
+        { token },
+        { skipAuth: true, showErrorToast: false },
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // L'API répond pareil que le compte existe ou non : le message reste volontairement neutre
+  async function resendVerificationEmail(email: string): Promise<boolean> {
+    try {
+      await api.post(API_ROUTES.AUTH.RESEND_VERIFICATION, { email }, { skipAuth: true });
+      toast.success(
+        'Si ce compte existe et n’est pas encore activé, un nouvel email vient d’être envoyé.',
+        'Email envoyé',
+      );
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -78,28 +114,29 @@ export function useAuth() {
     twoFactorToken.value = null;
   }
 
-  async function register(credentials: RegisterCredentials): Promise<boolean> {
+  async function register(credentials: RegisterCredentials): Promise<RegisterResult> {
     try {
-      await api.post<User>(API_ROUTES.USERS.REGISTER, credentials, { skipAuth: true });
+      const created = await api.post<User & { emailVerificationRequired?: boolean }>(
+        API_ROUTES.USERS.REGISTER,
+        credentials,
+        { skipAuth: true },
+      );
+
+      // Compte à activer : la page d'inscription affiche « vérifiez votre boîte mail »
+      if (created.emailVerificationRequired) {
+        return 'verify-email';
+      }
 
       toast.success('Inscription réussie ! Connexion en cours...', 'Bienvenue');
 
-      if (import.meta.dev) {
-        console.log('[auth] register ok, auto-login');
-      }
-
       // Un compte qui vient d'être créé n'a pas encore de 2FA
-      return (
-        (await login({
-          email: credentials.email,
-          password: credentials.password,
-        })) === 'success'
-      );
+      const result = await login({ email: credentials.email, password: credentials.password });
+      return result === 'success' ? 'success' : 'error';
     } catch (error) {
       if (import.meta.dev) {
         console.error('[auth] register error:', error);
       }
-      return false;
+      return 'error';
     }
   }
 
@@ -154,6 +191,8 @@ export function useAuth() {
     verifyTwoFactor,
     cancelTwoFactor,
     register,
+    verifyEmail,
+    resendVerificationEmail,
     logout,
     getProfile,
   };

@@ -26,6 +26,8 @@ model User {
   twoFactorSecret      String?
   // Codes de secours hachés, chacun utilisable une seule fois
   twoFactorBackupCodes String[]  @default([])
+  // Renseigné quand le membre a cliqué sur le lien reçu par email ; connexion refusée avant
+  emailVerifiedAt      DateTime?
   // Incrémenté à la déconnexion et au changement de mot de passe : invalide les refresh tokens déjà émis
   tokenVersion         Int       @default(0)
   createdAt           DateTime  @default(now())
@@ -59,6 +61,7 @@ model User {
   notifications  Notification[]
   pushSubscriptions PushSubscription[]
   sessions          UserSession[]
+  emailVerificationTokens EmailVerificationToken[]
   categoryFollows CategoryFollow[]
   chatbotQueries  ChatbotQuery[]
   challengeRewards ChallengeReward[]
@@ -75,4 +78,18 @@ model UserSession {
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, lastSeenAt])
+}
+
+// Lien de vérification envoyé par email. Seul le hash SHA-256 du jeton est stocké :
+// une fuite de la base ne permet pas de valider un compte.
+model EmailVerificationToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

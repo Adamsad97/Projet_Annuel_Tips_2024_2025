@@ -107,6 +107,7 @@ Si de nouvelles dépendances ont été ajoutées : `npm run install:all` puis `n
 | API | http://localhost:3001/api |
 | Health check | http://localhost:3001/api/ping |
 | Adminer (BDD) | http://localhost:8080 (serveur `postgres`, identifiants dans `backend/.env`) |
+| Mailpit (emails de dev) | http://localhost:8026 : liens de vérification d'inscription, aucun email réel n'est envoyé |
 
 ### Comptes de test
 
@@ -145,6 +146,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 - `NODE_ENV=production`
 - `JWT_SECRET=` le premier secret, `REFRESH_SECRET=` le second.
 - Notifications push : `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (générées avec `npx web-push generate-vapid-keys`, différentes de celles de dev) et `VAPID_SUBJECT=mailto:` + une adresse de contact. Le site doit être servi en HTTPS.
+- Emails (vérification d'inscription) : `APP_URL` = adresse publique du site, `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `MAIL_FROM` du fournisseur d'emails. Sans SMTP, aucun email ne part et les nouveaux membres ne peuvent pas activer leur compte.
 
 Garder les autres lignes. L'API refuse de démarrer en production avec les secrets d'exemple (`change_me…`).
 

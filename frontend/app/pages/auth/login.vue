@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { LoginCredentials } from '~/types';
+import EmailVerificationNotice from '~/components/auth/EmailVerificationNotice.vue';
 
 definePageMeta({
   layout: 'auth',
@@ -22,8 +23,12 @@ const redirectTarget = computed(() => {
     : '/profile';
 });
 
+// Compte pas encore activé : on propose de renvoyer le lien à cette adresse
+const unverifiedEmail = ref<string | null>(null);
+
 const handleLogin = async () => {
   isLoading.value = true;
+  unverifiedEmail.value = null;
   const result = await login(form.value);
   isLoading.value = false;
 
@@ -31,6 +36,8 @@ const handleLogin = async () => {
     navigateTo(redirectTarget.value);
   } else if (result === 'two-factor') {
     step.value = 'two-factor';
+  } else if (result === 'email-not-verified') {
+    unverifiedEmail.value = form.value.email.trim().toLowerCase();
   }
 };
 
@@ -126,6 +133,13 @@ const backToCredentials = () => {
             <h1 class="text-3xl font-black text-slate-900 dark:text-white">Bon retour !</h1>
             <p class="text-gray-500 dark:text-gray-400">Connectez-vous pour partager vos tips.</p>
           </div>
+
+          <EmailVerificationNotice
+            v-if="unverifiedEmail"
+            :key="unverifiedEmail"
+            :email="unverifiedEmail"
+            title="Votre compte n’est pas encore activé"
+          />
 
           <form class="space-y-6" @submit.prevent="handleLogin">
             <div class="space-y-4">
