@@ -15,7 +15,7 @@ export interface PendingTip {
     id: number;
     firstname: string | null;
     lastname: string | null;
-    email: string;
+    username: string;
     avatarProfile: string | null;
   };
   categories: Array<{
@@ -26,13 +26,26 @@ export interface PendingTip {
   }>;
 }
 
+// Identité publique (pas d'email) renvoyée dans les données de modération
+export interface ModerationMember {
+  id: number;
+  username: string;
+  firstname: string | null;
+  lastname: string | null;
+  avatarProfile: string | null;
+}
+
+// Signalement ouvert renvoyé par GET /moderation/reports, avec le contenu visé
 export interface Report {
   id: number;
   reason: string;
-  createdAt: Date;
-  tipId?: number;
-  commentId?: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+  tipId: number | null;
+  commentId: number | null;
+  status: 'OPEN' | 'REVIEWED' | 'RESOLVED' | 'REJECTED';
+  user: ModerationMember;
+  tip: { id: number; title: string; content: string | null; user: ModerationMember } | null;
+  comment: { id: number; content: string; tipId: number; user: ModerationMember } | null;
 }
 
 export type ReportAction = 'APPROVE' | 'REJECT';

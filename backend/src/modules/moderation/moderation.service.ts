@@ -233,7 +233,7 @@ export class ModerationService {
             id: true,
             firstname: true,
             lastname: true,
-            email: true,
+            username: true,
             avatarProfile: true,
           },
         },
